@@ -1,0 +1,21 @@
+{
+  "shows": {
+    "databricks-shorts": {
+      "title": "DatabricksShorts",
+      "docs": [
+        {
+          "episode": "ep001",
+          "title": "メダリオンアーキテクチャは固定機能なのか",
+          "file": "databricks-shorts/medallion-architecture.html"
+        },
+        {
+          "episode": "ep002",
+          "title": "データエンジニア・アナリスト・サイエンティストの違い",
+          "file": "databricks-shorts/data-roles.html"
+        }
+      ],
+      "subtitle": "Databricks の1トピックを数分で整理する短い回"
+    }
+  },
+  "updated_at": "2026-08-06"
+}

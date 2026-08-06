@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>osmosis — 資料</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --paper:#F6F7F9; --surface:#FFF; --ink:#15181E; --muted:#5C6470;
+  --faint:#8A929E; --rule:#E2E5EA; --accent:#26418F;
+  --f-display:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",Georgia,serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  --f-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#12141A; --surface:#181B22; --ink:#E6E8EC; --muted:#9AA2AF;
+         --faint:#6C7481; --rule:#262A33; --accent:#94A9F0; }
+}
+*,*::before,*::after{ box-sizing:border-box }
+body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+      font-size:15px; line-height:1.9; font-feature-settings:"palt" 1; }
+.wrap{ max-width:56rem; margin:0 auto; padding:3rem 1.5rem 4.5rem }
+.eyebrow{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.16em;
+          text-transform:uppercase; color:var(--faint); margin-bottom:.75rem }
+h1{ font-family:var(--f-display); font-size:2.25rem; font-weight:600; line-height:1.35;
+    margin:0 0 .75rem }
+.lede{ color:var(--muted); margin:0; max-width:60ch }
+.rule{ height:2px; background:var(--ink); width:3.5rem; margin:1.5rem 0 0 }
+h2{ font-size:1.25rem; font-weight:650; margin:3rem 0 .25rem }
+h2 .sub{ display:block; font-size:.8125rem; font-weight:400; color:var(--muted); margin-top:.25rem }
+ul{ list-style:none; margin:1rem 0 0; padding:0; border-top:1px solid var(--rule) }
+li{ border-bottom:1px solid var(--rule) }
+li a{ display:grid; grid-template-columns:5rem minmax(0,1fr); gap:1rem; align-items:baseline;
+      padding:.75rem .25rem; color:inherit; text-decoration:none }
+li a:hover{ background:var(--surface) }
+li a:hover .t{ color:var(--accent); text-decoration:underline; text-underline-offset:.2em }
+.ep{ font-family:var(--f-mono); font-size:.75rem; color:var(--faint) }
+.t{ font-weight:600 }
+footer{ margin-top:4rem; padding-top:1rem; border-top:1px solid var(--rule);
+        font-size:.75rem; color:var(--faint) }
+@media (max-width:34rem){ li a{ grid-template-columns:1fr; gap:.1rem } }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="eyebrow"><span>osmosis</span></div>
+      <h1>資料</h1>
+      <p class="lede">
+        各回の台本の元になったドキュメントです。1ファイルで完結しているので、
+        保存すればオフラインでも読めます。
+      </p>
+      <div class="rule"></div>
+    </header>
+
+      <h2>DatabricksShorts<span class="sub">Databricks の1トピックを数分で整理する短い回</span></h2>
+      <ul>
+        <li><a href="databricks-shorts/medallion-architecture.html"><span class="ep">ep001</span><span class="t">メダリオンアーキテクチャは固定機能なのか</span></a></li>
+        <li><a href="databricks-shorts/data-roles.html"><span class="ep">ep002</span><span class="t">データエンジニア・アナリスト・サイエンティストの違い</span></a></li>
+      </ul>
+
+    <footer>2 件 / 更新 2026-08-06</footer>
+  </div>
+</body>
+</html>
