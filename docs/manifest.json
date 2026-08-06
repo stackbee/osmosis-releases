@@ -12,6 +12,11 @@
           "episode": "ep002",
           "title": "データエンジニア・アナリスト・サイエンティストの違い",
           "file": "databricks-shorts/data-roles.html"
+        },
+        {
+          "episode": "ep003",
+          "title": "データリネージュとは",
+          "file": "databricks-shorts/data-lineage.html"
         }
       ],
       "subtitle": "Databricks の1トピックを数分で整理する短い回"
