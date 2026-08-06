@@ -1,0 +1,1622 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>データの取り込み — Databricks DE Associate</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 7. 追記：コードブロック ------------------------------ */
+.scroll-x > pre{
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  font-family: var(--f-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.75;
+  letter-spacing: 0;
+}
+.scroll-x > pre code{ font-size: inherit; }
+@media print{ .scroll-x > pre{ white-space: pre-wrap; } }
+
+/* --- 8. 追記：確認問題（答えは畳んでおく） ----------------- */
+.qa{ margin: var(--sp-4) 0; }
+.qa > li{
+  border-top: 1px solid var(--rule);
+  padding: var(--sp-3) 0 var(--sp-2);
+  list-style: none;
+}
+.qa > li:last-child{ border-bottom: 1px solid var(--rule); }
+.qa .q{ margin: 0 0 var(--sp-2); }
+.qa .q b{
+  font-family: var(--f-mono); font-size: var(--fs-xs);
+  color: var(--faint); margin-right: .6em; letter-spacing: .06em;
+}
+.qa details{ font-size: var(--fs-sm); }
+.qa summary{
+  cursor: pointer; color: var(--accent-ink);
+  font-size: var(--fs-xs); letter-spacing: .04em;
+  list-style: none; display: inline-block;
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .1rem .55rem;
+}
+.qa summary::-webkit-details-marker{ display: none; }
+.qa details[open] summary{ margin-bottom: var(--sp-2); }
+.qa .a{ color: var(--muted); margin: 0; padding-left: var(--sp-3);
+        border-left: 2px solid var(--rule-bold); }
+@media print{ .qa details{ } .qa summary{ display: none; } }
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">Databricks DE Associate</div>
+    <p class="rail-title">データの取り込み<br>COPY INTO / Auto Loader / Connect</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-map"><span class="dot" data-status="active"></span><span>全体像 — まず二分する</span></a></li>
+        <li><a href="#sec-copyinto"><span class="dot" data-status="new"></span><span>COPY INTO</span></a></li>
+        <li><a href="#sec-autoloader"><span class="dot" data-status="active"></span><span>Auto Loader</span></a></li>
+        <li><a href="#sec-detect"><span class="dot" data-status="new"></span><span>ファイル検出方式</span></a></li>
+        <li><a href="#sec-connect"><span class="dot" data-status="new"></span><span>Lakeflow Connect と JDBC/REST</span></a></li>
+        <li><a href="#sec-semistructured"><span class="dot" data-status="new"></span><span>半構造化データの取り込み</span></a></li>
+        <li><a href="#sec-flow"><span class="dot" data-status="ship"></span><span>取り込み方式の選択フロー</span></a></li>
+        <li><a href="#sec-choose"><span class="dot" data-status="ship"></span><span>【判別】どれを選ぶか</span></a></li>
+        <li><a href="#sec-myths"><span class="dot" data-status="active"></span><span>よくある誤解</span></a></li>
+        <li><a href="#sec-quiz"><span class="dot" data-status="ship"></span><span>確認問題</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/OJw-Lsll0qc" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/OJw-Lsll0qc" rel="noopener">▶ 動画で見る</a></span>
+          <span>ドメイン 2 / Data Ingestion and Loading</span>
+          <span class="num">2026-08-05 時点</span>
+        </div>
+        <h1>データの取り込み</h1>
+        <p class="lede">データが入ってくるところです。道具は4つありますが、覚えるべきは個々の仕様より「どれを選ぶか」の判断です。ガイド自身が objective に <em>Prioritize between…</em> と書いているため、選ばせる問題が来ると読めます。</p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-map" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>全体像 — まず二分する<span class="tag">ファイルが置かれる側か、接続して取りにいく側か</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>取り込み元は2種類しかありません。<strong>最初にここで半分に絞る</strong>と、以降の判断が楽になります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>取り込み元</th><th>性質</th><th>使う道具</th></tr></thead><tbody><tr><td>クラウドオブジェクトストレージ<br>（S3 / ADLS / GCS）</td><td>誰かがファイルを置いていく。拾いにいく</td><td><strong>COPY INTO</strong> / <strong>Auto Loader</strong></td></tr><tr><td>企業システム<br>（SaaS / DB / 業務アプリ）</td><td>ファイルにならない。接続して取りにいく</td><td><strong>Lakeflow Connect</strong> / JDBC・REST</td></tr></tbody></table></div>
+
+          <h3>取り込みパターンは3つ、問われるのは1つ</h3>
+          <p>取り込みのパターンは バッチ / インクリメンタル / ストリーミング の3つですが、
+          <strong>試験で問われるのはインクリメンタル</strong>です。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>パターン</th><th>やること</th><th>例</th><th>試験での比重</th></tr></thead><tbody><tr><td>バッチ</td><td>決まったタイミングで、まとまった量を一度に取り込む</td><td>毎晩、前日分の全件を読む</td><td>低い（単純だから）</td></tr><tr><td><strong>インクリメンタル</strong></td><td><strong>前回からの差分だけ</strong>を取り込む</td><td>まだ処理していないファイルだけを読む</td><td><strong>ここが中心</strong></td></tr><tr><td>ストリーミング</td><td>到着したそばから連続的に処理する</td><td>イベントが届くたびに処理する</td><td>中くらい</td></tr></tbody></table></div>
+
+          <p>比重が偏る理由は単純です。バッチは「全部読めばいい」ので迷いません。
+          ストリーミングも「来たものを処理する」で一貫しています。
+          難しいのはインクリメンタルだけです。
+          「前回からの差分だけ」を実現するには<strong>どこまで処理したかを覚えておく</strong>必要があり、
+          さらに<strong>同じデータを二度取り込まない</strong>ことを保証しなければなりません。
+          そして、その実現方法が道具ごとに違います。だから問題になります。</p>
+
+          <p>ですので、このドメインを学ぶときの視点は1つに絞れます。
+          <strong>「この道具は、二重取り込みをどうやって防いでいるのか」</strong>。
+          これが評価の中心軸です。</p>
+
+          <h3>道具は4つ</h3>
+          <div class="scroll-x"><table><thead><tr><th>道具</th><th>何者か</th><th>書く言語</th><th>増分の持ち方</th></tr></thead><tbody><tr><td><strong>COPY INTO</strong></td><td>SQL でファイルを増分ロードするコマンド</td><td>SQL</td><td>読んだファイル名を記録</td></tr><tr><td><strong>Auto Loader</strong></td><td>新着ファイルを継続的に検出するストリーミングソース</td><td>Python / Scala</td><td>チェックポイント</td></tr><tr><td><strong>Lakeflow Connect</strong></td><td>SaaS・DB に接続する取り込みコネクタ</td><td>設定（managed）</td><td>コネクタが面倒を見る</td></tr><tr><td><strong>JDBC / ODBC / REST</strong></td><td>汎用の接続手段。ノートブックから直接叩く</td><td>Python / SQL</td><td><strong>自分で作る</strong></td></tr></tbody></table></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 238" role="img" aria-label="ストレージ上のファイル・SaaS や業務DB・独自APIという3つの入力から、COPY INTO / Auto Loader / Lakeflow Connect / JDBC の各方式を経て、すべてが Unity Catalog 配下の Bronze に着地することを示す図">
+              <defs>
+                <marker id="i1-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="i1-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="i1-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <text x="8" y="18" class="d-t-mono">入力の性質で入口が決まる</text>
+
+              <rect x="8"   y="30"  width="180" height="46" rx="2" class="d-box"/>
+              <text x="98"  y="50"  class="d-t"    text-anchor="middle">ストレージにファイル</text>
+              <text x="98"  y="67"  class="d-t-sm" text-anchor="middle">CSV / JSON / Parquet が置かれる</text>
+
+              <rect x="8"   y="90"  width="180" height="46" rx="2" class="d-box"/>
+              <text x="98"  y="110" class="d-t"    text-anchor="middle">SaaS / 業務 DB</text>
+              <text x="98"  y="127" class="d-t-sm" text-anchor="middle">Salesforce / SQL Server</text>
+
+              <rect x="8"   y="150" width="180" height="46" rx="2" class="d-box"/>
+              <text x="98"  y="170" class="d-t"    text-anchor="middle">独自 API</text>
+              <text x="98"  y="187" class="d-t-sm" text-anchor="middle">コネクタが無い</text>
+
+              <path d="M194,44  H240 V30 H286" class="d-line-acc" marker-end="url(#i1-ar-acc)"/>
+              <path d="M194,62  H240 V86 H286" class="d-line-acc" marker-end="url(#i1-ar-acc)"/>
+              <path d="M194,113 H286" class="d-line" marker-end="url(#i1-ar)"/>
+              <path d="M194,173 H286" class="d-line" marker-end="url(#i1-ar)"/>
+
+              <rect x="292" y="14"  width="180" height="40" rx="2" class="d-box-acc"/>
+              <text x="382" y="32"  class="d-t"    text-anchor="middle">COPY INTO</text>
+              <text x="382" y="48"  class="d-t-sm" text-anchor="middle">SQL だけ・冪等</text>
+
+              <rect x="292" y="70"  width="180" height="40" rx="2" class="d-box-acc"/>
+              <text x="382" y="88"  class="d-t"    text-anchor="middle">Auto Loader</text>
+              <text x="382" y="104" class="d-t-sm" text-anchor="middle">大量ファイルの検出に強い</text>
+
+              <rect x="292" y="126" width="180" height="40" rx="2" class="d-box"/>
+              <text x="382" y="144" class="d-t"    text-anchor="middle">Lakeflow Connect</text>
+              <text x="382" y="160" class="d-t-sm" text-anchor="middle">managed / standard</text>
+
+              <rect x="292" y="182" width="180" height="40" rx="2" class="d-box"/>
+              <text x="382" y="200" class="d-t"    text-anchor="middle">JDBC / REST</text>
+              <text x="382" y="216" class="d-t-sm" text-anchor="middle">自分で書く</text>
+
+              <path d="M478,34  H520 V110 H562" class="d-line" marker-end="url(#i1-ar)"/>
+              <path d="M478,90  H520 V110 H562" class="d-line" marker-end="url(#i1-ar)"/>
+              <path d="M478,146 H520 V110 H562" class="d-line" marker-end="url(#i1-ar)"/>
+              <path d="M478,202 H520 V110 H562" class="d-line" marker-end="url(#i1-ar)"/>
+
+              <rect x="568" y="84"  width="144" height="52" rx="2" class="d-box-ship"/>
+              <text x="640" y="106" class="d-t"    text-anchor="middle">Bronze</text>
+              <text x="640" y="124" class="d-t-sm" text-anchor="middle">Unity Catalog 配下</text>
+            </svg>
+            <figcaption><strong>入口は分かれますが、着地は必ず1つです。</strong>どの方式を選んでも Unity Catalog の管理下に入ります。だからガバナンスは選択の軸になりません——「UC を外して速くする」という選択肢は常に誤答です。分岐を決めるのは入力の性質だけ。ファイルなのか、業務システムなのか、コネクタが無いのか、で振り分けます。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">着地先は常に Unity Catalog</p>
+            <p>ガイドの ingestion objective は、ほぼすべてが
+            <em>…into Unity-Catalog–governed tables</em> で終わっています。
+            COPY INTO の項目も、Auto Loader の項目も、Lakeflow Connect の項目も、JDBC の項目も、全部そう書かれています。
+            つまり「どこに置くか」で悩ませる問題は出ません。問われるのは<strong>どう運ぶか</strong>だけです。</p>
+            <p>ここから実践的な読み方が1つ導けます。<strong>選択肢に「UC 管理外に置く」ものが混ざっていたら、ほぼ誤答</strong>。
+            ガバナンスを外す方向の選択肢は、この試験では選ばれません。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-copyinto" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>COPY INTO<span class="tag">SQL だけで完結する、冪等な増分ロード</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ガイドの記述はこうです。
+          <em>Incrementally load files from cloud object storage (ADLS, S3, GCS) into
+          Unity-Catalog–governed tables using the COPY INTO command.</em>
+          キーワードは <strong>incrementally（増分）</strong> です。</p>
+
+          <div class="scroll-x"><pre><code>COPY INTO prod.bronze.orders
+FROM 's3://landing/orders/'
+FILEFORMAT = CSV
+FORMAT_OPTIONS ('header' = 'true')
+COPY_OPTIONS  ('mergeSchema' = 'true');</code></pre></div>
+
+          <p>ディレクトリを指定していますが、<strong>毎回まるごと読み直すわけではありません</strong>。
+          読んだファイル名を記録しており、実行のたびに照合して<strong>未読のファイルだけ</strong>を読みます。
+          ここが COPY INTO のいちばん大事な性質です。</p>
+
+          <h3>冪等性の仕組み — 記録と照合</h3>
+          <p>「まだ読んでいないファイル」をどう判定しているか。記録しているだけです。順を追うとこうなります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>タイミング</th><th>ディレクトリの中身</th><th>COPY INTO の動き</th><th>取り込まれるもの</th></tr></thead><tbody><tr><td>1回目</td><td>file_A / file_B</td><td>2つとも読み、「読んだ」と記録する</td><td>file_A / file_B</td></tr><tr><td>（file_C が置かれる）</td><td>file_A / file_B / file_C</td><td>—</td><td>—</td></tr><tr><td>2回目</td><td>file_A / file_B / file_C</td><td>A・B は記録にあるのでスキップ。C だけ未読と判定</td><td><strong>file_C のみ</strong></td></tr><tr><td>3回目<br>（新着なし）</td><td>file_A / file_B / file_C</td><td>全部が記録にある。何も読まない</td><td><strong>なし</strong></td></tr></tbody></table></div>
+
+          <p>この性質を冪等（べきとう）と呼びます。同じ状態で2回実行してもデータが二重になりません。
+          実運用では、これが<strong>リトライ</strong>に効きます。
+          冪等でなければ、ジョブが失敗したときに「どこまで処理したか」を人間が確認しなければなりません。
+          冪等であれば、原因を直してそのまま再実行するだけで済みます。
+          <a href="04-jobs-cicd.html">Jobs のリトライ設定</a>が意味を持つのも、取り込みが冪等であることが前提だからです。</p>
+
+          <h3>構文の骨格</h3>
+          <div class="scroll-x"><pre><code>COPY INTO &lt;catalog&gt;.&lt;schema&gt;.&lt;table&gt;
+FROM '&lt;cloud-storage-path&gt;'
+FILEFORMAT = &lt;CSV | JSON | PARQUET | AVRO | ORC | TEXT | BINARYFILE&gt;
+FORMAT_OPTIONS ('key' = 'value', ...)   -- ファイルをどう解釈するか
+COPY_OPTIONS   ('key' = 'value', ...);  -- コマンドがどう振る舞うか</code></pre></div>
+
+          <div class="scroll-x"><table><thead><tr><th>FILEFORMAT</th><th>中身</th><th>型の情報</th></tr></thead><tbody><tr><td><code>CSV</code></td><td>テキストの表形式</td><td><strong>持たない</strong>。オプションで補う</td></tr><tr><td><code>JSON</code></td><td>半構造化。ネストしうる</td><td>弱い。既定では string 寄り</td></tr><tr><td><code>PARQUET</code></td><td>列指向のバイナリ</td><td><strong>ファイル自身が持つ</strong></td></tr><tr><td><code>AVRO</code></td><td>行指向のバイナリ</td><td>スキーマを同梱する</td></tr><tr><td><code>ORC</code></td><td>列指向のバイナリ</td><td>ファイル自身が持つ</td></tr><tr><td><code>TEXT</code></td><td>1行＝1レコードの生テキスト</td><td>無し（1列として読む）</td></tr><tr><td><code>BINARYFILE</code></td><td>ファイルをそのままバイナリで</td><td>無し（画像・PDF 等）</td></tr></tbody></table></div>
+
+          <h3>2種類のオプションを区別する</h3>
+          <div class="scroll-x"><table><thead><tr><th>句</th><th>役割</th><th>覚え方</th></tr></thead><tbody><tr><td><code>FORMAT_OPTIONS</code></td><td>ヘッダの有無、区切り文字、スキーマ推論</td><td><strong>ファイル側</strong>の話：どう解釈するか</td></tr><tr><td><code>COPY_OPTIONS</code></td><td>スキーマ追随、強制再読込</td><td><strong>コマンド側</strong>の話：どう振る舞うか</td></tr></tbody></table></div>
+
+          <p>名前が似ているので混ざりますが、<strong>FORMAT はファイル側、COPY はコマンド側</strong>と覚えれば分かれます。</p>
+
+          <h4>FORMAT_OPTIONS の代表例</h4>
+          <div class="scroll-x"><table><thead><tr><th>オプション</th><th>対象</th><th>意味</th></tr></thead><tbody><tr><td><code>'header' = 'true'</code></td><td>CSV</td><td>1行目を列名として扱う</td></tr><tr><td><code>'delimiter' = '|'</code><br><code>'sep' = '|'</code></td><td>CSV</td><td>区切り文字を変える（既定はカンマ）</td></tr><tr><td><code>'inferSchema' = 'true'</code></td><td>CSV / JSON</td><td>型を推論させる。指定しないと文字列寄りに倒れる</td></tr><tr><td><code>'multiLine' = 'true'</code></td><td>CSV / JSON</td><td>1レコードが複数行にまたがる形式を読む</td></tr><tr><td><code>'nullValue' = 'NULL'</code></td><td>CSV</td><td>この文字列を NULL として扱う</td></tr><tr><td><code>'escape' = '&quot;'</code></td><td>CSV</td><td>引用符のエスケープ文字</td></tr><tr><td><code>'encoding' = 'SJIS'</code></td><td>CSV / JSON</td><td>文字コードを指定する</td></tr><tr><td><code>'mergeSchema' = 'true'</code></td><td>PARQUET 等</td><td><strong>ファイル群の間で</strong>スキーマを突き合わせる（COPY_OPTIONS の同名とは別物）</td></tr></tbody></table></div>
+
+          <h4>COPY_OPTIONS は2つだけ覚える</h4>
+          <div class="scroll-x"><table><thead><tr><th>COPY_OPTIONS</th><th>挙動</th><th>使う場面</th></tr></thead><tbody><tr><td><code>mergeSchema = true</code></td><td>新しい列が来たら、テーブルに列を足して取り込む</td><td>取り込み元に列が増えることがある</td></tr><tr><td><code>force = true</code></td><td><strong>読み済みの記録を無視して全部読み直す</strong></td><td>テストのやり直しなど。冪等性を意図的に外すスイッチ</td></tr></tbody></table></div>
+
+          <p><code>force</code> がなぜ用意されているのか。
+          たとえば取り込んだあとに変換ロジックのバグが見つかり、テーブルを作り直して最初から入れ直したい——
+          こういうときに使います。<strong>冪等性を外すためのスイッチ</strong>だと理解しておくと、
+          「通常は使わないもの」という位置づけがはっきりします。</p>
+
+          <div class="scroll-x"><pre><code>-- 列が増えることがある CSV を、ヘッダ付きで増分ロードする
+COPY INTO prod.bronze.orders
+FROM 's3://landing/orders/'
+FILEFORMAT = CSV
+FORMAT_OPTIONS ('header' = 'true', 'inferSchema' = 'true')
+COPY_OPTIONS  ('mergeSchema' = 'true');
+
+-- テーブルを作り直したので、記録を無視して全部読み直す（例外的な操作）
+COPY INTO prod.bronze.orders
+FROM 's3://landing/orders/'
+FILEFORMAT = CSV
+FORMAT_OPTIONS ('header' = 'true')
+COPY_OPTIONS  ('force' = 'true');</code></pre></div>
+
+          <h3>得意と不得意</h3>
+          <div class="scroll-x"><table><thead><tr><th>向いている</th><th>向いていない</th></tr></thead><tbody><tr><td>SQL だけで完結させたい</td><td>ファイルが数百万規模ある</td></tr><tr><td>ファイル数が数千規模まで</td><td>到着のたびに継続的に処理したい</td></tr><tr><td>決まった時刻にまとめて流す</td><td>ディレクトリの一覧そのものが重い</td></tr><tr><td>リトライ可能にしたい</td><td>低遅延にしたい</td></tr></tbody></table></div>
+
+          <p class="note">規模が大きくなると何が起きるか。
+          <strong>「どのファイルが未読か」を調べること自体が重く</strong>なります。
+          COPY INTO はディレクトリを一覧して記録と照合します。数千なら一瞬ですが、数百万あると
+          一覧するだけで時間もお金もかかり、しかもそれを実行のたびに繰り返します。
+          この問題を設計で解いたのが、次の Auto Loader です。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-autoloader" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Auto Loader<span class="tag">数百万ファイルでも未読だけを取り出せる仕組み</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <div class="scroll-x"><pre><code>(spark.readStream
+  .format("cloudFiles")                        # ← これが Auto Loader
+  .option("cloudFiles.format", "json")
+  .option("cloudFiles.schemaLocation", "/chk/orders/schema")
+  .load("s3://landing/orders/")
+ .writeStream
+  .option("checkpointLocation", "/chk/orders")  # ← 進捗の記録先
+  .trigger(availableNow=True)
+  .toTable("prod.bronze.orders"))</code></pre></div>
+
+          <p><code>format("cloudFiles")</code> と書いた時点で Auto Loader です。
+          それ以外は通常の Structured Streaming の書き方そのもので、
+          <strong>Auto Loader は Structured Streaming のデータソースの1つ</strong>にすぎません。
+          まったく新しい仕組みではなく、「ファイルの取り込みに特化したソース」と理解しておくと、頭の整理が楽になります。</p>
+
+          <h3>主要オプション一覧</h3>
+          <p><code>cloudFiles.</code> で始まるものが Auto Loader 固有、それ以外は Structured Streaming 共通です。
+          この切り分けができると、オプション名を丸暗記しなくても意味が推測できます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>オプション</th><th>所属</th><th>役割</th></tr></thead><tbody><tr><td><code>cloudFiles.format</code></td><td>Auto Loader</td><td>元ファイルの形式（json / csv / parquet / avro / text / binaryFile）</td></tr><tr><td><code>cloudFiles.schemaLocation</code></td><td>Auto Loader</td><td>推論したスキーマの保存先。<strong>形の記録</strong></td></tr><tr><td><code>cloudFiles.schemaEvolutionMode</code></td><td>Auto Loader</td><td>新しい列が来たときの振る舞い（後述）</td></tr><tr><td><code>cloudFiles.inferColumnTypes</code></td><td>Auto Loader</td><td>true にすると実際の型を推論する（既定は string 寄り）</td></tr><tr><td><code>cloudFiles.schemaHints</code></td><td>Auto Loader</td><td>一部の列だけ型を指定する。残りは推論に任せる</td></tr><tr><td><code>cloudFiles.useNotifications</code></td><td>Auto Loader</td><td>true で file notification 方式に切り替える</td></tr><tr><td><code>cloudFiles.includeExistingFiles</code></td><td>Auto Loader</td><td>開始時点で既に置かれているファイルを含めるか（既定 true）</td></tr><tr><td><code>cloudFiles.maxFilesPerTrigger</code></td><td>Auto Loader</td><td>1回のマイクロバッチで扱うファイル数の上限。流量を絞る</td></tr><tr><td><code>checkpointLocation</code></td><td>Structured Streaming 共通</td><td><strong>進捗の記録</strong>先</td></tr><tr><td><code>trigger(...)</code></td><td>Structured Streaming 共通</td><td>連続実行か、1回で止まるバッチ実行か</td></tr><tr><td><code>toTable(...)</code></td><td>Structured Streaming 共通</td><td>書き込み先の UC テーブル</td></tr></tbody></table></div>
+
+          <h3>2つの記録場所を混同しない</h3>
+          <div class="scroll-x"><table><thead><tr><th>オプション</th><th>何を覚えているか</th><th>消すとどうなるか</th></tr></thead><tbody><tr><td><code>checkpointLocation</code></td><td><strong>どこまで読んだか</strong>（進捗）</td><td>最初から全部読み直す</td></tr><tr><td><code>cloudFiles.schemaLocation</code></td><td><strong>どんな形だったか</strong>（スキーマ）</td><td>推論をやり直す</td></tr></tbody></table></div>
+
+          <p><strong>進捗と、形。</strong>役割が違い、別々の記録として管理されています。
+          名前が似ているうえに、パスの指定先も近い場所に置くことが多いので、ここは意識して分けてください。</p>
+
+          <h4>チェックポイントの中身</h4>
+          <p>チェックポイントは、ただのフォルダではなく<strong>3種類の記録</strong>を持っています。
+          「消すと全部読み直す」の理由が、ここを見ると分かります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>中身</th><th>何が入っているか</th><th>無くなると</th></tr></thead><tbody><tr><td>オフセット<br>（offsets）</td><td>「次はここからを1バッチとして処理する」という計画</td><td>次にどこから読めばよいか分からなくなる</td></tr><tr><td>コミット<br>（commits）</td><td>どのバッチまで完了したか</td><td>完了済みかどうかが判定できない</td></tr><tr><td>処理済みファイルの台帳</td><td><strong>どのファイルを読んだか</strong>。専用のキー値ストアで持つ</td><td><strong>すべてのファイルが未読扱いになる</strong></td></tr></tbody></table></div>
+
+          <p>この台帳が、大量ファイルに強い理由の1つです。
+          COPY INTO は実行のたびにディレクトリを一覧して記録と照合するため、ファイルが増えるほど照合のコストが線形に増えます。
+          Auto Loader は処理済みファイルを<strong>専用のキー値ストア</strong>で管理しているので、
+          膨大な数になっても照合が効率的に行えます。
+          さらに、そもそも一覧しないで済ませる手段（file notification）も持っています。</p>
+
+          <p class="note">「最初から取り込み直したい」ときは、チェックポイントを消せば実現できます。
+          COPY INTO の <code>force = true</code> に相当する操作です。
+          ただし<strong>書き込み先のテーブル側も一緒に整理しないとデータが二重になります</strong>。必ずセットで考えてください。</p>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 248" role="img" aria-label="Auto Loader のスキーマ進化モード4種類と、新しい列が来たときにそれぞれ処理が止まるか、データを失うかを示す分岐図">
+              <defs>
+                <marker id="i2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="i2-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="i2-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="8" y="88" width="140" height="46" rx="2" class="d-box-acc"/>
+              <text x="78" y="108" class="d-t"    text-anchor="middle">新しい列が来た</text>
+              <text x="78" y="126" class="d-t-sm" text-anchor="middle">スキーマ進化モード</text>
+
+              <path d="M154,111 H190 V28  H226" class="d-line" marker-end="url(#i2-ar)"/>
+              <path d="M154,111 H190 V94  H226" class="d-line-acc" marker-end="url(#i2-ar-acc)"/>
+              <path d="M154,111 H190 V160 H226" class="d-line-crit" marker-end="url(#i2-ar-crit)"/>
+              <path d="M154,111 H190 V216 H226" class="d-line-crit" marker-end="url(#i2-ar-crit)"/>
+
+              <rect x="232" y="8"   width="190" height="40" rx="2" class="d-box"/>
+              <text x="327" y="26"  class="d-t"    text-anchor="middle">addNewColumns</text>
+              <text x="327" y="42"  class="d-t-sm" text-anchor="middle">既定</text>
+
+              <rect x="232" y="74"  width="190" height="40" rx="2" class="d-box-acc"/>
+              <text x="327" y="92"  class="d-t"    text-anchor="middle">rescue</text>
+              <text x="327" y="108" class="d-t-sm" text-anchor="middle">_rescued_data へ退避</text>
+
+              <rect x="232" y="140" width="190" height="40" rx="2" class="d-box-crit"/>
+              <text x="327" y="158" class="d-t"    text-anchor="middle">failOnNewColumns</text>
+              <text x="327" y="174" class="d-t-sm" text-anchor="middle">止める</text>
+
+              <rect x="232" y="196" width="190" height="40" rx="2" class="d-box-crit"/>
+              <text x="327" y="214" class="d-t"    text-anchor="middle">none</text>
+              <text x="327" y="230" class="d-t-sm" text-anchor="middle">無視する</text>
+
+              <line x1="428" y1="28"  x2="464" y2="28"  class="d-line" marker-end="url(#i2-ar)"/>
+              <line x1="428" y1="94"  x2="464" y2="94"  class="d-line-acc" marker-end="url(#i2-ar-acc)"/>
+              <line x1="428" y1="160" x2="464" y2="160" class="d-line-crit" marker-end="url(#i2-ar-crit)"/>
+              <line x1="428" y1="216" x2="464" y2="216" class="d-line-crit" marker-end="url(#i2-ar-crit)"/>
+
+              <rect x="470" y="8"   width="242" height="40" rx="2" class="d-box"/>
+              <text x="591" y="26"  class="d-t-sm" text-anchor="middle">列を足して一度止まり</text>
+              <text x="591" y="42"  class="d-t-sm" text-anchor="middle">再起動すれば通る</text>
+
+              <rect x="470" y="74"  width="242" height="40" rx="2" class="d-box-ship"/>
+              <text x="591" y="92"  class="d-t"    text-anchor="middle">止まらず、失わない</text>
+              <text x="591" y="108" class="d-t-sm" text-anchor="middle">「両方満たしたい」の答え</text>
+
+              <rect x="470" y="140" width="242" height="40" rx="2" class="d-box-crit"/>
+              <text x="591" y="166" class="d-t-crit" text-anchor="middle">止まる（データは失わない）</text>
+
+              <rect x="470" y="196" width="242" height="40" rx="2" class="d-box-crit"/>
+              <text x="591" y="222" class="d-t-crit" text-anchor="middle">止まらないが、列は失う</text>
+            </svg>
+            <figcaption><strong>問題文に条件が2つ並んだら rescue です。</strong>「処理を止めたくない」だけなら <code>none</code> でも止まりません。しかし新しい列は捨てられます。「止めたくない、かつデータも失いたくない」と2つ書いてあるときだけ、両方を満たすのは rescue です。条件がいくつあるかを数えてから選択肢を読んでください。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">Auto Loader ＝ 常時起動、ではない</p>
+            <p>ガイドの objective は <em>Use Auto Loader … <strong>in batch modes</strong></em> と明記しています。
+            <code>trigger(availableNow=True)</code> を指定すると、
+            <strong>今ある未処理を全部処理して停止</strong>します。
+            Lakeflow Jobs から日次で叩けば、<strong>増分の管理だけ借りて、実行はバッチ</strong>という使い方ができます。
+            「常時起動だから使えない」という思い込みがあると、選択肢を切り間違えます。</p>
+          </div>
+
+          <div class="scroll-x"><table><thead><tr><th>trigger の指定</th><th>動き</th><th>クラスタ</th><th>使いどころ</th></tr></thead><tbody><tr><td><code>trigger(processingTime="5 minutes")</code></td><td>5分ごとに新着を拾いにいく</td><td>動き続ける</td><td>低遅延にしたい</td></tr><tr><td><code>trigger(availableNow=True)</code></td><td><strong>今ある未処理を全部処理して停止</strong></td><td>処理中だけ動く</td><td><strong>日次バッチ。Jobs から叩く</strong></td></tr></tbody></table></div>
+
+          <h3>スキーマ推論の挙動</h3>
+          <p>推論・強制・進化は別の概念です。まずここを分けます。</p>
+
+          <dl class="facts">
+            <div class="fact"><dt>推論<br>Inference</dt>
+              <dd>ファイルを覗いて、どんな列があってどんな型かを<strong>推測する</strong>。
+              初回にサンプリングして推論し、結果を <code>schemaLocation</code> に保存する。
+              2回目以降は毎回推論し直さず、保存済みのものを使う。</dd></div>
+            <div class="fact"><dt>強制<br>Enforcement</dt>
+              <dd>決めたスキーマに合わないものを<strong>弾く</strong>。</dd></div>
+            <div class="fact"><dt>進化<br>Evolution</dt>
+              <dd>新しい列が来たときに<strong>追随する</strong>。</dd></div>
+          </dl>
+
+          <p>ガイドが名指ししているのは <em>schema enforcement and schema evolution</em>、
+          つまり<strong>強制と進化</strong>です。推論はその前提として動いているもの、という位置づけになります。
+          <strong>弾くことと受け入れることを、状況で使い分けられるか</strong>が問われます。</p>
+
+          <h4>JSON / CSV は既定で全部 string</h4>
+          <p>安全側に倒しているためです。サンプリングした範囲では数値に見えても、
+          後から文字が混ざったファイルが来るかもしれない。そのときに壊れないよう、最初から文字列として扱います。
+          ただし実務では、金額の列が文字列だと集計できず困ります。解き方は2つです。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>オプション</th><th>やること</th><th>効き方</th></tr></thead><tbody><tr><td><code>cloudFiles.inferColumnTypes = true</code></td><td>実際の型を推論させる</td><td><strong>全列</strong>に効く。int / double などが付く</td></tr><tr><td><code>cloudFiles.schemaHints</code></td><td>一部の列だけ型を指定する</td><td><strong>指定した列だけ</strong>。残りは推論に任せる</td></tr></tbody></table></div>
+
+          <div class="scroll-x"><pre><code>(spark.readStream
+  .format("cloudFiles")
+  .option("cloudFiles.format", "json")
+  .option("cloudFiles.schemaLocation", "/chk/orders/schema")
+  .option("cloudFiles.inferColumnTypes", "true")
+  # 要所だけ固定する。残りは推論に任せる
+  .option("cloudFiles.schemaHints", "order_id INT, amount DOUBLE, ordered_at TIMESTAMP")
+  .load("s3://landing/orders/"))</code></pre></div>
+
+          <p class="note">選択肢に「全部のスキーマを手書きで定義する」が混ざることがあります。
+          技術的には可能ですが、答えとしては不自然です。
+          Auto Loader を使う理由の1つが<strong>スキーマ管理を任せられること</strong>だからで、
+          全部手書きするならその利点を捨てています。
+          こうした「できるけれど、目的に合わない」選択肢は切ってください。</p>
+
+          <h3>スキーマ進化のモード</h3>
+          <p><code>cloudFiles.schemaEvolutionMode</code> で、新しい列が来たときの振る舞いを決めます。</p>
+          <div class="scroll-x"><table><thead><tr><th>値</th><th>新しい列が来たとき</th><th>止まるか</th><th>使いどころ</th></tr></thead><tbody><tr><td><code>addNewColumns</code><br><strong>（既定）</strong></td><td>列を足す。再起動すれば取り込む</td><td><strong>いったん止まる</strong></td><td>素直に追随したい</td></tr><tr><td><code>rescue</code></td><td>列は足さず、<code>_rescued_data</code> に丸ごと退避</td><td>止まらない</td><td><strong>止めたくない・失いたくない</strong></td></tr><tr><td><code>failOnNewColumns</code></td><td>失敗させる</td><td>止まる（再起動しても同じ）</td><td>変化を検知して人が判断したい</td></tr><tr><td><code>none</code></td><td>無視する（新列は捨てる）</td><td>止まらない</td><td>形を固定したい</td></tr></tbody></table></div>
+
+          <p>既定の <code>addNewColumns</code> は、<strong>自動で列が足されて何事もなく続くのではありません</strong>。
+          一度エラーで止まり、スキーマが更新され、再起動すると続きから動く——この挙動です。
+          「新しい列が届くと処理が止まる」は異常ではなく仕様です。
+          異常だと判断してクラスタやコードを調べ始めると、時間を失います。</p>
+
+          <h3><code>_rescued_data</code> の使い方</h3>
+          <p><code>rescue</code> で出てくる <code>_rescued_data</code> は、
+          <strong>スキーマに合わなかったデータを JSON 文字列として退避しておく列</strong>です。</p>
+
+          <p>退避先がない場合を考えると、価値が分かります。
+          型が合わないデータや想定外の列が来たとき、退避先がなければ<strong>静かに欠落</strong>します。
+          エラーにもならず、ただ消える。そして後日「あのデータ、どこにいったんだろう」となり、原因を追うのが非常に難しくなります。
+          <code>_rescued_data</code> があれば、<strong>取り込みは止まらず、かつデータも失われません</strong>。
+          後からこの列を調べれば、何が来ていたのかが分かります。</p>
+
+          <div class="scroll-x"><pre><code># 止めない・失わない設定
+(spark.readStream
+  .format("cloudFiles")
+  .option("cloudFiles.format", "json")
+  .option("cloudFiles.schemaLocation", "/chk/orders/schema")
+  .option("cloudFiles.schemaEvolutionMode", "rescue")
+  .load("s3://landing/orders/")
+ .writeStream
+  .option("checkpointLocation", "/chk/orders")
+  .trigger(availableNow=True)
+  .toTable("prod.bronze.orders"))</code></pre></div>
+
+          <div class="scroll-x"><pre><code>-- 退避されたものが無いかを、運用として定期的に見る
+SELECT count(*) AS rescued_rows
+FROM prod.bronze.orders
+WHERE _rescued_data IS NOT NULL;
+
+-- 何が来ていたのかを覗く（中身は JSON 文字列）
+SELECT _rescued_data
+FROM prod.bronze.orders
+WHERE _rescued_data IS NOT NULL
+LIMIT 20;</code></pre></div>
+
+          <p class="note">試験での引き方ははっきりしています。問題文に<strong>「データを失いたくない」と「処理は止めたくない」が同時に</strong>
+          出てきたら <code>rescue</code> です。片方だけなら他の選択肢もありえます。<strong>両方揃ったら rescue</strong>、と覚えてください。</p>
+
+          <h3>COPY INTO との住み分け</h3>
+          <div class="scroll-x"><table><thead><tr><th></th><th>COPY INTO</th><th>Auto Loader</th></tr></thead><tbody><tr><td>書く言語</td><td>SQL</td><td>Python / Scala（Structured Streaming）</td></tr><tr><td>進捗の持ち方</td><td>テーブルに記録</td><td>チェックポイント</td></tr><tr><td>耐えられる規模</td><td>数千ファイル程度まで</td><td><strong>数百万以上</strong></td></tr><tr><td>継続処理</td><td>不得意</td><td>得意（バッチ実行もできる）</td></tr><tr><td>新着の検出</td><td>ディレクトリ一覧</td><td><strong>一覧 または 通知</strong></td></tr><tr><td>二重取り込みの防止</td><td><strong>する</strong></td><td><strong>する</strong></td></tr></tbody></table></div>
+
+          <p class="note">最後の行が重要です。<strong>どちらも「二重に取り込まない」を実現しています</strong>。
+          違うのは実現方法と、耐えられる規模です。
+          ですので、問題文に「重複を防ぎたい」とだけ書かれていても絞れません。
+          規模や、SQL で書きたいのか、といった条件を合わせて読んでください。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-detect" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>ファイル検出方式<span class="tag">ガイドが括弧付きで名指しした2つ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>objective に <em>(for example, <strong>directory listing or file notification</strong>)</em> と
+          例示されています。<strong>わざわざ名前を挙げている</strong>ということは、
+          この2つの名前と違いを知っている前提だ、ということです。どちらを選ぶかを問う出題は十分にありえます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>directory listing</th><th>file notification</th></tr></thead><tbody><tr><td>やり方</td><td><strong>見に行く</strong>（一覧して照合）</td><td><strong>教えてもらう</strong>（通知を受ける）</td></tr><tr><td>既定</td><td>これ</td><td>明示的に有効化<br><code>cloudFiles.useNotifications = true</code></td></tr><tr><td>事前準備</td><td>不要。読める権限だけでいい</td><td><strong>クラウド側の通知設定と権限</strong>が必要</td></tr><tr><td>検出コスト</td><td>件数に比例して増える</td><td><strong>件数に依存しない</strong></td></tr><tr><td>遅延</td><td>一覧の間隔ぶん</td><td>より低遅延にできる</td></tr><tr><td>向く規模</td><td>少〜中規模</td><td>大規模</td></tr></tbody></table></div>
+
+          <p>directory listing は、ストレージのディレクトリに「今どんなファイルがありますか」と聞きにいき、
+          返ってきた一覧を処理済みの記録と照合して、記録にないものを未読として処理します。
+          設定が要らずすぐ動かせるかわりに、<strong>ファイルが増えるほど一覧のコストが増え</strong>、
+          しかもそれを実行のたびに繰り返します。COPY INTO の弱点とまったく同じ問題です。</p>
+
+          <p>file notification は考え方が違います。ディレクトリを見に行きません。
+          クラウド側の通知サービスが「新しいファイルが置かれました」というイベントを流し、Auto Loader はそれを受け取ります。
+          <strong>一覧していないので、ディレクトリに何百万ファイルあっても検出コストは変わりません</strong>。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>クラウド</th><th>使われる通知の仕組み</th></tr></thead><tbody><tr><td>AWS</td><td>SNS ＋ SQS</td></tr><tr><td>Azure</td><td>Event Grid ＋ キューストレージ</td></tr><tr><td>GCP</td><td>Pub/Sub</td></tr></tbody></table></div>
+
+          <div class="scroll-x"><pre><code>(spark.readStream
+  .format("cloudFiles")
+  .option("cloudFiles.format", "json")
+  .option("cloudFiles.useNotifications", "true")   # ← 通知方式に切り替える
+  .option("cloudFiles.schemaLocation", "/chk/orders/schema")
+  .load("s3://landing/orders/"))</code></pre></div>
+
+          <h3>判断の軸は2つ</h3>
+          <p><strong>「規模」と「準備できるか」</strong>です。
+          大規模だから常に notification、ではありません。
+          企業環境ではクラウドの設定権限がデータエンジニアに無いこともあり、その場合はそもそも選べません。
+          問題文に権限や設定の制約が書かれていたら、そちらも必ず読んでください。
+          <strong>「大規模」という言葉だけで反射的に選ぶと引っかかります。</strong></p>
+
+          <div class="scroll-x"><table><thead><tr><th>directory listing 寄りになる条件</th><th>file notification 寄りになる条件</th></tr></thead><tbody><tr><td>すぐに始めたい。検証の段階である</td><td>数百万ファイル規模である</td></tr><tr><td>ファイル数がそれほど多くない</td><td>一覧そのものが遅い／コストがかかっている</td></tr><tr><td><strong>クラウド側の設定権限がない</strong></td><td>到着から処理までの時間を短くしたい</td></tr></tbody></table></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 294" role="img" aria-label="ファイル検出の2方式を比較した図。ディレクトリ一覧方式は毎回ストレージに問い合わせるためファイル数に比例して重くなり、通知方式は置かれた瞬間に通知が飛ぶがクラウド側の設定権限が要る">
+              <defs>
+                <marker id="i3-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="i3-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="i3-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <text x="8" y="18" class="d-t-mono">新しいファイルをどうやって見つけるか</text>
+
+              <text x="8"   y="46"  class="d-t">directory listing</text>
+              <rect x="8"   y="56"  width="200" height="86" rx="2" class="d-box"/>
+              <text x="108" y="80"  class="d-t-sm" text-anchor="middle">ストレージに毎回</text>
+              <text x="108" y="98"  class="d-t-sm" text-anchor="middle">「何がある？」と聞く</text>
+              <text x="108" y="124" class="d-t-sm" text-anchor="middle">ファイル数に比例して重くなる</text>
+
+              <path d="M214,84  H262" class="d-line" marker-end="url(#i3-ar)"/>
+              <path d="M262,110 H214" class="d-line" marker-end="url(#i3-ar)"/>
+              <text x="238" y="76"  class="d-t-mono" text-anchor="middle">一覧要求</text>
+              <text x="238" y="128" class="d-t-mono" text-anchor="middle">全件</text>
+
+              <rect x="268" y="56"  width="120" height="86" rx="2" class="d-box-idle"/>
+              <text x="328" y="104" class="d-t-sm" text-anchor="middle">ストレージ</text>
+
+              <text x="410" y="80"  class="d-t-key">設定は要らない</text>
+              <text x="410" y="100" class="d-t-sm">権限も追加不要</text>
+              <text x="410" y="124" class="d-t-crit">ファイルが増えると遅い</text>
+
+              <text x="8"   y="186" class="d-t">file notification</text>
+              <rect x="8"   y="196" width="200" height="86" rx="2" class="d-box-acc"/>
+              <text x="108" y="220" class="d-t-sm" text-anchor="middle">置かれた瞬間に</text>
+              <text x="108" y="238" class="d-t-sm" text-anchor="middle">通知が飛んでくる</text>
+              <text x="108" y="264" class="d-t-sm" text-anchor="middle">ファイル数に依存しない</text>
+
+              <path d="M268,240 H214" class="d-line-acc" marker-end="url(#i3-ar-acc)"/>
+              <text x="240" y="232" class="d-t-mono" text-anchor="middle">通知</text>
+
+              <rect x="268" y="196" width="120" height="86" rx="2" class="d-box-idle"/>
+              <text x="328" y="236" class="d-t-sm" text-anchor="middle">ストレージ</text>
+              <text x="328" y="254" class="d-t-sm" text-anchor="middle">＋ 通知サービス</text>
+
+              <text x="410" y="220" class="d-t-key">大量ファイルでも速い</text>
+              <text x="410" y="240" class="d-t-sm">低遅延にもできる</text>
+              <text x="410" y="264" class="d-t-crit">通知の設定権限が要る</text>
+            </svg>
+            <figcaption><strong>選択の分かれ目は「権限があるか」です。</strong>性能だけ見れば通知方式が有利ですが、クラウド側で通知サービスを構成する権限が要ります。「ディレクトリ一覧が重い」「低遅延にしたい」なら通知方式。「通知の設定権限が無い」と書いてあれば、性能を諦めて一覧方式です。問題文はたいてい、この権限の有無をどこかに書いています。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">よくある誤答</p>
+            <p>「検出が遅い → クラスタを大きくする」。<strong>直りません。</strong>
+            検出はファイルの探し方の問題であって、計算資源の問題ではないからです。
+            ディレクトリの一覧に時間がかかっているところに計算ノードを増やしても、一覧は速くなりません。
+            この「ボトルネックが違うのに増強する」型は、
+            <a href="07-exam-tactics.html">この試験で最も繰り返し出てくる誤答</a>です。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-connect" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Lakeflow Connect と JDBC / REST<span class="tag">ファイルになっていないものを取りにいく</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ここまでの道具は「誰かがストレージにファイルを置いてくれている」前提でした。
+          では、そのファイルは誰が置いているのか。ここが実は大きな問題です。</p>
+
+          <p>Salesforce や SQL Server は、クラウドストレージにファイルを置いてはくれません。
+          API を叩いて取ってきて、ファイルにして、置く——その工程を誰かが作る必要があります。
+          <strong>Lakeflow Connect は、その工程ごと肩代わり</strong>します。
+          Salesforce、Workday、ServiceNow、SQL Server といった企業システムに接続して、直接データを持ってきます。
+          <strong>ファイルになっていないものを取ってくる道具</strong>、と理解してください。
+          なお、これは<a href="00-exam-changes.html">2026年5月改訂で新しく入った範囲</a>で、旧版の教材には載っていません。</p>
+
+          <h3>managed と standard</h3>
+          <p>ガイドは <em>Lakeflow Connect standard connectors, and Lakeflow Connect managed connectors</em> と、
+          わざわざ両方を挙げています。この2語の区別は問われる可能性があります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>managed connector</th><th>standard connector</th></tr></thead><tbody><tr><td>提供されるもの</td><td><strong>取り込みパイプラインごと</strong></td><td><strong>接続の口</strong></td></tr><tr><td>パイプライン</td><td>Databricks が持つ</td><td>自分で組む</td></tr><tr><td>差分の取り方</td><td>任せられる</td><td>自分で設計する</td></tr><tr><td>スケジュール</td><td>任せられる</td><td>自分で組む</td></tr><tr><td>API 仕様変更への追随</td><td>任せられる</td><td>自分で追う</td></tr><tr><td>自由度</td><td>低い（そのぶん楽）</td><td>高い（そのぶん作る量が多い）</td></tr></tbody></table></div>
+
+          <p class="note">覚え方は単純です。<strong>managed ＝ 面倒を見てもらう側</strong>。
+          manage（管理する）のは Databricks で、こちらは設定するだけ、ということです。</p>
+
+          <h3>自前で作ると、何が必要になるか</h3>
+          <p>Lakeflow Connect の価値は、「自前実装と比べて何が減るか」で測ると分かります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>必要な作業</th><th>自前で作る場合</th><th>managed connector の場合</th></tr></thead><tbody><tr><td>接続</td><td>接続のコードを書く</td><td><strong>設定する</strong></td></tr><tr><td>差分の取得</td><td>前回どこまで取ったかを覚え、続きから取る仕組みを設計する</td><td>任せられる</td></tr><tr><td>スケジュール</td><td>ジョブを組んで回す</td><td>任せられる</td></tr><tr><td>API の仕様変更</td><td><strong>SaaS 側が変えたら、こちらも直す</strong>（地味に重い）</td><td>任せられる</td></tr><tr><td>認証情報</td><td>安全に保管し、ローテーションする仕組みを用意する</td><td><strong>Unity Catalog で管理される</strong></td></tr></tbody></table></div>
+
+          <p>つまり、評価の軸は<strong>「作る量」と「保守の責任」</strong>の2つで、その両方が減ります。
+          ガイドの objective にも <em>reliably ingest data from diverse enterprise sources</em> と、
+          <strong>reliably（信頼性をもって）</strong>という言葉が入っています。
+          自前で作ると「動くもの」は作れても、<strong>信頼性を保ち続ける</strong>のが大変です。そこを強調していると読めます。</p>
+
+          <h3>コネクタが無いとき — JDBC / REST</h3>
+          <p>ガイドはこう書いています。
+          <em>…using JDBC/ODBC or REST clients within notebooks to land data into cloud storage or directly into
+          UC tables, usually orchestrated and scheduled with Lakeflow Jobs.</em>
+          末尾に注目してください。<strong>これ単体では完結しません</strong>。回す仕組みとセットで考える前提です。</p>
+
+          <p>Auto Loader や Lakeflow Connect は、取り込みの仕組みごと提供してくれます。進捗の管理もスケジュールも中に含まれています。
+          一方 JDBC や REST は<strong>素材だけ</strong>です。「データを取ってくるコード」しかありません。
+          いつ動かすか、失敗したらどうするか、前回からの差分をどう取るか——全部自分で組む必要があります。
+          <a href="04-jobs-cicd.html">Lakeflow Jobs</a> と必ずペアになる、と覚えておいてください。</p>
+
+          <div class="scroll-x"><pre><code>df = (spark.read.format("jdbc")
+  .option("url", "jdbc:postgresql://host:5432/db")
+  .option("dbtable", "public.orders")
+  .option("user", dbutils.secrets.get("scope", "db-user"))
+  .option("password", dbutils.secrets.get("scope", "db-pass"))
+  .option("partitionColumn", "id")     # ← これが無いと接続は1本
+  .option("lowerBound", "1").option("upperBound", "1000000")
+  .option("numPartitions", "8")
+  .load())
+
+df.write.mode("append").saveAsTable("prod.bronze.orders")</code></pre></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 278" role="img" aria-label="JDBC 読み込みで partitionColumn を指定しない場合は接続が1本しか張られず並列化されないこと、指定すると範囲ごとに分割されて並列に読めることを比較した図">
+              <defs>
+                <marker id="i4-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="i4-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="i4-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <text x="8" y="18" class="d-t-mono">partitionColumn を指定しないとき</text>
+
+              <rect x="8"   y="32" width="150" height="86" rx="2" class="d-box"/>
+              <text x="83"  y="60" class="d-t"    text-anchor="middle">クラスタ</text>
+              <text x="83"  y="80" class="d-t-sm" text-anchor="middle">executor 1</text>
+              <text x="83"  y="98" class="d-t-crit" text-anchor="middle">残りは遊んでいる</text>
+
+              <path d="M164,60 H300" class="d-line-crit" marker-end="url(#i4-ar-crit)"/>
+              <text x="232" y="52" class="d-t-crit" text-anchor="middle">接続は1本だけ</text>
+
+              <rect x="306" y="32" width="150" height="86" rx="2" class="d-box-idle"/>
+              <text x="381" y="80" class="d-t-sm" text-anchor="middle">業務 DB</text>
+
+              <text x="478" y="66" class="d-t-crit">ノードを足しても</text>
+              <text x="478" y="86" class="d-t-crit">速くならない</text>
+
+              <text x="8" y="152" class="d-t-mono">partitionColumn / lowerBound / upperBound を指定したとき</text>
+
+              <rect x="8"   y="166" width="150" height="96" rx="2" class="d-box-acc"/>
+              <text x="83"  y="192" class="d-t"    text-anchor="middle">クラスタ</text>
+              <text x="83"  y="212" class="d-t-sm" text-anchor="middle">executor 1</text>
+              <text x="83"  y="230" class="d-t-sm" text-anchor="middle">executor 2</text>
+              <text x="83"  y="248" class="d-t-sm" text-anchor="middle">executor 3</text>
+
+              <path d="M164,196 H300" class="d-line-acc" marker-end="url(#i4-ar-acc)"/>
+              <path d="M164,214 H300" class="d-line-acc" marker-end="url(#i4-ar-acc)"/>
+              <path d="M164,232 H300" class="d-line-acc" marker-end="url(#i4-ar-acc)"/>
+              <text x="232" y="188" class="d-t-key" text-anchor="middle">範囲で分割して並列に</text>
+
+              <rect x="306" y="166" width="150" height="96" rx="2" class="d-box-idle"/>
+              <text x="381" y="220" class="d-t-sm" text-anchor="middle">業務 DB</text>
+
+              <text x="478" y="206" class="d-t-key">ノードを足した分だけ</text>
+              <text x="478" y="226" class="d-t-key">効く</text>
+            </svg>
+            <figcaption><strong>「クラスタを大きくしても変わらない」は、並列化されていない合図です。</strong>JDBC は既定で1本の接続しか張りません。executor がいくつあっても、読んでいるのは1つだけです。分割の指定を入れて初めて、ノードを足した分が効くようになります。増強で直る問題と、直らない問題の区別がここに出ます。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">JDBC が遅い本当の理由</p>
+            <p>何も指定しないと<strong>接続は1本</strong>です。クラスタに何台ノードがあっても、
+            1つのタスクが全件を引いてきます。Spark を使っているのに分散処理になっていません。
+            <code>partitionColumn</code> / <code>lowerBound</code> / <code>upperBound</code> / <code>numPartitions</code>
+            で範囲を分けて、はじめて並列に読みます。
+            上の例なら id を 1〜1,000,000 の範囲で8分割し、8本の接続で並列に引いてきます。</p>
+            <p>「クラスタを拡張したが変わらない」は、この状態の典型的な症状です。</p>
+          </div>
+
+          <h3>REST クライアントの場合</h3>
+          <div class="scroll-x"><pre><code>import requests
+res = requests.get(url, headers={"Authorization": "Bearer " + token})
+df = spark.createDataFrame(res.json())</code></pre></div>
+
+          <p>ここで注意すべきは<strong>動いている場所</strong>です。
+          <code>requests</code> は<strong>ドライバ上</strong>で動きます。分散処理ではありません。
+          ドライバ1台で API を叩き、レスポンスを受け取っています。ですので、大量データの取得には向きません。</p>
+
+          <p>現実的には、組み合わせて使います。API でデータを取得し、ストレージにファイルとして落とし、
+          そのファイルを Auto Loader で取り込む。こうすると、<strong>API を叩く部分と大量データを処理する部分が分離</strong>できます。
+          この経路はガイドにも <em>land data into cloud storage or directly into UC tables</em> と明示されています。
+          選択肢に「API で取得してストレージに落とし、Auto Loader で取り込む」があれば、
+          <strong>遠回りに見えても自然な答え</strong>です。</p>
+
+          <h3>選ぶ順番 — JDBC / REST は最後の手段</h3>
+          <p>まず専用のコネクタがあるかを確認し、あれば Lakeflow Connect。
+          なければ、ファイルとして置かれるかを見て、置かれるなら Auto Loader か COPY INTO。
+          置かれないなら JDBC / REST ＋ Lakeflow Jobs。この順番です。</p>
+
+          <p class="note">選択肢に<strong>「専用の仕組みがあるのに、手書きでコードを書く」</strong>ものが混ざっていたら、
+          たいてい誤答です。技術的にはできますが、この試験は「できるか」ではなく<strong>「適切か」</strong>を問うています。
+          保守の負担が大きい選択肢は選ばれません。</p>
+
+          <p class="note">認証情報は必ず <code>dbutils.secrets</code> から。
+          ノートブックに直書きする選択肢は、この試験では常に誤答になります。
+          セキュリティに反する選択肢は、他がどれだけ合っていても選ばれません。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-semistructured" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>半構造化データの取り込み<span class="tag">JSON・ネスト構造をどう受け止めるか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ここまでは<strong>どうやって運ぶか</strong>の話でした。ここからは、
+          運ばれてくるものが JSON のような複雑な形をしているとき<strong>どう受け止めるか</strong>の話です。
+          ガイドの記述はこうです。
+          <em>Ingest <strong>semi-structured and unstructured</strong> data (for example, JSON and nested data)
+          via Lakeflow Connect and other managed connectors into Unity-Catalog–governed Delta tables.</em></p>
+
+          <h3>まず3分類を分ける</h3>
+          <div class="scroll-x"><table><thead><tr><th>分類</th><th>性質</th><th>例</th><th>置き場所</th></tr></thead><tbody><tr><td>構造化</td><td>行と列が決まっている</td><td>CSV、DB のテーブル</td><td>テーブル</td></tr><tr><td><strong>半構造化</strong></td><td><strong>形はあるが、固定ではない</strong></td><td>JSON、XML、ログ</td><td>テーブル（ネストのまま持てる）</td></tr><tr><td>非構造化</td><td>そもそも表にならない</td><td>画像、PDF、音声</td><td><strong>Volume</strong>（<a href="01-platform.html">S1</a>）</td></tr></tbody></table></div>
+
+          <p>半構造化がなぜ「半」なのか。JSON ならキーと値という形はあります。
+          でも、レコードによってキーが増えたり減ったりします。<strong>形が固定されていない</strong>。だから半構造化です。
+          ガイドは半構造化と非構造化を並べて書いていますが、
+          <strong>置き場所が違う</strong>（テーブル / Volume）ので、混ぜないでください。</p>
+
+          <h3>ネストは潰さずに保持できる</h3>
+          <p>大事な前提です。<strong>Delta テーブルはネストした構造をそのまま持てます。</strong>平らにする必要はありません。</p>
+
+          <div class="scroll-x"><pre><code>{"order_id": 1,
+ "customer": {"id": "c01", "region": "JP"},
+ "items": [{"sku": "A", "qty": 2}, {"sku": "B", "qty": 1}]}</code></pre></div>
+
+          <p>この JSON は、Delta テーブルではこの形のまま持てます。</p>
+
+          <div class="scroll-x"><pre><code>order_id  INT
+customer  STRUCT&lt;id: STRING, region: STRING&gt;
+items     ARRAY&lt;STRUCT&lt;sku: STRING, qty: INT&gt;&gt;</code></pre></div>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">Bronze では無理に平らにしない</p>
+            <p>Bronze 層の役割は<strong>届いたものをそのまま受け止めること</strong>です。
+            ここで加工すると元の形が失われ、後から「あの項目も必要だった」となったときに<strong>取り直し</strong>になります。
+            平坦化は Silver 層で行います（<a href="03-transformation.html">メダリオンと <code>explode()</code> は S3</a>）。</p>
+            <p>ですので、選択肢に「取り込み時にすべて平坦化して列に展開する」があっても、
+            Bronze の文脈なら基本は選びません。<strong>STRUCT / ARRAY のまま Bronze へ</strong>が方針です。</p>
+          </div>
+
+          <h3>ドット記法とコロン記法</h3>
+          <p>ネストした構造の中身にアクセスする書き方が2つあります。
+          <strong>区別を問われる可能性があるところ</strong>です。</p>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>ドット記法</th><th>コロン記法</th></tr></thead><tbody><tr><td>書き方</td><td><code>customer.region</code></td><td><code>raw:customer.region</code></td></tr><tr><td>前提</td><td>列が <strong>STRUCT 型</strong>である<br>＝もう構造として解釈済み</td><td>列が <strong>文字列</strong>で JSON を持っている<br>＝まだ文字列のまま</td></tr><tr><td>使える場所</td><td>SQL / PySpark とも同じ形</td><td>主に SQL</td></tr><tr><td>どうしてそうなるか</td><td>取り込み時にスキーマが推論されていれば STRUCT になる</td><td>生の文字列としてそのまま取り込めば文字列のまま</td></tr></tbody></table></div>
+
+          <div class="scroll-x"><pre><code>-- ドット記法：customer が STRUCT のとき
+SELECT order_id, customer.region
+FROM prod.bronze.orders;
+
+-- コロン記法：raw が JSON を持つ「文字列」のとき
+SELECT event_id, raw:customer.region
+FROM prod.bronze.raw_events;</code></pre></div>
+
+          <div class="scroll-x"><pre><code># PySpark でも、STRUCT ならドットで降りられる
+df.select("order_id", "customer.region")</code></pre></div>
+
+          <p class="note">同じ JSON でも、<strong>列の型がどちらになっているかで書き方が変わります</strong>。
+          「列の型を確認してから書き方を決める」。この順番を覚えておいてください。
+          なお、配列を1行ずつに展開する <code>explode()</code> は
+          <a href="03-transformation.html">S3</a> で扱います。ここでは「配列のまま保持できる」ことを押さえます。</p>
+
+          <h3>文字列の JSON を構造に変える — <code>from_json</code></h3>
+          <div class="scroll-x"><pre><code>from pyspark.sql.functions import from_json, schema_of_json
+
+schema = "order_id INT, customer STRUCT&lt;id: STRING, region: STRING&gt;"
+df2 = df.withColumn("parsed", from_json("raw", schema))
+
+# 構造になったので、以降はドット記法で降りられる
+df2.select("parsed.customer.region")</code></pre></div>
+
+          <div class="scroll-x"><table><thead><tr><th>関数</th><th>やること</th><th>前提</th></tr></thead><tbody><tr><td><code>from_json</code></td><td>文字列 → 構造（STRUCT）に変換する</td><td><strong>スキーマを渡す必要がある</strong></td></tr><tr><td><code>schema_of_json</code></td><td>サンプルからスキーマを推測させる</td><td>スキーマが分からないときの補助</td></tr></tbody></table></div>
+
+          <h3>VARIANT 型</h3>
+          <p>新しめの選択肢として <strong>VARIANT 型</strong>があります。
+          半構造化データを<strong>スキーマを固めずに</strong>格納でき、後からクエリで中を掘れる型です。
+          <code>from_json</code> のように<strong>事前にスキーマを決める必要がありません</strong>。</p>
+
+          <div class="scroll-x"><pre><code>-- スキーマを固めずに保持し、後から掘る
+CREATE TABLE prod.bronze.raw_events (
+  event_id  BIGINT,
+  payload   VARIANT
+);
+
+SELECT event_id, payload:customer.region AS region
+FROM prod.bronze.raw_events;</code></pre></div>
+
+          <p class="note">試験でどこまで問われるかは読めませんが、<strong>名前だけは知っておいてください</strong>。
+          「スキーマを固めずに半構造化データを保持したい」という要件が出てきたら、VARIANT が候補になります。</p>
+
+          <h3>逆引き</h3>
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答えの方向</th></tr></thead><tbody><tr><td>ネストした JSON をそのまま取り込みたい</td><td><strong>STRUCT / ARRAY のまま Bronze へ</strong></td></tr><tr><td>文字列列に入った JSON から値を取り出したい</td><td><strong>コロン記法</strong> または <code>from_json</code></td></tr><tr><td>構造として読み込み済みの列を参照したい</td><td><strong>ドット記法</strong></td></tr><tr><td>配列を1行ずつに展開したい</td><td><code>explode()</code>（S3）</td></tr><tr><td>PDF や画像を UC 配下に置きたい</td><td><strong>Volume</strong>（S1）</td></tr><tr><td>スキーマを固めずに半構造化を保持したい</td><td><strong>VARIANT</strong></td></tr><tr><td>金額が文字列で取り込まれてしまう</td><td><code>inferColumnTypes</code> / <code>schemaHints</code></td></tr></tbody></table></div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-flow" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>取り込み方式の選択フロー<span class="tag">上から順に降りていけば、迷わない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>判断は<strong>1段ずつ降りる</strong>形にしておくと、本番で迷いません。
+          問題文を読んだら、上から順にあてはめてください。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>段</th><th>問い</th><th>分岐と行き先</th></tr></thead><tbody><tr><td><strong>1</strong></td><td><strong>データはどこにあるか</strong></td><td>企業システム（SaaS / DB）→ <strong>2段目</strong>へ<br>クラウドストレージにファイルで置かれる → <strong>3段目</strong>へ</td></tr><tr><td><strong>2</strong></td><td>専用コネクタはあるか</td><td>ある → <strong>Lakeflow Connect</strong>（保守を減らしたいなら managed）<br>ない → <strong>JDBC / REST ＋ Lakeflow Jobs</strong></td></tr><tr><td><strong>3</strong></td><td>規模と継続性は</td><td>数千まで／SQL で書きたい → <strong>COPY INTO</strong><br>大量／継続的に処理したい → <strong>Auto Loader</strong>（→ 4段目へ）</td></tr><tr><td><strong>4</strong></td><td>（Auto Loader を選んだ場合）検出方式は</td><td>すぐ始めたい／中規模／権限が無い → <strong>directory listing</strong><br>大規模／低遅延にしたい → <strong>file notification</strong></td></tr><tr><td><strong>5</strong></td><td>（Auto Loader を選んだ場合）実行の形は</td><td>日次などで回したい → <code>trigger(availableNow=True)</code><br>低遅延で流し続けたい → <code>trigger(processingTime=...)</code></td></tr><tr><td><strong>6</strong></td><td>スキーマはどう扱うか</td><td>素直に追随 → 既定 <code>addNewColumns</code>（止まる）<br>止めたくない・失いたくない → <code>rescue</code> ＋ <code>_rescued_data</code><br>変化を人が判断 → <code>failOnNewColumns</code></td></tr></tbody></table></div>
+
+          <h3>降りてみる — 例1</h3>
+          <p><em>「S3 に日々数百万件の JSON が届く。ディレクトリの一覧に時間がかかっており、
+          到着から取り込みまでの遅延も縮めたい。クラウド側の設定権限はある。」</em></p>
+          <p>1段目＝<strong>ファイル側</strong>。3段目＝大量・継続的なので <strong>Auto Loader</strong>。
+          4段目＝一覧が重く低遅延にしたい、かつ権限がある → <strong>file notification</strong>。
+          ここで「クラスタを大きくする」に寄らないことが分かれ目です。</p>
+
+          <h3>降りてみる — 例2</h3>
+          <p><em>「Salesforce の商談データを毎日取り込みたい。パイプラインの保守に人を割けない。」</em></p>
+          <p>1段目＝<strong>企業システム側</strong>。2段目＝Salesforce にはコネクタがある →
+          <strong>Lakeflow Connect</strong>。保守を減らしたいので <strong>managed connector</strong>。
+          ここで「requests で API を叩いて自作する」を選ぶと、
+          <strong>専用の仕組みがあるのに手書きする</strong>誤答パターンに入ります。</p>
+
+          <h3>降りてみる — 例3</h3>
+          <p><em>「毎晩、S3 に置かれる数百ファイルの CSV を SQL だけで取り込みたい。
+          取り込み元は列が増えることがある。ジョブが失敗したらそのまま再実行したい。」</em></p>
+          <p>1段目＝ファイル側。3段目＝数千規模まで・SQL → <strong>COPY INTO</strong>。
+          列が増える → <code>COPY_OPTIONS ('mergeSchema' = 'true')</code>。
+          そのまま再実行できるのは、COPY INTO が<strong>冪等</strong>だからです（<code>force</code> は不要）。</p>
+
+          <p class="note">この降り方の良いところは、<strong>1段目を間違えなければ大事故にならない</strong>ことです。
+          「ファイルか、接続か」だけは、問題文の最初の1〜2文で必ず判定してください。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-choose" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>【判別】どれを選ぶか<span class="tag">ガイドが「優先順位を付けよ」と明記している</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>objective に <em><strong>Prioritize between</strong> Auto Loader, Lakeflow Connect standard connectors,
+          Lakeflow Connect managed connectors, partner connectors, and other ingestion methods
+          based on data volume, ingestion frequency, data types, and governance needs</em> とあります。
+          <strong>選ばせる問題が来る</strong>と読めます。判断軸は4つ明示されています。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>軸</th><th>小さい / 低い</th><th>大きい / 高い</th></tr></thead><tbody><tr><td>データ量</td><td>COPY INTO</td><td>Auto Loader（＋ file notification）</td></tr><tr><td>取り込み頻度</td><td>COPY INTO / バッチ</td><td>Auto Loader（連続 or <code>availableNow</code>）</td></tr><tr><td>データ型</td><td>構造化 → 何でも</td><td>半構造化・ネスト → スキーマ制御が要る</td></tr><tr><td>ガバナンス</td><td>（軸ではない）</td><td><strong>全方式に共通する制約</strong>。UC を外す選択肢は誤答</td></tr></tbody></table></div>
+
+          <p>4軸のうち<strong>ガバナンスだけは選択肢を分ける軸ではありません</strong>。
+          データ量なら「大きいならこっち、小さいならこっち」と選択肢が分かれますが、
+          ガバナンスは<strong>どの方式を選んでも UC 管理下に着地させる</strong>ので、分岐になりません。
+          では、なぜガイドに書かれているのか。<strong>「UC を外す選択肢は常に誤答」という切り方に使う</strong>ためです。
+          <strong>4軸のうち3つは選ぶための軸、1つは切るための軸</strong>——こう整理しておいてください。</p>
+
+          <h3>逆引き</h3>
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答え</th></tr></thead><tbody><tr><td>SQL だけで増分ロードしたい</td><td><strong>COPY INTO</strong></td></tr><tr><td>同じファイルを強制的に再取り込み</td><td><code>force = true</code></td></tr><tr><td>SQL で書いていて、取り込み元に列が増える</td><td><code>mergeSchema = true</code></td></tr><tr><td>大量のファイルを効率的に検出したい</td><td><strong>Auto Loader</strong></td></tr><tr><td>重複した取り込みを防ぎたい</td><td><strong>COPY INTO も Auto Loader も該当</strong>。他の条件で絞る</td></tr><tr><td>新しい列が来ると処理が止まる</td><td>既定 <code>addNewColumns</code> の挙動</td></tr><tr><td>止めたくない、かつデータも失いたくない</td><td><code>rescue</code> ＋ <code>_rescued_data</code></td></tr><tr><td>金額の列が文字列で取り込まれる</td><td><code>inferColumnTypes</code> / <code>schemaHints</code></td></tr><tr><td>ディレクトリ一覧が重い／低遅延にしたい</td><td><strong>file notification</strong></td></tr><tr><td>通知の設定権限が無い</td><td><strong>directory listing</strong></td></tr><tr><td>常時起動させず日次で回したい</td><td><code>trigger(availableNow=True)</code></td></tr><tr><td>Salesforce / Workday から取り込みたい</td><td><strong>Lakeflow Connect（managed）</strong></td></tr><tr><td>取り込みパイプラインの保守負荷を下げたい</td><td><strong>managed connector</strong></td></tr><tr><td>コネクタが無い独自 API</td><td>JDBC / REST ＋ Lakeflow Jobs</td></tr><tr><td>JDBC が遅い。クラスタを足しても変わらない</td><td><code>partitionColumn</code> 等で分割する</td></tr><tr><td>ネストした JSON をそのまま持ちたい</td><td>STRUCT / ARRAY のまま Bronze へ</td></tr><tr><td>スキーマを固めずに半構造化を保持したい</td><td><strong>VARIANT</strong></td></tr></tbody></table></div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-myths" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>このドメインでよくある誤解<span class="tag">引っかかる前に、まとめて潰しておく</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ここは<strong>予防接種</strong>です。実際に間違えやすい形で並べてあります。
+          「言われれば分かる」ではなく、<strong>問題文の中で見抜けるか</strong>を意識して読んでください。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>よくある誤解</th><th>実際は</th><th>見抜き方</th></tr></thead><tbody><tr><td>Auto Loader は常時起動だから、日次バッチには使えない</td><td><code>trigger(availableNow=True)</code> で<strong>処理して停止</strong>できる</td><td>ガイドが <em>in batch modes</em> と明記している</td></tr><tr><td>COPY INTO はディレクトリ指定だから毎回全件読み直す</td><td>読んだファイル名を記録して<strong>未読だけ</strong>読む（冪等）</td><td>「増分ロード」がキーワード</td></tr><tr><td>検出が遅いのは計算資源が足りないから</td><td><strong>ファイルの探し方</strong>の問題。ノードを増やしても直らない</td><td>「一覧が重い」と書かれていたら検出方式の話</td></tr><tr><td>JDBC が遅いのはクラスタが小さいから</td><td>既定で<strong>接続が1本</strong>。分散していないだけ</td><td>「クラスタを拡張したが変わらない」が合図</td></tr><tr><td>大規模なら常に file notification が正解</td><td><strong>クラウド側の設定権限が無ければ選べない</strong></td><td>問題文の制約条件を読む</td></tr><tr><td>チェックポイントを消せば安全にやり直せる</td><td>全部読み直すので、<strong>テーブル側も整理しないと二重</strong>になる</td><td>「やり直したい」＋「重複を避けたい」はセットで考える</td></tr><tr><td>新しい列で処理が止まるのは不具合</td><td>既定 <code>addNewColumns</code> の<strong>仕様</strong></td><td>クラスタやコードを疑い始めたら、まず既定値を思い出す</td></tr><tr><td>スキーマは全部手書きで定義するのがいちばん安全</td><td><strong>Auto Loader を使う利点を捨てている</strong>。<code>schemaHints</code> で要所だけ固定する</td><td>「できるけれど目的に合わない」選択肢</td></tr><tr><td><code>checkpointLocation</code> と <code>schemaLocation</code> は同じようなもの</td><td><strong>進捗</strong>の記録と<strong>形</strong>の記録。別物</td><td>「消すとどうなるか」で区別する</td></tr><tr><td>COPY INTO の <code>mergeSchema</code> と Auto Loader の進化モードは同じ設定</td><td>別の道具の別のオプション。<strong>SQL 側か、ストリーミング側か</strong>で使い分ける</td><td>問題文が SQL か PySpark かを見る</td></tr><tr><td>半構造化と非構造化はだいたい同じ</td><td>JSON は<strong>テーブル</strong>に、画像や PDF は <strong>Volume</strong> に</td><td>置き場所を問う形で出る</td></tr><tr><td>Bronze でネストを平坦化して整えておくべき</td><td>Bronze は<strong>届いた形のまま</strong>。平坦化は Silver</td><td>「元データを失いたくない」が書かれていたら潰さない</td></tr><tr><td>専用コネクタがあっても、自作のほうが柔軟だから良い</td><td>この試験は「できるか」でなく<strong>「適切か」</strong>を問う</td><td>保守負担が大きい選択肢は選ばれない</td></tr><tr><td>認証情報は、動けばノートブックに書いても構わない</td><td><strong>常に誤答</strong>。<code>dbutils.secrets</code> を使う</td><td>他がどれだけ合っていても選ばれない</td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">同じ構造の誤答が2つある</p>
+            <p>「検出が遅い → クラスタ増強」と「JDBC が遅い → クラスタ増強」は、まったく同じ形をしています。
+            <strong>ボトルネックの場所が違うのに、計算資源を増やしている</strong>。
+            この考え方は<a href="05-optimization.html">監視と最適化</a>でも繰り返し出てきます。
+            今のうちに「まず、どこが詰まっているのか」を先に問う癖を付けておいてください。</p>
+          </div>
+
+          <div class="callout" data-kind="wait">
+            <p class="callout-title">声に出して確認する</p>
+            <p>次の5つに、この文書を見ずに答えられますか。答えられないものが、そのまま弱点です。</p>
+            <p>① COPY INTO と Auto Loader は、どちらも二重取り込みを防ぐ。<strong>実現方法の違い</strong>は？<br>
+            ② <code>checkpointLocation</code> と <code>schemaLocation</code> は、それぞれ<strong>何を覚えている</strong>？<br>
+            ③ <code>addNewColumns</code> と <code>rescue</code> の<strong>振る舞いの違い</strong>は？<br>
+            ④ directory listing と file notification を選ぶときの<strong>判断軸2つ</strong>は？<br>
+            ⑤ managed connector と standard connector の<strong>違い</strong>は？</p>
+            <p>言えなければ暗記であって、理解ではありません。
+            ただ、これは悪いことではなく<strong>戻る場所が特定できる</strong>ということです。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-quiz" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>確認問題<span class="tag">答えを見る前に、自分の言葉で言ってみる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>8問です。<strong>先に自分で答えを言ってから</strong>開いてください。
+          言えなかったものは、上の該当セクションに戻る合図です。</p>
+
+          <ul class="qa"><li><p class="q"><b>Q1</b>毎晩 S3 に置かれる CSV を、SQL だけで取り込みたい。ジョブが失敗したときは、どこまで処理したか調べずにそのまま再実行できるようにしたい。何を使うか。</p><details><summary>答えを見る</summary><p class="a"><strong>COPY INTO</strong>。読んだファイル名を記録して未読だけを読むので<strong>冪等</strong>であり、そのまま再実行しても二重になりません。SQL だけで完結する点も条件に合います。</p></details></li><li><p class="q"><b>Q2</b>S3 に数百万のファイルがあり、ディレクトリの一覧に時間とコストがかかっている。到着から取り込みまでの遅延も縮めたい。クラウド側の設定権限はある。どうするか。</p><details><summary>答えを見る</summary><p class="a"><strong>Auto Loader ＋ file notification</strong>（<code>cloudFiles.useNotifications = true</code>）。通知方式は一覧しないので<strong>検出コストが件数に依存せず</strong>、低遅延にもできます。クラスタの増強では直りません——これはファイルの探し方の問題だからです。</p></details></li><li><p class="q"><b>Q3</b><code>checkpointLocation</code> と <code>cloudFiles.schemaLocation</code> は、それぞれ何を覚えているか。また、それぞれを消すとどうなるか。</p><details><summary>答えを見る</summary><p class="a"><code>checkpointLocation</code> は<strong>進捗（どこまで読んだか）</strong>。消すと最初から全部読み直し、テーブル側を整理していなければデータが二重になります。<br><code>cloudFiles.schemaLocation</code> は<strong>スキーマ（どんな形だったか）</strong>。消すと推論をやり直します。</p></details></li><li><p class="q"><b>Q4</b>Auto Loader で運用中、取り込み元に新しい列が現れた瞬間に処理が止まった。クラスタにもコードにも異常は見当たらない。原因は何か。</p><details><summary>答えを見る</summary><p class="a">既定の <code>cloudFiles.schemaEvolutionMode = addNewColumns</code> の<strong>仕様</strong>です。新しい列が来るといったんストリームを止め、列を足し、再起動すれば取り込みを続けます。<strong>不具合ではありません。</strong></p></details></li><li><p class="q"><b>Q5</b>「取り込みを止めたくない。かつ、想定外のデータも失いたくない」と書かれている。何を選ぶか。</p><details><summary>答えを見る</summary><p class="a"><code>schemaEvolutionMode = rescue</code> と <code>_rescued_data</code> 列。列は足さず、スキーマに合わなかったデータを JSON 文字列として退避します。<strong>「止めたくない」と「失いたくない」が同時に出てきたら rescue</strong> が目印です。</p></details></li><li><p class="q"><b>Q6</b>JDBC で大きなテーブルを読んでいるが遅い。クラスタのノードを増やしても変わらない。原因と対処は。</p><details><summary>答えを見る</summary><p class="a">何も指定しないと<strong>接続が1本</strong>しか張られず、1タスクが全件を引くため分散処理になっていません。<code>partitionColumn</code> / <code>lowerBound</code> / <code>upperBound</code> / <code>numPartitions</code> で範囲を分割すると、並列に読めるようになります。</p></details></li><li><p class="q"><b>Q7</b>Salesforce のデータを毎日取り込みたい。パイプラインの保守に人を割けない。「requests で API を叩いて自作する」という選択肢は適切か。</p><details><summary>答えを見る</summary><p class="a">適切ではありません。<strong>Lakeflow Connect の managed connector</strong> を使います。差分の取り方・スケジュール・API 仕様変更への追随・認証情報の管理を任せられ、<strong>作る量と保守の責任</strong>が減ります。「専用の仕組みがあるのに手書きする」は典型的な誤答パターンです。</p></details></li><li><p class="q"><b>Q8</b>ネストした JSON を Bronze に取り込む。<code>customer.region</code> と <code>raw:customer.region</code> は、どう使い分けるか。</p><details><summary>答えを見る</summary><p class="a"><strong>ドット記法</strong>は列が <strong>STRUCT 型</strong>のとき（＝もう構造として解釈済み）。<strong>コロン記法</strong>は列が<strong>文字列</strong>として JSON を持つとき（＝まだ文字列のまま）。文字列を構造に変えるなら <code>from_json</code>、スキーマを固めずに保持するなら <strong>VARIANT</strong> が候補です。なお Bronze では<strong>平坦化しない</strong>のが方針です。</p></details></li></ul>
+
+          <p class="note">8問すべて即答できたら、このドメインは仕上がっています。
+          詰まったものがあれば、<a href="#sec-flow">選択フロー</a>と
+          <a href="#sec-choose">逆引き表</a>だけでも見返してから次に進んでください。</p>
+
+        </div>
+      </details>
+      <hr>
+      <h3>このシリーズの他のドキュメント</h3>
+      <ul class="links"><li><span class="star">★</span> <a href="index.html">総合インデックス</a></li><li><a href="00-exam-changes.html">2026年5月改訂で何が変わったか</a></li><li><a href="01-platform.html">プラットフォーム基盤</a></li><li><a href="03-transformation.html">変換とモデリング</a></li><li><a href="04-jobs-cicd.html">Jobs と CI/CD</a></li><li><a href="05-optimization.html">監視と最適化</a></li><li><a href="06-governance.html">ガバナンスとセキュリティ</a></li><li><a href="07-exam-tactics.html">試験の解き方</a></li></ul>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-05</span></span>
+        <span>出典: Databricks 公式 Exam Guide（2026-05-04 版）</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>

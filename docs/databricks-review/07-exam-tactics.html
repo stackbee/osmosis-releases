@@ -1,0 +1,1209 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>試験の解き方 — Databricks DE Associate</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 7. 追記：コードブロック ------------------------------ */
+.scroll-x > pre{
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  font-family: var(--f-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.75;
+  letter-spacing: 0;
+}
+.scroll-x > pre code{ font-size: inherit; }
+@media print{ .scroll-x > pre{ white-space: pre-wrap; } }
+
+/* --- 8. 追記：確認問題（答えは畳んでおく） ----------------- */
+.qa{ margin: var(--sp-4) 0; }
+.qa > li{
+  border-top: 1px solid var(--rule);
+  padding: var(--sp-3) 0 var(--sp-2);
+  list-style: none;
+}
+.qa > li:last-child{ border-bottom: 1px solid var(--rule); }
+.qa .q{ margin: 0 0 var(--sp-2); }
+.qa .q b{
+  font-family: var(--f-mono); font-size: var(--fs-xs);
+  color: var(--faint); margin-right: .6em; letter-spacing: .06em;
+}
+.qa details{ font-size: var(--fs-sm); }
+.qa summary{
+  cursor: pointer; color: var(--accent-ink);
+  font-size: var(--fs-xs); letter-spacing: .04em;
+  list-style: none; display: inline-block;
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .1rem .55rem;
+}
+.qa summary::-webkit-details-marker{ display: none; }
+.qa details[open] summary{ margin-bottom: var(--sp-2); }
+.qa .a{ color: var(--muted); margin: 0; padding-left: var(--sp-3);
+        border-left: 2px solid var(--rule-bold); }
+@media print{ .qa details{ } .qa summary{ display: none; } }
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">Databricks DE Associate</div>
+    <p class="rail-title">試験の解き方<br>逆引き・誤答6型・腕試し12問</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-6types"><span class="dot" data-status="crit"></span><span>誤答は6種類しかない</span></a></li>
+        <li><a href="#sec-read"><span class="dot" data-status="active"></span><span>問題文の読み方</span></a></li>
+        <li><a href="#sec-triage"><span class="dot" data-status="new"></span><span>間違いの3分類と戻り先</span></a></li>
+        <li><a href="#sec-lookup1"><span class="dot" data-status="ship"></span><span>逆引き — 取り込み・変換</span></a></li>
+        <li><a href="#sec-lookup2"><span class="dot" data-status="ship"></span><span>逆引き — 実行・最適化・統制</span></a></li>
+        <li><a href="#sec-quiz"><span class="dot" data-status="new"></span><span>腕試し 12問</span></a></li>
+        <li><a href="#sec-finish"><span class="dot" data-status="active"></span><span>学習の総仕上げ手順</span></a></li>
+        <li><a href="#sec-checklist"><span class="dot" data-status="active"></span><span>直前チェック15問</span></a></li>
+        <li><a href="#sec-day"><span class="dot" data-status="ship"></span><span>当日の進め方</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/RQMXdn_aTpQ" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/RQMXdn_aTpQ" rel="noopener">▶ 動画で見る</a></span>
+          <span>横断 / 本番で使う道具</span>
+          <span class="num">2026-08-05 時点</span>
+        </div>
+        <h1>試験の解き方</h1>
+        <p class="lede">知識が揃っても、問題文の読み方と選択肢の切り方を知らないと落とします。誤答の作られ方は6種類しかありません。型で切れるようにしておくと、知らない機能が出ても消去法で残せます。このページは、7ドメインのページを一周し終えた人が最後に通る場所です。</p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <dl class="kpis"><div class="kpi"><dt>1問あたり</dt><dd class="num">2<small>分</small></dd><p class="kpi-sub">3分以上かけない</p></div><div class="kpi"><dt>誤答の型</dt><dd class="num">6</dd><p class="kpi-sub">型で切れば消去法が効く</p></div><div class="kpi"><dt>目標正答率</dt><dd class="num">70<small>%</small></dd><p class="kpi-sub">45問中32問</p></div><div class="kpi"><dt>読む前のチェック</dt><dd class="num">5</dd><p class="kpi-sub">読み落としは知識では防げない</p></div><div class="kpi"><dt>腕試し</dt><dd class="num">12<small>問</small></dd><p class="kpi-sub">模試45問からの抜粋</p></div></dl>
+      <details class="sec" id="sec-6types" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>誤答は6種類しかない<span class="tag">選択肢を見た瞬間に「これはどの型か」で切る</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>公式サンプル問題を分解し、各ドメインで出てくる誤答を集めていくと、
+          作られ方が<strong>6つの型</strong>に収まります。無限にあるわけではありません。
+          型を知っていれば、選択肢の中身を完全に知らなくても
+          <strong>「これは型③だから切る」</strong>という判断ができます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>型</th><th>中身</th><th>代表例</th></tr></thead><tbody><tr><td><strong>① 条件を1つ外す</strong></td><td>2条件のうち片方だけ満たす</td><td>「削減したい＋Time Travel も維持」に対して、単に VACUUM する選択肢</td></tr><tr><td><strong>② 広すぎる</strong></td><td>目的に対して過剰</td><td>読み取り専用が欲しいのに <code>GRANT ALL PRIVILEGES</code></td></tr><tr><td><strong>③ 守備範囲を外す</strong></td><td>その機能がやらないことを主張</td><td>「Expectations で検索を速くする」「VACUUM で検索を速くする」</td></tr><tr><td><strong>④ 存在しない構文</strong></td><td>それらしいが実在しない</td><td><code>CREATE OR REPLACE TABLE t WITH COLUMNS (...)</code></td></tr><tr><td><strong>⑤ 語順・単語が1つ違う</strong></td><td>構文としては近い</td><td><code>INSERT VALUES (...) INTO my_table</code></td></tr><tr><td><strong>⑥ ボトルネックが違う</strong></td><td><strong>増強すれば直る、と誘う</strong></td><td>「検出が遅い → クラスタを大きくする」</td></tr></tbody></table></div>
+
+          <h3>型ごとの実例 — 2〜3個ずつ持っておく</h3>
+          <p>型は名前を覚えても切れません。<strong>実例を2〜3個ずつ引き出せる</strong>状態にしておくと、
+          本番で「あ、あれと同じ形だ」と気づけます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>型</th><th>問題文の形</th><th>混ざる誤答と、なぜ切れるか</th></tr></thead><tbody><tr><td><strong>①</strong></td><td>削減したい ＋ <strong>Time Travel も維持</strong></td><td>「保持期間を最短にして VACUUM」は<strong>前半だけ</strong>。<a href="05-optimization.html#sec-vacuum">RETAIN で必要な期間を確保</a>して VACUUM が正解</td></tr><tr><td><strong>①</strong></td><td>止めたくない ＋ <strong>データも失いたくない</strong></td><td><code>DROP ROW</code> は止まらないが行が消える。<code>addNewColumns</code> は残るが止まる。両立するのは <a href="02-ingestion.html#sec-autoloader"><code>rescue</code></a></td></tr><tr><td><strong>①</strong></td><td>存在に<strong>関係なく</strong> ＋ その形にしたい</td><td><code>IF NOT EXISTS</code> は「関係なく」を満たさない。<a href="03-transformation.html#sec-ddl"><code>CREATE OR REPLACE TABLE</code></a></td></tr><tr><td><strong>①</strong></td><td>値を伏せたい ＋ <strong>件数は見せてよい</strong></td><td>row filter は行ごと消えるので件数が変わる。<a href="06-governance.html#sec-rls">column mask</a> が正解</td></tr><tr><td><strong>②</strong></td><td>グループに<strong>読み取り専用</strong>を与えたい</td><td><code>GRANT ALL PRIVILEGES</code> は「できる」が「適切ではない」。<a href="06-governance.html#sec-grant"><code>GRANT SELECT</code></a></td></tr><tr><td><strong>②</strong></td><td>3番目のタスクだけ失敗。やり直しを最小に</td><td>「全体を再実行」は成功済みまで巻き込む過剰対応。<a href="04-jobs-cicd.html#sec-control">repair run</a></td></tr><tr><td><strong>②</strong></td><td>特定の列だけ分析チームに伏せたい</td><td>「テーブルを分ける」は作り替えが過剰。列単位の制御で足りる</td></tr><tr><td><strong>③</strong></td><td>小さなファイルが大量にある</td><td>「VACUUM する」は<strong>削除</strong>の機能で、統合はしない。<a href="05-optimization.html#sec-compare">OPTIMIZE</a></td></tr><tr><td><strong>③</strong></td><td>ストレージ使用量を減らしたい</td><td>「OPTIMIZE する」は<strong>統合</strong>であって容量は減らない</td></tr><tr><td><strong>③</strong></td><td>列を削除する前に影響範囲を知りたい</td><td>audit log は<strong>ヒトの操作</strong>の記録。モノを追うのは <a href="06-governance.html#sec-lineage">lineage</a></td></tr><tr><td><strong>③</strong></td><td>NULL 行をテーブルに入れたくない</td><td>「Expectations を書けば自動で除外される」は守備範囲外。<a href="03-transformation.html#sec-ldp"><code>DROP ROW</code> の明示</a>が要る</td></tr><tr><td><strong>④</strong></td><td>空のテーブルを作る DDL</td><td><code>WITH COLUMNS</code> は<strong>実在しない</strong>句（公式サンプル問題の選択肢D）</td></tr><tr><td><strong>⑤</strong></td><td>1行を追加する DML</td><td><code>INSERT VALUES ... INTO</code> は <code>INTO</code> の位置違い。<code>UPDATE ... VALUES</code> は形は整うが<strong>追加しない</strong></td></tr><tr><td><strong>⑤</strong></td><td>ユニークな請求書数を数える</td><td><code>count_distinct(patient_id)</code> は<strong>列が1つ違う</strong>。<code>sum(billing_id)</code> は ID を合計している</td></tr><tr><td><strong>⑤</strong></td><td>常時起動させず日次で回したい</td><td><code>trigger(processingTime="1 day")</code> は<strong>起動したまま</strong>。<code>trigger(availableNow=True)</code> が正解</td></tr></tbody></table></div>
+
+          <h3>④⑤ は「見慣れない句を疑う」で切れる</h3>
+          <p>公式サンプル問題から、実際に出た偽物を並べます。
+          いずれも <code>USING DELTA</code> や <code>CREATE OR REPLACE</code> といった
+          <strong>本物の部品が混ざっている</strong>ため、それらしく見えます。</p>
+
+          <div class="scroll-x"><pre><code>-- ④ 存在しない構文（WITH COLUMNS という句は無い）
+CREATE OR REPLACE TABLE my_table WITH COLUMNS (id STRING, qty INT) USING DELTA;
+
+-- ⑤ 語順が1つ違う（INTO の位置）
+INSERT VALUES ('a1', 6, 9.4) INTO my_table;
+
+-- ⑤ 形は整っているが、UPDATE は行を追加しない
+UPDATE my_table VALUES ('a1', 6, 9.4);</code></pre></div>
+
+          <p class="note">Associate レベルで、<strong>見たこともない構文が正解になることはまずありません</strong>。
+          「知らないだけかもしれない」と思わせるのがこの型の狙いです。見慣れないものは、たいてい偽物です。</p>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 316" role="img" aria-label="4つの選択肢が正解を少しずらして作られていることと、誤答の型で切れば消去法が効くことを示す図">
+              <defs>
+                <marker id="x1-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="x1-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="x1-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <text x="8" y="18" class="d-t-mono">選択肢は「知らない機能」ではなく、正解を少しずらして作られる</text>
+
+              <rect x="8"   y="34" width="704" height="34" rx="2" class="d-box"/>
+              <text x="360" y="56" class="d-t" text-anchor="middle">4つとも、それらしく見える</text>
+
+              <path d="M180,74 V102" class="d-line-crit" marker-end="url(#x1-ar-crit)"/>
+              <path d="M360,74 V102" class="d-line-crit" marker-end="url(#x1-ar-crit)"/>
+              <path d="M540,74 V102" class="d-line-crit" marker-end="url(#x1-ar-crit)"/>
+
+              <rect x="8"   y="108" width="222" height="52" rx="2" class="d-box-crit"/>
+              <text x="119" y="128" class="d-t-sm" text-anchor="middle">語順・単語が1つ違う</text>
+              <text x="119" y="146" class="d-t-sm" text-anchor="middle">INSERT ... INTO の位置</text>
+
+              <rect x="240" y="108" width="222" height="52" rx="2" class="d-box-crit"/>
+              <text x="351" y="128" class="d-t-sm" text-anchor="middle">条件を1つしか満たさない</text>
+              <text x="351" y="146" class="d-t-sm" text-anchor="middle">削減はするが遡れない</text>
+
+              <rect x="472" y="108" width="240" height="52" rx="2" class="d-box-crit"/>
+              <text x="592" y="128" class="d-t-sm" text-anchor="middle">「遅い → 増強」の誘導</text>
+              <text x="592" y="146" class="d-t-sm" text-anchor="middle">最頻出</text>
+
+              <path d="M119,166 V194 H360 V222" class="d-line" marker-end="url(#x1-ar)"/>
+              <path d="M351,166 V222" class="d-line" marker-end="url(#x1-ar)"/>
+              <path d="M592,166 V194 H360 V222" class="d-line" marker-end="url(#x1-ar)"/>
+
+              <rect x="180" y="228" width="360" height="48" rx="2" class="d-box-acc"/>
+              <text x="360" y="248" class="d-t"    text-anchor="middle">型で切れば、消去法が効く</text>
+              <text x="360" y="266" class="d-t-sm" text-anchor="middle">中身を吟味する前に、形で落とす</text>
+
+              <text x="8" y="300" class="d-t-sm">機能を知らなくて落ちるより、型を知らなくて落ちるほうが多い。型は6つしかありません。</text>
+            </svg>
+            <figcaption><strong>選択肢は、正解を少しずらして作られています。</strong>まったく知らない機能が並ぶことは、ほとんどありません。だから「どれが正しいか」を一から考えるより、典型的なずらし方を知っていて、それに当てはまるものを先に落とすほうが速い。最頻出は「遅い → 増強」の誘導です。これが選択肢にあったら、まず疑ってかかってください。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">最頻出は ⑥</p>
+            <p>「遅い → もっと大きく／もっと多く」という誘導です。この試験で最も繰り返し出てきます。
+            <strong>計算資源を足して直る問題は、意外と少ない</strong>と覚えておいてください。</p>
+          </div>
+
+          <div class="scroll-x"><table><thead><tr><th>症状</th><th>誘われる誤答</th><th>実際の原因</th></tr></thead><tbody><tr><td>ファイル検出が遅い</td><td>クラスタ増強</td><td>探し方の問題（<a href="02-ingestion.html#sec-detect"><strong>file notification</strong></a>）</td></tr><tr><td>JDBC が遅い</td><td>クラスタ増強</td><td>並列化されていない（<a href="02-ingestion.html#sec-connect"><strong>partitionColumn</strong></a>）</td></tr><tr><td>MERGE が遅い</td><td>クラスタ増強 / VACUUM</td><td>探索範囲（<a href="05-optimization.html#sec-liquid"><strong>Liquid Clustering</strong></a>）</td></tr><tr><td>特定の列での絞り込みが遅い</td><td>パーティションをその列で切る</td><td>高カーディナリティ列で切ると<strong>小さなファイルが大量に生まれる</strong></td></tr><tr><td>skew で1タスクだけ遅い</td><td>ノード追加</td><td>1タスクが重い。<strong>並列度は無関係</strong></td></tr><tr><td><code>collect()</code> で OOM</td><td>エグゼキュータ増強</td><td><strong>ドライバ側</strong>の問題。集める量を減らす</td></tr><tr><td>Shuffle Read/Write が巨大</td><td>メモリ増強</td><td>結合の仕方の問題（<strong>broadcast join</strong> で回避）</td></tr><tr><td>クエリが遅く、小さいファイルが多い</td><td>クラスタ増強</td><td>開くファイル数の問題（<strong>OPTIMIZE</strong>）</td></tr><tr><td>DELETE したのに容量が減らない</td><td>DELETE をやり直す</td><td>Delta の仕様。<strong>VACUUM</strong> が要る</td></tr></tbody></table></div>
+
+          <p class="note">共通する対策は<strong>「まず測る → 原因に合った手を打つ → 測り直す」</strong>。
+          ガイドが <em>re-measure the performance</em> と書いている意味がここにあります。
+          測る場所は <a href="05-optimization.html#sec-measure">run history と Spark UI</a> です。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-read" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>問題文の読み方<span class="tag">読み落としは知識では防げない。手順で防ぐ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>選択肢を切る前に、<strong>問題文から条件を全部拾えているか</strong>が先です。
+          落とす問題の多くは「知らなかった」ではなく「書いてあったのに読まなかった」です。
+          これは知識では防げません。<strong>毎回同じ手順を踏む</strong>ことで防ぎます。</p>
+
+          <h3>毎回この5つを確認する</h3>
+
+          <div class="scroll-x"><table><thead><tr><th>#</th><th>チェック</th><th>探す言葉</th><th>ここで分かれるもの</th></tr></thead><tbody><tr><td>1</td><td><strong>条件はいくつあるか</strong></td><td>「ただし」「かつ」「〜も」「同時に」</td><td>2条件なら、<strong>両方満たす選択肢を探す</strong>（型①の対策）</td></tr><tr><td>2</td><td><strong>誰が使うのか</strong></td><td>「データサイエンティストが」「毎晩」「本番 ETL」</td><td><a href="01-platform.html#sec-compute">All-Purpose か Job Compute か</a></td></tr><tr><td>3</td><td><strong>規模はどれくらいか</strong></td><td>「数千」「数百万」「日次で数十件」</td><td><a href="02-ingestion.html#sec-choose">COPY INTO か Auto Loader か</a>／directory listing か file notification か</td></tr><tr><td>4</td><td><strong>直前に何をしたか</strong></td><td>「結合したら」「展開したら」「DELETE したのに」</td><td>同じ症状でも原因が変わる（下の callout）</td></tr><tr><td>5</td><td><strong>何を優先するのか</strong></td><td>「コストを抑えたい」「保守負荷を下げたい」「概数でよい」</td><td>Job Compute ／ managed connector ／ <code>approx_count_distinct</code></td></tr></tbody></table></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 260" role="img" aria-label="「行が減った」という同じ症状に対して、重複排除・inner join・行フィルタという3つの異なる原因がありうることを示す図">
+              <defs>
+                <marker id="x2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="x2-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="x2-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="252" y="8" width="216" height="40" rx="2" class="d-box-crit"/>
+              <text x="360" y="34" class="d-t" text-anchor="middle">「行が減った」</text>
+
+              <path d="M300,54 V80 H120 V106" class="d-line" marker-end="url(#x2-ar)"/>
+              <path d="M360,54 V106" class="d-line" marker-end="url(#x2-ar)"/>
+              <path d="M420,54 V80 H600 V106" class="d-line" marker-end="url(#x2-ar)"/>
+
+              <rect x="8"   y="112" width="224" height="52" rx="2" class="d-box"/>
+              <text x="120" y="132" class="d-t"    text-anchor="middle">重複排除をした</text>
+              <text x="120" y="150" class="d-t-sm" text-anchor="middle">意図どおり</text>
+
+              <rect x="248" y="112" width="224" height="52" rx="2" class="d-box"/>
+              <text x="360" y="132" class="d-t"    text-anchor="middle">inner join で落ちた</text>
+              <text x="360" y="150" class="d-t-sm" text-anchor="middle">結合先に無い行が消えた</text>
+
+              <rect x="488" y="112" width="224" height="52" rx="2" class="d-box-crit"/>
+              <text x="600" y="132" class="d-t"     text-anchor="middle">行フィルタが効いた</text>
+              <text x="600" y="150" class="d-t-crit" text-anchor="middle">権限の問題</text>
+
+              <text x="8" y="200" class="d-t-key">症状は同じでも、原因の層が違います。</text>
+              <text x="8" y="222" class="d-t-sm">だから問題文では「直前に何をしたか」「誰が実行したか」を必ず探します。</text>
+              <text x="8" y="244" class="d-t-sm">重複排除の直後なら1つ目、join を書いたなら2つ目、実行者が変わったなら3つ目です。</text>
+            </svg>
+            <figcaption><strong>症状だけでは原因が決まりません。</strong>同じ「行が減った」でも、意図どおりの場合と、結合で落ちた場合と、権限で絞られた場合があります。問題文には必ず手がかりが書いてあります——直前の操作、実行した人、使ったクエリ。そこを読み落とすと、知っている内容なのに外します。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">同じ症状で原因が複数ある例：「行が減った」</p>
+            <ul>
+              <li><strong>inner join</strong> — マスタに無い行が落ちた → <code>left</code> にする</li>
+              <li><strong>explode</strong> — 配列が空 / NULL の行が落ちた → <code>explode_outer</code></li>
+              <li><strong>row filter</strong> — 権限で見えていない → 仕様。設定を確認</li>
+            </ul>
+            <p>症状ではなく<strong>「その直前に何をしたか」</strong>で切り分けます。
+            結合した後なら join、展開した後なら explode、
+            <strong>何も処理していないのに減っているなら権限</strong>。
+            問題文には必ず文脈が書いてあります。</p>
+          </div>
+
+          <h3>同じ症状で原因が分かれる、その他のパターン</h3>
+
+          <div class="scroll-x"><table><thead><tr><th>症状</th><th>直前の文脈</th><th>見るべきところ</th></tr></thead><tbody><tr><td>件数が想定と合わない</td><td>結合した / 展開した / 何もしていない</td><td>join の種類 ／ <code>explode_outer</code> ／ <a href="06-governance.html#sec-rls">row filter</a></td></tr><tr><td>容量が減らない</td><td>DELETE した / OPTIMIZE した</td><td>どちらも<strong>物理削除ではない</strong>。<a href="05-optimization.html#sec-vacuum">VACUUM</a> が要る</td></tr><tr><td>ストリームが止まった</td><td>上流に列が増えた / チェックポイントを消した</td><td><code>addNewColumns</code> の仕様 ／ 進捗が消えて全件再処理</td></tr><tr><td>読めないと言われた</td><td><code>GRANT SELECT</code> を出した直後</td><td><a href="06-governance.html#sec-grant"><code>USE CATALOG</code> / <code>USE SCHEMA</code></a> の不足</td></tr><tr><td>MERGE が失敗する</td><td>source を作り直した直後</td><td>source 側の<strong>キー重複</strong></td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="wait">
+            <p class="callout-title">「異常」と「仕様」を取り違えない</p>
+            <p>新しい列が来てストリームが止まるのは、Auto Loader の既定
+            <code>addNewColumns</code> の<strong>仕様</strong>です。
+            DELETE で容量が減らないのも Delta の<strong>仕様</strong>です。
+            これを「異常だ」と判断すると、クラスタやコードを調べ始めて時間を失います。
+            選択肢に「異常。設定ミス」が混ざっていたら、まず仕様側を疑ってください。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-triage" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>間違いの3分類と戻り先<span class="tag">「間違えたから復習する」ではなく、種類を判定してから戻る</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>間違えた問題を見て、解説を読んで、「なるほど」と思って終わる。
+          これでは次も同じところで間違えます。<strong>なぜ間違えたかを特定していない</strong>からです。
+          間違いには3種類あり、<strong>対処がまったく違います</strong>。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>間違いの種類</th><th>中身</th><th>対処</th><th>戻り先</th></tr></thead><tbody><tr><td><strong>① 知らなかった</strong></td><td>そもそもその機能を知らなかった</td><td>機能の説明から読み直す</td><td>該当ドメインのページ</td></tr><tr><td><strong>② 取り違えた</strong></td><td>知っていたが、似た機能と混同した</td><td><strong>判別の節</strong>に戻る</td><td>下の対応表</td></tr><tr><td><strong>③ 読み落とした</strong></td><td>知識はあったが、条件を見落とした</td><td><strong>知識では防げない。</strong>読み方の手順を変える</td><td><a href="#sec-read">問題文の読み方</a></td></tr></tbody></table></div>
+
+          <p class="note">たとえば③の読み落としだったのに機能の説明を読み直しても、意味がありません。
+          知識は既にあったのですから。必要なのは<strong>問題文の読み方を変えること</strong>です。</p>
+
+          <h3>②「取り違え」— ペアごとの戻り先</h3>
+          <p>落とすのは、たいてい知らない機能ではなく<strong>知っている機能の取り違え</strong>です。
+          取り違えたペアが分かれば、戻る場所は1か所に決まります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>取り違えたペア</th><th>分ける一文</th><th>戻り先</th></tr></thead><tbody><tr><td>COPY INTO ⇄ Auto Loader</td><td>実現方法と、耐えられる規模</td><td><a href="02-ingestion.html#sec-choose">取り込み／どれを選ぶか</a></td></tr><tr><td>directory listing ⇄ file notification</td><td>探しに行くか、知らせてもらうか</td><td><a href="02-ingestion.html#sec-detect">ファイル検出方式</a></td></tr><tr><td><code>addNewColumns</code> ⇄ <code>rescue</code></td><td>止まるか、拾って進むか</td><td><a href="02-ingestion.html#sec-autoloader">Auto Loader</a></td></tr><tr><td>Job Compute ⇄ All-Purpose</td><td>誰が使うか・いつ止まるか</td><td><a href="01-platform.html#sec-compute">コンピュートの選び方</a></td></tr><tr><td>managed ⇄ external table</td><td>DROP したら実データはどうなるか</td><td><a href="06-governance.html#sec-managed">managed と external</a></td></tr><tr><td>View ⇄ Materialized View ⇄ Streaming Table</td><td>毎回計算するか、結果を持つか、積み上げるか</td><td><a href="03-transformation.html#sec-gold">Gold 層のオブジェクト</a></td></tr><tr><td>inner join ⇄ explode ⇄ row filter</td><td><strong>直前に何をしたか</strong></td><td><a href="#sec-read">問題文の読み方</a></td></tr><tr><td>時間駆動 ⇄ データ駆動</td><td>時計で起きるか、出来事で起きるか</td><td><a href="04-jobs-cicd.html#sec-trigger">トリガーと駆動方式</a></td></tr><tr><td>retry ⇄ repair run</td><td>自動で待つか、人が失敗箇所から再開するか</td><td><a href="04-jobs-cicd.html#sec-control">制御フローと repair</a></td></tr><tr><td>バンドル ⇄ 従来デプロイ</td><td>定義をコードで持つか、UI で持つか</td><td><a href="04-jobs-cicd.html#sec-vs">【判別】従来デプロイとの違い</a></td></tr><tr><td>OPTIMIZE ⇄ VACUUM ⇄ Liquid Clustering</td><td>統合か、削除か、置き場所か</td><td><a href="05-optimization.html#sec-compare">【比較】5つの手法</a></td></tr><tr><td>row filter ⇄ column mask</td><td><strong>件数は変わるか</strong></td><td><a href="06-governance.html#sec-rls">行フィルタと列マスク</a></td></tr><tr><td>lineage ⇄ audit log</td><td>モノを追うか、ヒトを追うか</td><td><a href="06-governance.html#sec-lineage">lineage と audit log</a></td></tr><tr><td>ZORDER BY ⇄ Liquid Clustering</td><td>旧ガイドの答えか、新ガイドの答えか</td><td><a href="00-exam-changes.html#sec-zorder">ZORDER BY の立ち位置</a></td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">取り違えが多いなら、まず判別の節だけ読む</p>
+            <p>上の表で「分ける一文」に当たる部分が言えるなら、その機能は理解できています。
+            言えないペアだけ、戻り先を開いてください。
+            <strong>ドメインのページを頭から読み直す必要はありません。</strong></p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-lookup1" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>逆引き — 取り込みと変換<span class="tag">覚えるものではなく、引くもの</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答え</th></tr></thead><tbody><tr><td>SQL だけで増分ロードしたい</td><td><strong>COPY INTO</strong></td></tr><tr><td>同じファイルを強制的に再取り込み</td><td><code>COPY_OPTIONS ('force' = 'true')</code></td></tr><tr><td>取り込み元に列が増える（SQL 側）</td><td><code>COPY_OPTIONS ('mergeSchema' = 'true')</code></td></tr><tr><td>大量のファイルを効率的に検出したい</td><td><strong>Auto Loader</strong></td></tr><tr><td>継続的に到着する ／ 重複取り込みを防ぎたい</td><td><strong>Auto Loader</strong>（checkpoint）</td></tr><tr><td>新しい列が来ると処理が止まる</td><td>既定 <code>addNewColumns</code> の挙動（仕様）</td></tr><tr><td>止めたくない、かつデータも失いたくない</td><td><code>rescue</code> ＋ <code>_rescued_data</code></td></tr><tr><td>金額が文字列として取り込まれる</td><td><code>inferColumnTypes</code> / <code>schemaHints</code></td></tr><tr><td>ディレクトリ一覧が重い／低遅延にしたい</td><td><strong>file notification</strong></td></tr><tr><td>常時起動させず日次で回したい</td><td><code>trigger(availableNow=True)</code></td></tr><tr><td>チェックポイントを消して再実行した</td><td><strong>最初から全件を再処理</strong>する</td></tr><tr><td>進捗を覚えるのは／形を覚えるのは</td><td><code>checkpointLocation</code> ／ <code>schemaLocation</code></td></tr><tr><td>Salesforce / Workday から取り込みたい</td><td><strong>Lakeflow Connect（managed）</strong></td></tr><tr><td>コネクタが無い独自 API から取りたい</td><td>JDBC / REST ＋ <strong>Lakeflow Jobs</strong></td></tr><tr><td>JDBC の読み取りが極端に遅い</td><td><strong>partitionColumn</strong> で並列化する</td></tr><tr><td>ネストした JSON をそのまま取り込みたい</td><td>STRUCT / ARRAY のまま <strong>Bronze</strong> へ</td></tr><tr><td>PDF・画像を Unity Catalog 配下に置きたい</td><td><strong>Volume</strong></td></tr><tr><td>生データを変更せずに保持したい</td><td><strong>Bronze</strong></td></tr><tr><td>NULL を除去し型を揃えたい</td><td><strong>Silver</strong></td></tr><tr><td>BI が直接読む集計テーブル</td><td><strong>Gold</strong></td></tr><tr><td>存在に<strong>関係なく</strong>その形にしたい</td><td><code>CREATE OR REPLACE TABLE</code></td></tr><tr><td>何度実行しても既存を壊したくない</td><td><code>CREATE TABLE IF NOT EXISTS</code></td></tr><tr><td><strong>空の</strong>テーブルを作りたい</td><td>列定義を書く形（<strong>CTAS は不可</strong>）</td></tr><tr><td>既存があれば更新、無ければ追加</td><td><strong>MERGE</strong></td></tr><tr><td>source 側に無い行を消したい</td><td><code>WHEN NOT MATCHED BY SOURCE</code></td></tr><tr><td>MERGE が失敗する</td><td>source 側の<strong>キー重複</strong>を疑う</td></tr><tr><td>「ユニークな」件数</td><td><code>count_distinct</code></td></tr><tr><td>大規模で速く概数を知りたい</td><td><code>approx_count_distinct</code></td></tr><tr><td>最新の1件だけ残したい</td><td><code>ROW_NUMBER()</code> ＋ <code>WHERE rn = 1</code></td></tr><tr><td>結合したら行数が減った</td><td>inner → <strong>left</strong></td></tr><tr><td>explode したら行が減った</td><td><code>explode_outer</code></td></tr><tr><td>PySpark の <code>union</code> で重複を消したい</td><td><strong>消えない</strong>（UNION ALL 相当）。別途 <code>distinct</code></td></tr><tr><td>重い集計を BI が繰り返し読む</td><td><strong>Materialized View</strong></td></tr><tr><td>到着データを増分で積み上げたい</td><td><strong>Streaming Table</strong></td></tr><tr><td>宣言的に ETL を組みたい</td><td><strong>Declarative Pipelines</strong></td></tr><tr><td>NULL を保存したくない</td><td>Expectations の <code>DROP ROW</code></td></tr><tr><td>品質違反で処理を止めたい</td><td><code>ON VIOLATION FAIL UPDATE</code></td></tr><tr><td>品質違反の件数だけ記録したい</td><td>Expectations（<strong>既定＝記録のみ</strong>）</td></tr></tbody></table></div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-lookup2" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>逆引き — 実行・最適化・統制</h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答え</th></tr></thead><tbody><tr><td>ノートブックで対話的に分析</td><td><strong>All-Purpose Compute</strong></td></tr><tr><td>定期実行 ＋ コストを抑えたい</td><td><strong>Job Compute</strong></td></tr><tr><td>BI ツールの接続先</td><td><strong>SQL Warehouse</strong></td></tr><tr><td>hands-off / 運用を手放したい</td><td><strong>Serverless</strong>（コンピュート）</td></tr><tr><td>Declarative Pipeline を毎晩動かしたい</td><td>Job の <strong>Pipeline タスク</strong></td></tr><tr><td>パイプライン単体でスケジュールしたい</td><td><strong>できない</strong>。Jobs が要る</td></tr><tr><td>ファイル到着で起動したい</td><td><strong>file arrival トリガー</strong></td></tr><tr><td>前段の完了に連動させたい</td><td><strong>table update トリガー</strong> or 同一ジョブのタスク依存</td></tr><tr><td>一時的な障害で失敗する</td><td><strong>retry の設定</strong></td></tr><tr><td>対象が増減する繰り返し</td><td><strong>For each タスク</strong></td></tr><tr><td>失敗したタスクだけ再実行</td><td><strong>repair run</strong></td></tr><tr><td>上流の出力が疑わしい</td><td><strong>全体を rerun</strong></td></tr><tr><td>同じコードを dev / prod で使いたい</td><td><strong>variables ＋ targets</strong></td></tr><tr><td>複数人が同じバンドルを触る</td><td><code>mode: development</code>（名前にユーザー名）</td></tr><tr><td>dev でスケジュールを動かしたくない</td><td><code>mode: development</code></td></tr><tr><td>配る前に定義の誤りを検出したい</td><td><code>bundle validate</code></td></tr><tr><td>CI の認証</td><td><strong>サービスプリンシパル</strong></td></tr><tr><td>大量の小さな Parquet ファイル</td><td><strong>OPTIMIZE</strong></td></tr><tr><td>特定の列で頻繁に検索 / MERGE キーが遅い</td><td><strong>Liquid Clustering</strong></td></tr><tr><td>パーティション列の選定に悩む</td><td><strong>Liquid Clustering</strong>（選ばなくてよい）</td></tr><tr><td>旧教材に ZORDER BY と書いてある</td><td>新ガイドは <strong>Liquid Clustering</strong></td></tr><tr><td>ストレージ使用量を削減したい</td><td><strong>VACUUM</strong></td></tr><tr><td>削減したい ＋ <strong>Time Travel も維持</strong></td><td><code>RETAIN</code> で保持期間を確保</td></tr><tr><td>DELETE したのに容量が減らない</td><td>Delta の仕様。<strong>VACUUM が必要</strong></td></tr><tr><td>メンテナンスを自分で回したくない</td><td><strong>Predictive Optimization</strong></td></tr><tr><td>Max だけ桁違いに長い</td><td><strong>data skew</strong></td></tr><tr><td>Shuffle Read/Write が巨大</td><td><strong>broadcast join</strong> で回避</td></tr><tr><td>Spill (Disk) に数字が出る</td><td><code>shuffle.partitions</code> を<strong>増やす</strong></td></tr><tr><td><code>collect()</code> でメモリエラー</td><td><strong>ドライバ側 OOM</strong>。集める量を減らす</td></tr><tr><td>DROP してもデータを残したい</td><td><strong>external table</strong></td></tr><tr><td>DROP したら実データも消えてよい</td><td><strong>managed table</strong></td></tr><tr><td>読み取り専用を与えたい</td><td><code>GRANT SELECT</code>（<code>ALL PRIVILEGES</code> は広すぎる）</td></tr><tr><td>SELECT を与えたのに読めない</td><td><code>USE CATALOG</code> / <code>USE SCHEMA</code></td></tr><tr><td>部署ごとに見える<strong>行</strong>を変えたい</td><td><strong>row filter</strong></td></tr><tr><td>個人情報の<strong>値</strong>を伏せたい</td><td><strong>column mask</strong></td></tr><tr><td>機密データの制御を一元管理したい</td><td><strong>ABAC ポリシー</strong></td></tr><tr><td>データの出どころ・影響範囲</td><td><strong>lineage</strong></td></tr><tr><td>誰がいつ何をしたか</td><td><strong>audit log</strong></td></tr></tbody></table></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 276" role="img" aria-label="機能から説明する向きと、要件から機能を引く向きを比較した図。本番で得点になるのは後者だけであることを示している">
+              <defs>
+                <marker id="x3-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="x3-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="x3-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <text x="8" y="18" class="d-t-mono">同じ知識でも、引く向きで使えるかが変わる</text>
+
+              <text x="8" y="48" class="d-t-sm">学習中に作りがちな向き</text>
+              <rect x="8"   y="58"  width="200" height="44" rx="2" class="d-box-idle"/>
+              <text x="108" y="85"  class="d-t" text-anchor="middle">VACUUM とは？</text>
+              <line x1="214" y1="80" x2="272" y2="80" class="d-line" marker-end="url(#x3-ar)"/>
+              <rect x="278" y="58"  width="290" height="44" rx="2" class="d-box-idle"/>
+              <text x="423" y="85"  class="d-t-sm" text-anchor="middle">参照されない古いファイルを削除する</text>
+              <text x="590" y="85"  class="d-t-crit">本番では使わない</text>
+
+              <text x="8" y="148" class="d-t-sm">本番で使う向き</text>
+              <rect x="8"   y="158" width="290" height="44" rx="2" class="d-box-acc"/>
+              <text x="153" y="176" class="d-t-sm" text-anchor="middle">「ストレージを削減したい。</text>
+              <text x="153" y="194" class="d-t-sm" text-anchor="middle">ただし Time Travel も維持」</text>
+              <line x1="304" y1="180" x2="362" y2="180" class="d-line-acc" marker-end="url(#x3-ar-acc)"/>
+              <rect x="368" y="158" width="200" height="44" rx="2" class="d-box-ship"/>
+              <text x="468" y="185" class="d-t" text-anchor="middle">RETAIN ＋ VACUUM</text>
+              <text x="590" y="185" class="d-t-key">これが得点になる</text>
+
+              <text x="8" y="238" class="d-t-key">逆引き表は、下の向きだけを1枚に集めたものです。</text>
+              <text x="8" y="260" class="d-t-sm">上の向きは理解の確認には要りますが、そのままでは問題文から引けません。</text>
+            </svg>
+            <figcaption><strong>覚えている量ではなく、引く向きが得点を決めます。</strong>機能名から説明できるのに問題文からは出てこない、という状態が起きるのはこのためです。逆引き表は、要件の言葉を見出しにしてあります。「削減したいが遡りたい」「重い一覧を速くしたい」——問題文に出てくる形のまま引けるようにするのが狙いです。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="wait">
+            <p class="callout-title">この表の使い方</p>
+            <p><strong>覚えるのではなく、引きます。</strong>問題を解いて迷ったらこの表を引き、引いた行に印を付ける。
+            印が集中した行が自分の弱点です。</p>
+            <p>そして印が付いた行は、<strong>「なぜそうなるのか」を該当ページで確認</strong>してください。
+            表だけ暗記すると、少し言い換えられた問題文で崩れます。
+            本番は「小さなファイルが大量」ではなく
+            「書き込みが頻繁で、クエリ時に開くファイル数が増え続けている」と書いてきます。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-quiz" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>腕試し 12問<span class="tag">模試45問から、型の代表を1問ずつ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>7つのドメインから、<strong>誤答の型がはっきり出ている12問</strong>を選びました。
+          答えを開く前に、①正解、②<strong>他の3つがなぜ誤りか</strong>、③その誤答は6型のどれか、
+          の3つを言ってみてください。②③まで言えたら、その論点は本番でも落ちません。</p>
+
+          <ul class="qa"><li><p class="q"><b>Q1</b><strong>【S1】</strong> Unity Catalog で <code>prod.sales.orders</code> と参照するとき、「3階層」にあたるのは？<br>A. metastore / catalog / schema　B. workspace / catalog / table　C. metastore / schema / table　D. catalog / schema / table</p><details><summary>答えを見る</summary><p class="a"><strong>D。</strong>参照名に現れる3つが、そのまま3階層です。metastore は3階層の<strong>外側</strong>で、数えません。A を選びやすいのは「metastore が一番上にあるから」ですが、これは単語が1つ違う<strong>型⑤</strong>です。この住所の形は、そのまま権限の形（<code>USE CATALOG</code> / <code>USE SCHEMA</code>）にもなります。→ <a href="01-platform.html#sec-uc">Unity Catalog の3階層</a></p></details></li><li><p class="q"><b>Q2</b><strong>【S2】</strong> 取り込みを止めたくない。かつ、スキーマに合わないデータも失いたくない。<br>A. <code>failOnNewColumns</code>　B. <code>rescue</code>（<code>_rescued_data</code>）　C. <code>none</code>　D. <code>addNewColumns</code></p><details><summary>答えを見る</summary><p class="a"><strong>B。</strong>条件が2つあります。「止めたくない」と「失いたくない」。A は止まる、D も新しい列でいったん止まる、C は合わない値が落ちる。両方を満たすのは <code>rescue</code> で、外れた値は <code>_rescued_data</code> 列に残ります。典型的な<strong>型①</strong>です。→ <a href="02-ingestion.html#sec-autoloader">Auto Loader</a></p></details></li><li><p class="q"><b>Q3</b><strong>【S2】</strong> ランディング領域に数百万ファイルがあり、ディレクトリ一覧に時間がかかる。到着から処理までを短くしたい。<br>A. directory listing のまま　B. クラスタを大きくする　C. COPY INTO に変える　D. file notification</p><details><summary>答えを見る</summary><p class="a"><strong>D。</strong>「一覧に時間がかかる」のは<strong>探し方</strong>の問題なので、計算資源を足しても直りません。B が最頻出の<strong>型⑥</strong>です。C は数千規模向けで、数百万ファイルでは逆行します。→ <a href="02-ingestion.html#sec-detect">ファイル検出方式</a></p></details></li><li><p class="q"><b>Q4</b><strong>【S3・公式サンプル問題】</strong> テーブルが既に存在するかどうかに<strong>関係なく</strong>、指定した形の空テーブルを作りたい。<br>A. <code>CREATE TABLE IF NOT EXISTS t (...)</code>　B. <code>CREATE TABLE t AS SELECT ...</code><br>C. <code>CREATE OR REPLACE TABLE t (...)</code>　D. <code>CREATE OR REPLACE TABLE t WITH COLUMNS (...)</code></p><details><summary>答えを見る</summary><p class="a"><strong>C。</strong>決め手は「関係なく」の一語です。A は既存があると作り直さないので「関係なく」を満たしません（<strong>型①</strong>）。B は CTAS なので SELECT の結果が入り、<strong>空になりません</strong>。D の <code>WITH COLUMNS</code> は実在しない句（<strong>型④</strong>）。→ <a href="03-transformation.html#sec-ddl">DDL / DML — 公式サンプル問題</a></p></details></li><li><p class="q"><b>Q5</b><strong>【S3・公式サンプル問題】</strong> 日ごとの請求額合計と、<strong>ユニークな請求書数</strong>を集計する。正しいのは？<br>A. <code>sum(amount)</code>, <code>sum(billing_id)</code>　B. <code>sum(amount)</code>, <code>count_distinct(patient_id)</code><br>C. <code>sum(amount)</code>, <code>count_distinct(billing_id)</code>　D. <code>col(amount)</code>, <code>count(billing_id)</code></p><details><summary>答えを見る</summary><p class="a"><strong>C。</strong>「ユニークな」は <code>count_distinct</code>。最も紛らわしいのが B で、関数は合っていますが<strong>列が違います</strong>（患者数であって請求書数ではない）。これが<strong>型⑤</strong>です。A は ID を合計しており意味がありません。D は集計関数になっていません。→ <a href="03-transformation.html#sec-pyspark">PySpark の要点</a></p></details></li><li><p class="q"><b>Q6</b><strong>【S3】</strong> Declarative Pipelines の Expectations で <code>ON VIOLATION</code> を指定しなかった。違反行はどうなるか？<br>A. 削除される　B. パイプラインが失敗する　C. NULL に置換される　D. テーブルに入る（件数が記録される）</p><details><summary>答えを見る</summary><p class="a"><strong>D。</strong>既定は<strong>記録するだけで、行は残ります</strong>。A を選んでしまうのは「品質ルールに違反したのだから除外されるはず」という思い込みで、これは Expectations の守備範囲を広く見積もる<strong>型③</strong>の裏返しです。除外したいなら <code>DROP ROW</code>、止めたいなら <code>FAIL UPDATE</code> を明示します。→ <a href="03-transformation.html#sec-ldp">Declarative Pipelines と Expectations</a></p></details></li><li><p class="q"><b>Q7</b><strong>【S4】</strong> Declarative Pipeline を毎晩スケジュール実行したい。必要なものは？<br>A. パイプライン単体で設定できる　B. cron を書いたノートブック　C. Lakeflow Jobs の Pipeline タスク　D. SQL Warehouse</p><details><summary>答えを見る</summary><p class="a"><strong>C。</strong>Declarative Pipelines は<strong>単体ではスケジュールできません</strong>。「宣言的に書ける＝実行まで面倒を見てくれる」と思い込むと A を選びます（<strong>型③</strong>）。定期実行は Jobs の役割で、Pipeline タスクとして呼び出します。→ <a href="04-jobs-cicd.html#sec-tasks">タスクの種類</a></p></details></li><li><p class="q"><b>Q8</b><strong>【S5】</strong> 複数の開発者が同じバンドルを触る。互いのデプロイが衝突しないようにしたい。<br>A. <code>mode: production</code>　B. 全員が同じ target を使う　C. <code>mode: development</code>　D. デプロイを1人に限定</p><details><summary>答えを見る</summary><p class="a"><strong>C。</strong>development ではリソース名に<strong>ユーザー名が付く</strong>ので、同じバンドルを配っても衝突しません。あわせて<strong>スケジュールが停止</strong>されるため、dev のジョブが勝手に走ることもありません。D は運用でカバーする発想で、仕組みで解決できるのに人を縛る<strong>型②</strong>寄りの選択です。→ <a href="04-jobs-cicd.html#sec-bundle">Automation Bundles</a></p></details></li><li><p class="q"><b>Q9</b><strong>【S6】</strong> ストレージ使用量を削減したい。ただし Time Travel は今後も利用したい。<br>A. 保持期間を最短にして VACUUM　B. OPTIMIZE を実行<br>C. 必要な期間を <code>RETAIN</code> して VACUUM　D. テーブルを作り直す</p><details><summary>答えを見る</summary><p class="a"><strong>C。</strong>この試験で最も典型的な2条件問題です。A は「削減したい」だけを満たし、Time Travel で戻れる範囲を捨てています（<strong>型①</strong>）。B は小さなファイルの<strong>統合</strong>であって容量は減りません（<strong>型③</strong>）。「ただし」が出てきたら条件は2つ、と数える練習に最適な問題です。→ <a href="05-optimization.html#sec-vacuum">VACUUM と Time Travel</a></p></details></li><li><p class="q"><b>Q10</b><strong>【S6】</strong> 巨大テーブルで <code>customer_id</code> による絞り込みと MERGE が遅い。新ガイドが示す方向は？<br>A. パーティションを <code>customer_id</code> で切る　B. VACUUM　C. メモリ増強　D. Liquid Clustering</p><details><summary>答えを見る</summary><p class="a"><strong>D。</strong>旧教材なら ZORDER BY が答えになっていた場所ですが、<strong>新ガイドに ZORDER の記載はありません</strong>。A は高カーディナリティ列でのパーティションで、小さなファイルが大量に生まれて破綻します。B は削除の機能で無関係（<strong>型③</strong>）、C は<strong>型⑥</strong>。→ <a href="05-optimization.html#sec-liquid">Liquid Clustering</a> ／ <a href="00-exam-changes.html#sec-zorder">ZORDER BY の立ち位置</a></p></details></li><li><p class="q"><b>Q11</b><strong>【S7・公式サンプル問題】</strong> analyst グループに <code>sales_data</code> スキーマの読み取り専用アクセスを与える（<code>USE CATALOG</code> / <code>USE SCHEMA</code> は付与済み）。<br>A. <code>GRANT ALL PRIVILEGES ON SCHEMA sales_data TO analysts</code><br>B. <code>GRANT INSERT ON SCHEMA sales_data TO analysts</code><br>C. <code>GRANT SELECT ON SCHEMA sales_data TO analysts</code><br>D. <code>GRANT MODIFY ON SCHEMA sales_data TO analysts</code></p><details><summary>答えを見る</summary><p class="a"><strong>C。</strong>A は読めるようにはなりますが、書き込みも削除もできてしまう<strong>型②（広すぎる）</strong>の代表例です。「できる」と「適切である」は違います。B と D は書き込み系で、読み取り専用になりません。→ <a href="06-governance.html#sec-grant">GRANT / REVOKE / DENY</a></p></details></li><li><p class="q"><b>Q12</b><strong>【S7】</strong> 分析チームにはメールアドレスを伏せたい。ただし件数は見せてよい。<br>A. row filter　B. column mask　C. <code>REVOKE SELECT</code>　D. テーブルを分ける</p><details><summary>答えを見る</summary><p class="a"><strong>B。</strong>分ける一文は<strong>「件数は見せてよいか」</strong>です。A の row filter は行ごと消えるので件数が変わってしまい、後半の条件を落とします（<strong>型①</strong>）。C は何も見えなくなり、D は運用が増える過剰な作り替え（<strong>型②</strong>）。→ <a href="06-governance.html#sec-rls">行フィルタと列マスク</a></p></details></li></ul>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">正解した問題こそ、印を付ける</p>
+            <p>正解したけれど<strong>自信が無かった問題</strong>にも印を付けてください。
+            まぐれで当たった問題は本番で落ちますが、自分では気づきにくいものです。
+            記憶が新しいうちに印を付けておくと、後で戻れます。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-finish" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>学習の総仕上げ手順<span class="tag">模試 → ドメイン別集計 → 弱点のページ → 2周目</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ここまでのページを一周したら、残りは<strong>4ステップ</strong>です。
+          闇雲に読み返すのではなく、<strong>弱点を数字で特定してから戻ります</strong>。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>#</th><th>やること</th><th>判断の基準</th></tr></thead><tbody><tr><td>1</td><td><strong>時間を測って通しで解く</strong>（45問 / 90分）</td><td>迷った問題には印を付け、<strong>最後まで止まらない</strong>。答え合わせは解き終わってから</td></tr><tr><td>2</td><td><strong>ドメインごとに誤答数を数える</strong></td><td>正答率 <span class="num">60</span>% を切ったドメインは、<strong>ページごと読み直す</strong></td></tr><tr><td>3</td><td><strong>間違いを3分類し、戻り先を決める</strong></td><td><a href="#sec-triage">知らなかった / 取り違えた / 読み落とした</a></td></tr><tr><td>4</td><td><strong>2周目は解き方を変える</strong></td><td>答えを覚えてしまっているので、<strong>選ぶ</strong>のではなく<strong>説明する</strong></td></tr></tbody></table></div>
+
+          <h3>ステップ2 — ドメイン別の集計表</h3>
+          <p>出題比率は非公開です。下の出題数は、<strong>ドメインの重みを推定して配分</strong>した模試の内訳です。
+          誤答数を書き込んで、正答率を出してください。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>ドメイン</th><th class="num">出題数</th><th class="num">誤答数</th><th>60% を切ったら戻る先</th></tr></thead><tbody><tr><td>S1 プラットフォーム</td><td class="num">5</td><td class="num">　</td><td><a href="01-platform.html">プラットフォーム基盤</a></td></tr><tr><td>S2 取り込み</td><td class="num">9</td><td class="num">　</td><td><a href="02-ingestion.html">データの取り込み</a></td></tr><tr><td>S3 変換・モデリング</td><td class="num">12</td><td class="num">　</td><td><a href="03-transformation.html">変換とモデリング</a></td></tr><tr><td>S4 Jobs</td><td class="num">6</td><td class="num">　</td><td><a href="04-jobs-cicd.html#sec-dag">Jobs と CI/CD</a></td></tr><tr><td>S5 CI/CD</td><td class="num">5</td><td class="num">　</td><td><a href="04-jobs-cicd.html#sec-bundle">Automation Bundles</a></td></tr><tr><td>S6 最適化</td><td class="num">5</td><td class="num">　</td><td><a href="05-optimization.html">監視と最適化</a></td></tr><tr><td>S7 ガバナンス</td><td class="num">3</td><td class="num">　</td><td><a href="06-governance.html">ガバナンスとセキュリティ</a></td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">比率を根拠にドメインを捨てない</p>
+            <p>採点対象は45問しかありません。1つのドメインを丸ごと落とすと、それだけで致命傷になります。
+            「S7 は3問しかないから捨てる」は成立しません。
+            <strong>弱いドメインを見つけたら、そこを埋める</strong>のが最短です。</p>
+            <p>とくに <strong>CI/CD と Troubleshooting は旧版でほぼ問われなかった</strong>領域で、
+            古い教材で勉強した人ほど手薄になります。不安が残るなら S5 と S6 を優先してください。</p>
+          </div>
+
+          <h3>ステップ4 — 2周目の解き方</h3>
+          <p>同じ模試をもう一度解くとき、答えを覚えてしまっているのは避けられません。
+          だから、<strong>解き方のほうを変えます</strong>。</p>
+          <ol>
+            <li><strong>他の3つがなぜ誤りかを言う</strong> — 正解が分かっていても「A はなぜ違うのか」を説明する</li>
+            <li><strong>誤答が6型のどれかを判定する</strong> — <a href="#sec-6types">条件を1つ外している型か、守備範囲を外している型か</a></li>
+            <li><strong>問題文を自分で言い換えてみる</strong> — これがいちばん効きます</li>
+          </ol>
+
+          <p>3つ目が効く理由は単純で、<strong>本番は同じ意味を違う言葉で聞いてくる</strong>からです。
+          模試とまったく同じ表現は出てきません。言い換えの練習として、下の対応を作ってみてください。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>本番はこう書いてくる（言い換え）</th><th>逆引き表ではこの行</th></tr></thead><tbody><tr><td>書き込みが頻繁で、クエリ時に開くファイル数が増え続けている</td><td>小さなファイルが大量 → <strong>OPTIMIZE</strong></td></tr><tr><td>データサイエンティストが仮説を立てながらデータを見たい</td><td>人が対話的に使う → <strong>All-Purpose Compute</strong></td></tr><tr><td>処理が終わったら課金を止めたい</td><td>定期実行 ＋ コスト → <strong>Job Compute</strong></td></tr><tr><td>インフラの面倒を見たくない / 運用の手離れをよくしたい</td><td>hands-off → <strong>Serverless</strong> や managed connector</td></tr><tr><td>到着してから処理されるまでのラグを短くしたい</td><td>低遅延 → <strong>file notification</strong></td></tr><tr><td>重複を除いた請求書の数を知りたい</td><td>「ユニークな」件数 → <code>count_distinct</code></td></tr><tr><td>おおよその数字で構わないので速く出したい</td><td>概数 → <code>approx_count_distinct</code></td></tr><tr><td>マスタに登録されていない注文も残したい</td><td>結合したら行が減った → <strong>left join</strong></td></tr><tr><td>DELETE したのにクラウドの請求額が変わらない</td><td>容量が減らない → <strong>VACUUM</strong></td></tr><tr><td>担当者が異動しても壊れない認証にしたい</td><td>CI の認証 → <strong>サービスプリンシパル</strong></td></tr><tr><td>この列を消したら、どのダッシュボードが壊れるか知りたい</td><td>影響範囲 → <strong>lineage</strong></td></tr><tr><td>監査に備えて、誰がこのテーブルを触ったかを残したい</td><td>誰がいつ何をしたか → <strong>audit log</strong></td></tr></tbody></table></div>
+
+          <p class="note">言い換えられる状態になっていれば、<strong>表の暗記では届かないところに届きます</strong>。
+          逆に、言い換えられないなら、その行はまだ「暗記」の段階です。該当ページで理由に戻ってください。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-checklist" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>直前チェック — 一言で言えるか<span class="tag">スライドを見ずに口で答えられるか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <ol>
+            <li>Delta テーブルの実体は？ → <span class="num">Parquet ＋ <code>_delta_log</code></span></li>
+            <li>3階層とは？ → catalog / schema / table（metastore は数えない）</li>
+            <li>All-Purpose と Job Compute の判別軸は？ → 誰が使うか・いつ止まるか</li>
+            <li>COPY INTO と Auto Loader の違いは？ → 実現方法と耐えられる規模</li>
+            <li><code>checkpointLocation</code> と <code>schemaLocation</code> は何を覚える？ → 進捗と形</li>
+            <li>Bronze / Silver / Gold の役割は？ → 触っていない / 整えた / まとめた</li>
+            <li>「空のテーブル」で CTAS が使えない理由は？ → SELECT の結果が入るので空にならない</li>
+            <li>MERGE の3つの分岐は？ → MATCHED / NOT MATCHED / <strong>NOT MATCHED BY SOURCE</strong></li>
+            <li>PySpark の <code>union</code> は重複を排除する？ → <strong>しない</strong></li>
+            <li>Expectations の既定挙動は？ → <strong>記録するだけで行は残る</strong></li>
+            <li>Declarative Pipeline は単体でスケジュールできる？ → <strong>できない</strong></li>
+            <li><code>mode: development</code> で何が変わる？ → 名前にユーザー名／スケジュール停止</li>
+            <li>OPTIMIZE と VACUUM の目的の違いは？ → 整理整頓 と ゴミ捨て</li>
+            <li>Spark UI で skew を見つける指標は？ → Median と Max の差</li>
+            <li>row filter と column mask、件数が変わるのは？ → <strong>row filter</strong></li>
+          </ol>
+
+          <p class="note">詰まったものだけ、該当ページに戻ってください。全部を見直す必要はありません。</p>
+
+          <h3>改訂差分の最終確認</h3>
+          <p>古い教材で勉強した記憶は、<strong>直前になって出てきます</strong>。ここで最後に洗っておきます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>古い記憶</th><th>新しい答え</th></tr></thead><tbody><tr><td>特定列の検索が遅い → <strong>ZORDER BY</strong></td><td><strong>Liquid Clustering</strong></td></tr><tr><td>手動で OPTIMIZE / VACUUM を回す</td><td><strong>Predictive Optimization</strong> がある</td></tr><tr><td>Delta Sharing の設定パターン</td><td><strong>範囲外</strong>（削除された）</td></tr><tr><td>Lakehouse Federation</td><td><strong>範囲外</strong>（削除された）</td></tr><tr><td>DLT</td><td><strong>Lakeflow Spark Declarative Pipelines</strong></td></tr><tr><td>DAB</td><td><strong>Declarative Automation Bundles</strong></td></tr><tr><td>Repos</td><td><strong>Databricks Git folders</strong></td></tr><tr><td>Workflows</td><td><strong>Lakeflow Jobs</strong></td></tr></tbody></table></div>
+
+          <p class="note">名称だけでなく、<strong>問われ方が変わった領域</strong>もあります。詳しくは
+          <a href="00-exam-changes.html">2026年5月改訂で何が変わったか</a> を参照してください。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-day" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>当日の進め方<span class="tag">2分で決められないなら、その場では決められない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <div class="scroll-x"><table><thead><tr><th>項目</th><th>やること</th></tr></thead><tbody><tr><td>時間配分</td><td>45問 / 90分 ＝ <strong>1問2分</strong>。1問に3分以上かけない</td></tr><tr><td>迷ったら</td><td>印を付けて<strong>次へ進む</strong>。戻る時間は最後に確保する</td></tr><tr><td>読む手順</td><td>① 条件を数える ② 誰が・規模は ③ 直前の操作 ④ 優先するもの</td></tr><tr><td>切り方</td><td><strong>6型</strong>で切る（広すぎる / 守備範囲外 / 存在しない構文 …）</td></tr><tr><td>最後の見直し</td><td>印を付けた問題だけ。<strong>全部を見直そうとしない</strong></td></tr></tbody></table></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 240" role="img" aria-label="1問2分の内訳を時間軸で示した図。読む・要件を掴む・型で切る・選ぶで使い切り、思い出す時間は含まれない">
+              <defs>
+                <marker id="x4-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="x4-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="x4-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <line x1="8" y1="70" x2="712" y2="70" class="d-rule"/>
+              <text x="8"   y="24" class="d-t-mono">1問あたり約2分。内訳はこうなる</text>
+
+              <rect x="8"   y="40" width="180" height="30" rx="2" class="d-box"/>
+              <text x="98"  y="60" class="d-t-sm" text-anchor="middle">読む</text>
+              <rect x="192" y="40" width="180" height="30" rx="2" class="d-box-acc"/>
+              <text x="282" y="60" class="d-t-sm" text-anchor="middle">要件を掴む</text>
+              <rect x="376" y="40" width="200" height="30" rx="2" class="d-box-acc"/>
+              <text x="476" y="60" class="d-t-sm" text-anchor="middle">型で切る</text>
+              <rect x="580" y="40" width="132" height="30" rx="2" class="d-box"/>
+              <text x="646" y="60" class="d-t-sm" text-anchor="middle">選ぶ</text>
+
+              <text x="282" y="92" class="d-t-key" text-anchor="middle">条件はいくつあるか</text>
+              <text x="476" y="92" class="d-t-key" text-anchor="middle">「増強」の誘導を疑う</text>
+
+              <text x="8" y="132" class="d-t-crit">ここに「思い出す時間」は入っていません。</text>
+              <text x="8" y="154" class="d-t-sm">考え込んで正解に辿り着く力ではなく、判断が反射で出る状態が求められる理由がこれです。</text>
+
+              <rect x="8"   y="180" width="704" height="44" rx="2" class="d-box-block"/>
+              <text x="360" y="200" class="d-t"    text-anchor="middle">30秒考えて出てこなければ、印を付けて飛ばす</text>
+              <text x="360" y="217" class="d-t-sm" text-anchor="middle">粘ると、後半の解ける問題を落とす。取り返しがつかないのはそちら</text>
+            </svg>
+            <figcaption><strong>2分の中に、思い出す時間はありません。</strong>読んで、要件を掴んで、型で切って、選ぶ。これで使い切ります。だから学習のゴールは「知っている」ではなく「反射で出る」になります。本番で詰まったときは粘らないでください。1問に3分かければ、後半の解けるはずだった問題を1問落とします。損失が大きいのは、いつも後者です。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">粘らない</p>
+            <p>2分で決められない問題は、その場では決められません。
+            反射で出ないものは、その場で作れないからです。
+            粘るより、<strong>確実に取れる問題に時間を回す</strong>ほうが点は伸びます。</p>
+          </div>
+
+          <h3>試験の基本情報</h3>
+          <div class="scroll-x"><table><thead><tr><th>項目</th><th>内容</th></tr></thead><tbody><tr><td>出題数</td><td><span class="num">45</span> 問（採点対象）</td></tr><tr><td>時間</td><td><span class="num">90</span> 分</td></tr><tr><td>形式</td><td>多肢選択</td></tr><tr><td>受験料</td><td>USD <span class="num">200</span></td></tr><tr><td>有効期間</td><td><span class="num">2</span> 年。再認定は現行の試験を受験</td></tr><tr><td>前提資格</td><td>なし（実務 6 ヶ月程度を推奨）</td></tr><tr><td>受験方法</td><td>オンライン / テストセンター</td></tr></tbody></table></div>
+
+          <p class="note">採点対象外の問題が混ざることがあり、<strong>その分の時間は加算されています</strong>。
+          問題数が多く感じても、配分は崩れていません。慌てないでください。</p>
+
+          <div class="callout" data-kind="wait">
+            <p class="callout-title">最後に — この試験が測っているもの</p>
+            <p>問われるのは機能名の記憶ではなく、<strong>「この要件には、この機能」という判断</strong>です。
+            全ページを通して繰り返した3つを、最後にもう一度。</p>
+            <ul>
+              <li><strong>要件 → 機能</strong>で引けるか（<a href="#sec-lookup1">逆引き</a>）</li>
+              <li>似た機能を<strong>取り違えていない</strong>か（<a href="#sec-triage">判別</a>）</li>
+              <li><strong>測ってから打つ</strong>（増強に逃げない）</li>
+            </ul>
+          </div>
+
+        </div>
+      </details>
+      <hr>
+      <h3>このシリーズの他のドキュメント</h3>
+      <ul class="links"><li><span class="star">★</span> <a href="index.html">総合インデックス</a></li><li><a href="00-exam-changes.html">2026年5月改訂で何が変わったか</a></li><li><a href="01-platform.html">プラットフォーム基盤</a></li><li><a href="02-ingestion.html">データの取り込み</a></li><li><a href="03-transformation.html">変換とモデリング</a></li><li><a href="04-jobs-cicd.html">Jobs と CI/CD</a></li><li><a href="05-optimization.html">監視と最適化</a></li><li><a href="06-governance.html">ガバナンスとセキュリティ</a></li></ul>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-05</span></span>
+        <span>出典: Databricks 公式 Exam Guide（2026-05-04 版）</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,1782 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>変換とモデリング — Databricks DE Associate</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 7. 追記：コードブロック ------------------------------ */
+.scroll-x > pre{
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  font-family: var(--f-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.75;
+  letter-spacing: 0;
+}
+.scroll-x > pre code{ font-size: inherit; }
+@media print{ .scroll-x > pre{ white-space: pre-wrap; } }
+
+/* --- 8. 追記：確認問題（答えは畳んでおく） ----------------- */
+.qa{ margin: var(--sp-4) 0; }
+.qa > li{
+  border-top: 1px solid var(--rule);
+  padding: var(--sp-3) 0 var(--sp-2);
+  list-style: none;
+}
+.qa > li:last-child{ border-bottom: 1px solid var(--rule); }
+.qa .q{ margin: 0 0 var(--sp-2); }
+.qa .q b{
+  font-family: var(--f-mono); font-size: var(--fs-xs);
+  color: var(--faint); margin-right: .6em; letter-spacing: .06em;
+}
+.qa details{ font-size: var(--fs-sm); }
+.qa summary{
+  cursor: pointer; color: var(--accent-ink);
+  font-size: var(--fs-xs); letter-spacing: .04em;
+  list-style: none; display: inline-block;
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .1rem .55rem;
+}
+.qa summary::-webkit-details-marker{ display: none; }
+.qa details[open] summary{ margin-bottom: var(--sp-2); }
+.qa .a{ color: var(--muted); margin: 0; padding-left: var(--sp-3);
+        border-left: 2px solid var(--rule-bold); }
+@media print{ .qa details{ } .qa summary{ display: none; } }
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">Databricks DE Associate</div>
+    <p class="rail-title">変換とモデリング<br>メダリオン / SQL / PySpark / Streaming / LDP</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-medallion"><span class="dot" data-status="active"></span><span>メダリオンアーキテクチャ</span></a></li>
+        <li><a href="#sec-ddl"><span class="dot" data-status="crit"></span><span>DDL / DML — 公式サンプル問題</span></a></li>
+        <li><a href="#sec-merge"><span class="dot" data-status="active"></span><span>MERGE（UPSERT）</span></a></li>
+        <li><a href="#sec-cleansing"><span class="dot" data-status="crit"></span><span>データクレンジング（NULL と型）</span></a></li>
+        <li><a href="#sec-silver-impl"><span class="dot" data-status="new"></span><span>Bronze → Silver の実装例</span></a></li>
+        <li><a href="#sec-pyspark"><span class="dot" data-status="active"></span><span>PySpark の要点</span></a></li>
+        <li><a href="#sec-gold"><span class="dot" data-status="new"></span><span>Gold 層のオブジェクト</span></a></li>
+        <li><a href="#sec-ldp"><span class="dot" data-status="new"></span><span>Declarative Pipelines と Expectations</span></a></li>
+        <li><a href="#sec-streaming"><span class="dot" data-status="new"></span><span>Structured Streaming の基礎</span></a></li>
+        <li><a href="#sec-tuning"><span class="dot" data-status="ship"></span><span>チューニングパラメータ</span></a></li>
+        <li><a href="#sec-myths"><span class="dot" data-status="block"></span><span>このドメインでよくある誤解</span></a></li>
+        <li><a href="#sec-quiz"><span class="dot" data-status="ship"></span><span>確認問題（14問）</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/oy5Y92u5caQ" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/oy5Y92u5caQ" rel="noopener">▶ 動画で見る</a></span>
+          <span>ドメイン 3 / Data Transformation and Modeling</span>
+          <span class="num">2026-08-05 時点</span>
+        </div>
+        <h1>変換とモデリング</h1>
+        <p class="lede">最大のドメインです。公式サンプル問題5問のうち3問がこの領域から出ています。そして誤答の作られ方がはっきりしているので、「どこで殺しにくるか」を知っておくと効率よく点が取れます。ここだけは、関数名・構文・既定値のレベルまで下ろして覚えます。</p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <dl class="kpis"><div class="kpi"><dt>公式サンプル問題</dt><dd class="num">3 / 5</dd><p class="kpi-sub">このドメインからの出題</p></div><div class="kpi"><dt>対応レクチャー</dt><dd class="num">13</dd><p class="kpi-sub">コース最長のセクション</p></div><div class="kpi"><dt>ガイドが名指しした関数・パラメータ</dt><dd class="num">20+</dd><p class="kpi-sub">「関数名を直接聞ける」状態</p></div><div class="kpi"><dt>末尾の確認問題</dt><dd class="num">10</dd><p class="kpi-sub">答えは畳んであります</p></div></dl>
+      <details class="sec" id="sec-medallion" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>メダリオンアーキテクチャ<span class="tag">分ける本質は「やり直せること」</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>Bronze / Silver / Gold の3層に分けます。結論より、<strong>なぜ分けるのか</strong>を先に押さえます。
+          理由が分かっていると、「この要件はどの層か」を選ばせる問題で迷わなくなるからです。</p>
+
+          <p>1層でやると、こうなります。ソースから直接、集計済みテーブルを作る。動きます。
+          シンプルですし、処理も速いかもしれません。では何が問題になるか。3つあります。</p>
+
+          <dl class="facts">
+            <div class="fact"><dt>作り直せない</dt>
+              <dd>集計ロジックを直したくなったとき、ソースから取り直すことになります。
+              ソースが SaaS の API なら、過去のデータはもう取れないかもしれません。</dd></div>
+            <div class="fact"><dt>遡れない</dt>
+              <dd>元のデータが残っていないので、「この数字おかしくない?」と言われたときに確認できません。</dd></div>
+            <div class="fact"><dt>影響範囲が切れない</dt>
+              <dd>誰かがロジックを変えると、それを使っている全部に波及します。分岐点が無いからです。</dd></div>
+          </dl>
+
+          <p>3層に分けると、これが解決します。Bronze があるので、ロジックを直しても Bronze から流し直すだけで済みます。
+          Silver が「正しい版の唯一の基準」になります。そして
+          <strong>Gold は用途ごとに何個あってもかまいません</strong>——営業用の集計と経理用の集計を別々に作っても、
+          どちらも同じ Silver から作られているので数字が食い違いません。</p>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 196" role="img" aria-label="Bronze・Silver・Gold の3層が、それぞれ失わないこと・正しくすること・使えることを責任として持ち、Bronze で捨てると戻れないことを示す図">
+              <defs>
+                <marker id="t1-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="t1-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="t1-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="8"   y="34" width="210" height="94" rx="2" class="d-box"/>
+              <text x="113" y="58"  class="d-t"    text-anchor="middle">Bronze</text>
+              <text x="113" y="78"  class="d-t-sm" text-anchor="middle">来たものを来たまま置く</text>
+              <text x="113" y="96"  class="d-t-sm" text-anchor="middle">型は緩く、加工しない</text>
+              <text x="113" y="118" class="d-t-key" text-anchor="middle">責任：失わないこと</text>
+
+              <line x1="224" y1="81" x2="264" y2="81" class="d-line-acc" marker-end="url(#t1-ar-acc)"/>
+
+              <rect x="270" y="34" width="210" height="94" rx="2" class="d-box-acc"/>
+              <text x="375" y="58"  class="d-t"    text-anchor="middle">Silver</text>
+              <text x="375" y="78"  class="d-t-sm" text-anchor="middle">型をそろえ、重複を除き</text>
+              <text x="375" y="96"  class="d-t-sm" text-anchor="middle">結合して意味のある単位に</text>
+              <text x="375" y="118" class="d-t-key" text-anchor="middle">責任：正しくすること</text>
+
+              <line x1="486" y1="81" x2="526" y2="81" class="d-line-acc" marker-end="url(#t1-ar-acc)"/>
+
+              <rect x="532" y="34" width="180" height="94" rx="2" class="d-box"/>
+              <text x="622" y="58"  class="d-t"    text-anchor="middle">Gold</text>
+              <text x="622" y="78"  class="d-t-sm" text-anchor="middle">用途ごとに集計し</text>
+              <text x="622" y="96"  class="d-t-sm" text-anchor="middle">見せる形にする</text>
+              <text x="622" y="118" class="d-t-key" text-anchor="middle">責任：使えること</text>
+
+              <path d="M113,140 V166" class="d-line-crit"/>
+              <path d="M375,140 V166" class="d-line-crit"/>
+              <path d="M622,140 V166" class="d-line-crit"/>
+              <text x="113" y="184" class="d-t-crit" text-anchor="middle">ここで捨てると戻れない</text>
+              <text x="375" y="184" class="d-t-sm"   text-anchor="middle">やり直せる（Bronze が残っている）</text>
+              <text x="622" y="184" class="d-t-sm"   text-anchor="middle">作り直せる</text>
+
+              <text x="8" y="16" class="d-t-mono">3層は「加工の段階」ではなく「責任の分割」</text>
+            </svg>
+            <figcaption><strong>層の違いは、やり直せるかどうかで決まります。</strong>Bronze で加工して捨ててしまうと、元に戻す手段がありません。だから Bronze の責任は「失わないこと」だけで、型をそろえるのも重複を除くのも Silver の仕事です。「Bronze でクレンジングする」という選択肢が誤答になるのは、層の順番の問題ではなく、取り返しがつかなくなるからです。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">本質は一言でいうと</p>
+            <p><strong>「やり直せること」。</strong>Bronze を生のまま残すのは、あとで必ずロジックを直すからです。
+            必ず直します。最初から完璧なパイプラインは作れません。</p>
+          </div>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>Bronze</th><th>Silver</th><th>Gold</th></tr></thead><tbody><tr><td>形</td><td>ソースのまま（ネストも保持）</td><td>平坦化・型統一</td><td>集約済み</td></tr><tr><td>重複</td><td><strong>残す</strong>（届いた記録）</td><td><strong>排除する</strong></td><td>—</td></tr><tr><td>NULL</td><td>残す</td><td><strong>処理する</strong></td><td>—</td></tr><tr><td>結合</td><td>しない</td><td><strong>する</strong></td><td>する</td></tr><tr><td>品質チェック</td><td>最小限</td><td><strong>ここが本番</strong>（Expectations）</td><td>—</td></tr><tr><td>読み手</td><td>次の工程だけ</td><td>データエンジニア / 分析</td><td><strong>BI・業務ユーザー</strong></td></tr><tr><td>数</td><td>1つ</td><td>1つ（正しい版）</td><td><strong>用途ごとに複数可</strong></td></tr></tbody></table></div>
+
+          <p class="note">迷ったら——<strong>まだ触っていない＝Bronze、整えた＝Silver、まとめた＝Gold</strong>。
+          「触っていない・整えた・まとめた」の3語で切り分けます。</p>
+
+          <h3>試験での引かれ方（逆引き）</h3>
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答える層</th><th>根拠</th></tr></thead><tbody><tr><td>生データを変更せずに保持したい</td><td><strong>Bronze</strong></td><td>加工しないのが Bronze の役割</td></tr><tr><td>監査のためにソースの状態を残したい</td><td><strong>Bronze</strong></td><td>取り込み履歴としての層</td></tr><tr><td>NULL を除去し、型を揃えたい</td><td><strong>Silver</strong></td><td>ガイドが名指しした工程</td></tr><tr><td>複数ソースを突き合わせて正規化したい</td><td><strong>Silver</strong></td><td>結合は Silver の仕事</td></tr><tr><td>データ品質ルールを適用したい</td><td><strong>Silver</strong></td><td>Expectations の置き場所</td></tr><tr><td>BI ダッシュボードが直接読む</td><td><strong>Gold</strong></td><td>業務ユーザー向けの層</td></tr><tr><td>部門ごとの集計指標を作りたい</td><td><strong>Gold</strong></td><td>Gold は用途ごとに複数あってよい</td></tr></tbody></table></div>
+
+          <h3>ガイドが工程ごと名指ししている</h3>
+          <p><em>Implement data cleaning by <strong>reading bronze tables</strong> with PySpark/SQL,
+          <strong>cleaning nulls</strong>, <strong>standardizing data types</strong>,
+          and <strong>writing to new silver tables</strong>.</em></p>
+          <p>ここまで手順が具体的に書かれた objective は珍しく、<strong>この4手順がそのまま問題になる</strong>と読めます。
+          このページでも<a href="#sec-cleansing">独立した節</a>を立てて分解します。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-ddl" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>DDL / DML — 公式サンプル問題の分解<span class="tag">語順が1つ違うだけの誤答で殺しにくる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>公式サンプル問題5問のうち<strong>2問</strong>がここから出ています。しかもその2問とも objective が
+          <em>Identify DDL/DML features</em> と明記されています。確実に出る領域です。</p>
+
+          <h3>3つの作り方を区別する</h3>
+          <p>すべての出発点は、<strong>「既にテーブルがあったら、どうなるか」</strong>という1本の軸です。</p>
+          <div class="scroll-x"><table><thead><tr><th>書き方</th><th>既にテーブルがあったら</th><th>使いどころ</th></tr></thead><tbody><tr><td><code>CREATE TABLE t (...)</code></td><td><strong>エラー</strong></td><td>新規のみを確実に</td></tr><tr><td><code>CREATE TABLE IF NOT EXISTS t (...)</code></td><td><strong>何もしない</strong>（既存を残す）</td><td>何度流しても壊さない</td></tr><tr><td><code>CREATE OR REPLACE TABLE t (...)</code></td><td><strong>作り直す</strong>（中身は消える）</td><td>存在に<strong>関係なく</strong>その形にしたい</td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">公式サンプル問題：空の Delta テーブルを、既存の有無に関係なく作る SQL は？</p>
+            <ul>
+              <li><strong>A（正解）</strong> <code>CREATE OR REPLACE TABLE t (employeeId STRING, ...)</code></li>
+              <li>B <code>CREATE TABLE IF NOT EXISTS t (...)</code>
+                — 既存があると作り直さない。<strong>「関係なく」を満たさない</strong></li>
+              <li>C <code>CREATE TABLE t AS SELECT employeeId STRING, ...</code>
+                — CTAS は<strong>空にならない</strong>。SELECT の書き方も不正</li>
+              <li>D <code>CREATE OR REPLACE TABLE t WITH COLUMNS (...) USING DELTA</code>
+                — <strong><code>WITH COLUMNS</code> という構文は存在しない</strong></li>
+            </ul>
+            <p>誤答の型が3つ見えます：<strong>条件を1つ外す（B）／目的を外す（C）／存在しない構文（D）</strong>。
+            この3型は他の問題でも繰り返し使われます。</p>
+          </div>
+
+          <p>問題文の決め手は <em>regardless of whether a table already exists with this name</em> の
+          <strong>「関係なく」</strong>という一語でした。あってもなくても同じ結果になってほしい、
+          ということは <code>CREATE OR REPLACE</code> しかありません。
+          D はいちばん厄介です。<code>CREATE OR REPLACE</code> も <code>USING DELTA</code> も本物なので、
+          それらしく見えます。<strong>見慣れない句が出てきたら、まずその句の存在を疑ってください。</strong></p>
+
+          <h3>CTAS — スキーマが SELECT から決まる</h3>
+          <div class="scroll-x"><pre><code>CREATE OR REPLACE TABLE prod.silver.orders AS
+SELECT
+  CAST(order_id AS INT)        AS order_id,
+  CAST(amount   AS DOUBLE)     AS amount,
+  TO_DATE(order_date, 'yyyy-MM-dd') AS order_date,
+  UPPER(TRIM(region))          AS region
+FROM prod.bronze.orders
+WHERE order_id IS NOT NULL;</code></pre></div>
+
+          <p><strong>CTAS（CREATE TABLE AS SELECT）は列定義を書きません。</strong>
+          SELECT した結果の形が、そのままテーブルの形になります。だからこそ
+          <strong>空のテーブルは作れません</strong>——SELECT の結果がそのままデータとして入るからです。
+          実務では Silver / Gold を作るときの定番の形で、メダリオンの流れがそのまま1文になります。</p>
+
+          <h3>そのほかの DDL</h3>
+          <div class="scroll-x"><table><thead><tr><th>やりたいこと</th><th>構文</th></tr></thead><tbody><tr><td>列を追加する</td><td><code>ALTER TABLE t ADD COLUMN c STRING</code></td></tr><tr><td>テーブル名を変える</td><td><code>ALTER TABLE t RENAME TO t2</code></td></tr><tr><td>定義・実体の場所を確認する</td><td><strong><code>DESCRIBE EXTENDED t</code></strong></td></tr><tr><td>消す</td><td><code>DROP TABLE IF EXISTS t</code></td></tr></tbody></table></div>
+
+          <p class="note"><code>DESCRIBE EXTENDED</code> は覚えておいてください。
+          そのテーブルが <strong>managed か external か</strong>、実体がどこにあるかを確認する手段です。
+          <a href="06-governance.html">ガバナンス</a>側で「どうやって確認するか」を問われたときの答えになります。</p>
+
+          <h3>DML — 動詞と語順</h3>
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">公式サンプル問題：既存の Delta テーブルに行を追加する SQL は？</p>
+            <ul>
+              <li>A <code>UPDATE VALUES (...) my_table</code> — 動詞が違う。構文も不正</li>
+              <li>B <code>UPDATE my_table VALUES (...)</code> — 形は整っているが<strong>UPDATE は追加しない</strong></li>
+              <li>C <code>INSERT VALUES (...) INTO my_table</code> — <strong><code>INTO</code> の位置が違う</strong></li>
+              <li><strong>D（正解）</strong> <code>INSERT INTO my_table VALUES (...)</code></li>
+            </ul>
+            <p>4択のうちまともな SQL は1つだけ。
+            <strong>「追加＝INSERT／変更＝UPDATE」と「INTO は動詞の直後」</strong>だけで切れます。
+            逆に言うと、この2つが曖昧だと4つとも似て見えます。</p>
+          </div>
+
+          <h3>DML の4命令</h3>
+          <div class="scroll-x"><table><thead><tr><th>命令</th><th>すること</th><th>PySpark の対応</th></tr></thead><tbody><tr><td><code>INSERT INTO t VALUES (...)</code><br><code>INSERT INTO t SELECT ...</code></td><td><strong>足す</strong></td><td><code>mode("append")</code></td></tr><tr><td><code>INSERT OVERWRITE t SELECT ...</code></td><td><strong>入れ替える</strong>（洗い替え）</td><td><code>mode("overwrite")</code></td></tr><tr><td><code>UPDATE t SET c = v WHERE ...</code></td><td>既存の行を変える</td><td>—</td></tr><tr><td><code>DELETE FROM t WHERE ...</code></td><td>行を消す</td><td>—</td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="wait">
+            <p class="callout-title">DELETE してもストレージは減らない</p>
+            <p>Delta は既存ファイルを書き換えません。該当行を除いた<strong>新しいファイル</strong>を書き、
+            ログの参照を切り替えます。旧ファイルは物理的に残ります。
+            減らすのは <strong><a href="05-optimization.html">VACUUM</a></strong> です。
+            <strong>「削除の操作」と「物理削除」は別</strong>——この2段構えは繰り返し問われます。</p>
+          </div>
+
+          <p>そもそも、なぜ Delta なら行単位の <code>UPDATE</code> / <code>DELETE</code> / <code>MERGE</code> が使えるのか。
+          トランザクションログが参照を切り替えてくれるからです。素の Parquet や CSV には
+          「行単位の更新」という概念がなく、ファイル全体を書き直すしかありません。
+          <strong>「なぜ Delta を使うのか」と問われたら、①ACID が効く ②行単位の更新・削除ができる</strong>——この2つです。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-merge" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>MERGE（UPSERT）<span class="tag">分岐は3つ。source の重複で失敗する</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>更新と追加を同時にやる命令です。一般に UPSERT（UPDATE ＋ INSERT）と呼ばれます。</p>
+          <div class="scroll-x"><pre><code>MERGE INTO prod.silver.customers AS target
+USING staging.customer_updates AS source
+ON target.customer_id = source.customer_id
+
+WHEN MATCHED THEN UPDATE SET *
+WHEN NOT MATCHED THEN INSERT *
+WHEN NOT MATCHED BY SOURCE THEN UPDATE SET status = 'inactive';</code></pre></div>
+
+          <p><code>INTO</code> が更新される側（target）、<code>USING</code> が持ち込む側（source）、
+          <code>ON</code> が<strong>同一とみなす条件</strong>です。
+          この <code>ON</code> がいちばん重要で、「何をもって同じレコードとみなすか」を決めています。</p>
+
+          <h3>なぜ UPDATE と INSERT を2回に分けないのか</h3>
+          <p>技術的には分けても書けます。しかし2回に分けると、その間に他の処理が割り込む余地が生まれます。
+          UPDATE が終わって INSERT が始まる前に誰かが読むと、<strong>中途半端な状態</strong>を見ることになります。
+          MERGE は<strong>1つのトランザクション</strong>で実行されるので、全部終わってから切り替わります。
+          <a href="01-platform.html">Delta の ACID</a> がここで効いてきます。</p>
+
+          <h3>節のバリエーション</h3>
+          <div class="scroll-x"><table><thead><tr><th>書き方</th><th>意味</th></tr></thead><tbody><tr><td><code>WHEN MATCHED AND source.is_deleted THEN DELETE</code></td><td>一致し、かつ条件を満たしたら削除。<strong>条件を足せる</strong></td></tr><tr><td><code>WHEN MATCHED THEN UPDATE SET *</code></td><td>全列を更新</td></tr><tr><td><code>WHEN MATCHED THEN UPDATE SET name = source.name</code></td><td>その列だけ更新</td></tr><tr><td><code>WHEN NOT MATCHED THEN INSERT *</code></td><td>全列を挿入</td></tr><tr><td><code>WHEN NOT MATCHED THEN INSERT (a, b) VALUES (...)</code></td><td>列を指定して挿入</td></tr></tbody></table></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 290" role="img" aria-label="MERGE がソースとターゲットの重なりで3つに分岐することを示す図。両方にある行、ターゲットだけにある行、ソースだけにある行でそれぞれ別の句が対応する">
+              <defs>
+                <marker id="t2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="t2-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="t2-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <text x="8" y="18" class="d-t-mono">ソースとターゲットを ON の条件で突き合わせる</text>
+
+              <rect x="120" y="40" width="230" height="150" rx="2" class="d-box"/>
+              <text x="180" y="62" class="d-t" text-anchor="middle">ターゲット</text>
+
+              <rect x="290" y="40" width="230" height="150" rx="2" class="d-box"/>
+              <text x="462" y="62" class="d-t" text-anchor="middle">ソース</text>
+
+              <rect x="290" y="72" width="60" height="118" class="d-box-acc"/>
+
+              <text x="204" y="120" class="d-t-sm" text-anchor="middle">ターゲットだけに</text>
+              <text x="204" y="138" class="d-t-sm" text-anchor="middle">ある行</text>
+              <text x="320" y="120" class="d-t"    text-anchor="middle">両方</text>
+              <text x="320" y="138" class="d-t"    text-anchor="middle">に</text>
+              <text x="435" y="120" class="d-t-sm" text-anchor="middle">ソースだけに</text>
+              <text x="435" y="138" class="d-t-sm" text-anchor="middle">ある行</text>
+
+              <path d="M204,196 V226" class="d-line"/>
+              <path d="M320,196 V226" class="d-line-acc"/>
+              <path d="M435,196 V226" class="d-line"/>
+
+              <rect x="8"   y="230" width="216" height="44" rx="2" class="d-box"/>
+              <text x="116" y="250" class="d-t-sm" text-anchor="middle">WHEN NOT MATCHED</text>
+              <text x="116" y="266" class="d-t-sm" text-anchor="middle">BY SOURCE → 削除など</text>
+
+              <rect x="232" y="230" width="216" height="44" rx="2" class="d-box-acc"/>
+              <text x="340" y="250" class="d-t"    text-anchor="middle">WHEN MATCHED</text>
+              <text x="340" y="266" class="d-t-sm" text-anchor="middle">→ UPDATE / DELETE</text>
+
+              <rect x="456" y="230" width="256" height="44" rx="2" class="d-box"/>
+              <text x="584" y="250" class="d-t"    text-anchor="middle">WHEN NOT MATCHED</text>
+              <text x="584" y="266" class="d-t-sm" text-anchor="middle">→ INSERT</text>
+            </svg>
+            <figcaption><strong>分岐は2つではなく3つあります。</strong>見落とされやすいのが左端の <code>NOT MATCHED BY SOURCE</code> です。ソース側に無くなった行——つまり元で削除された行を、ターゲットからも消したいときに使います。「同期したい」「元に無い行は消したい」と書いてあったら、この3つ目が要ります。<code>MATCHED</code> と<code>NOT MATCHED</code> の2つだけでは足りません。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">分岐は3つある</p>
+            <p>多くの人は <code>MATCHED</code> と <code>NOT MATCHED</code> の2つだと思っています。
+            3つ目の <strong><code>NOT MATCHED BY SOURCE</code></strong> は
+            「target 側にはあるが source 側には無い行」。
+            毎日届く全件リストから消えた顧客を失効させる、といった論理削除に使います。
+            <strong>知らないと選択肢を切れません。</strong></p>
+          </div>
+
+          <h3>MERGE が失敗するとき</h3>
+          <p>source に同一キーの行が複数あると、1つの target 行に複数の更新が当たり、どちらを適用すべきか決められず
+          <strong>エラーになります</strong>。対処は <strong>MERGE の前に source を重複排除</strong>すること。</p>
+          <p>このとき <code>dropDuplicates</code> では不十分です。どの行が残るか不定だからです。
+          顧客情報の更新で古い情報が残ってしまっては困ります。「最終更新日時が最新の1件」を確実に残すには
+          <code>ROW_NUMBER()</code> を使います。</p>
+          <div class="scroll-x"><pre><code>WITH ranked AS (
+  SELECT *,
+         ROW_NUMBER() OVER (
+           PARTITION BY customer_id
+           ORDER BY updated_at DESC
+         ) AS rn
+  FROM staging.customer_updates
+)
+SELECT * EXCEPT (rn) FROM ranked WHERE rn = 1;</code></pre></div>
+
+          <p class="note"><strong>「MERGE が失敗する」と書いてあったら、まず source 側の重複を疑う。</strong>
+          これは<a href="#sec-pyspark">重複排除の3手</a>と直結する論点です。</p>
+
+          <h3>MERGE が遅いとき</h3>
+          <p>MERGE は <code>ON</code> の条件で target 全体を探しにいきます。
+          キーの値がファイルの中に散らばっていると、多くのファイルを読むことになります。</p>
+          <p class="note"><strong>クラスタ増強も VACUUM も効きません。</strong>
+          クラスタを大きくしても読むファイル数は変わらず、VACUUM は古いファイルを消すだけで現行の配置を変えません。
+          正しい方向は <strong>MERGE キーでのレイアウト最適化</strong>＝
+          <a href="05-optimization.html">Liquid Clustering</a>（旧来は ZORDER BY）。</p>
+          <p><strong>MERGE 自体は性能改善の機能ではありません。</strong>
+          MERGE は「更新と追加を同時にやる」機能であり、遅いのは MERGE の問題ではなくデータのレイアウトの問題です。
+          この切り分けができると、問題を読んだ瞬間に答えの方向が決まります。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-cleansing" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>データクレンジング — ガイドが名指しした4手順<span class="tag">objective が手順として列挙している</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>試験ガイドの objective を、もう一度そのまま置きます。</p>
+          <p><em>Implement data cleaning by reading bronze tables with PySpark/SQL,
+          cleaning nulls, standardizing data types, and writing to new silver tables.</em></p>
+          <p>①Bronze を読む ②NULL を処理する ③型を標準化する ④Silver へ書く。
+          多くの objective は「〜を理解している」という書き方なのに、ここだけ<strong>手順として列挙</strong>されています。
+          この4手順はそのまま問題になると読んでいいので、1つずつ分解します。</p>
+
+          <h3>① NULL の処理 — 方針は3つ</h3>
+          <div class="scroll-x"><table><thead><tr><th>方針</th><th>PySpark</th><th>SQL</th><th>どういうときか</th></tr></thead><tbody><tr><td><strong>落とす</strong></td><td><code>df.na.drop(subset=["customer_id"])</code></td><td><code>WHERE customer_id IS NOT NULL</code></td><td><strong>キー列</strong>。結合も集計単位も決まらない</td></tr><tr><td><strong>埋める</strong></td><td><code>df.na.fill({"qty": 0})</code></td><td><code>COALESCE(qty, 0)</code></td><td><strong>数量・金額</strong>。落とすと注文ごと消える</td></tr><tr><td><strong>代替値を順に試す</strong></td><td><code>coalesce(col("a"), col("b"), lit("unknown"))</code></td><td><code>COALESCE(a, b, 'unknown')</code></td><td>優先順位を付けて、最初に見つかった値を使う</td></tr></tbody></table></div>
+
+          <p>大事なのは<strong>どの方針を選ぶか</strong>です。
+          <code>customer_id</code> や <code>order_id</code> が NULL の行は、結合もできず集計の単位も決まらないので、
+          Silver に置いておく意味がありません。落とします。
+          一方 <code>qty</code> が NULL なら 0 として扱いたいことがよくあります。
+          落としてしまうと、その注文自体が消えてしまいます。</p>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">「全部落とす」「全部埋める」は誤答になりやすい</p>
+            <p>列の意味によって使い分ける、が正解の方向です。
+            一律の方針を述べている選択肢は、それだけで疑ってかまいません。</p>
+          </div>
+
+          <h3>② 型の標準化 — 使う関数は3種類</h3>
+          <div class="scroll-x"><pre><code>from pyspark.sql.functions import col, to_date, trim, upper
+
+silver = (bronze
+  .withColumn("order_id",   col("order_id").cast("int"))
+  .withColumn("amount",     col("amount").cast("double"))
+  .withColumn("order_date", to_date(col("order_date"), "yyyy-MM-dd"))
+  .withColumn("region",     upper(trim(col("region")))))</code></pre></div>
+
+          <div class="scroll-x"><table><thead><tr><th>関数</th><th>役割</th><th>補足</th></tr></thead><tbody><tr><td><code>cast</code></td><td>型を変える</td><td><strong>失敗しても例外にならない</strong>（次項）</td></tr><tr><td><code>to_date</code></td><td>文字列を日付にする</td><td>書式を第2引数で指定できる</td></tr><tr><td><code>trim</code> / <code>upper</code></td><td>表記のゆれを揃える</td><td><code>" JP "</code> と <code>"jp"</code> が別グループになる事故を防ぐ</td></tr></tbody></table></div>
+
+          <p class="note"><a href="02-ingestion.html">取り込み</a>で見たとおり、JSON と CSV は既定で
+          <strong>ほぼ全部 string として推論</strong>されます。だから Silver で <code>cast</code> が要るわけです。
+          取り込みで文字列として入り、Silver で正しい型に直す——この流れがセクションをまたいで繋がっています。</p>
+
+          <h3>③ cast の落とし穴 — 静かに NULL になる</h3>
+
+          
+          <figure>
+            <svg viewBox="0 0 720 232" role="img" aria-label="文字列から数値への CAST が、記号の混ざった値ではエラーを出さずに NULL を返すことを示す図。静かに失敗するため下流まで気づけない">
+              <defs>
+                <marker id="t3-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="t3-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="t3-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="8"   y="30" width="150" height="40" rx="2" class="d-box"/>
+              <text x="83"  y="48"  class="d-t-sm" text-anchor="middle">"1234"</text>
+              <text x="83"  y="64"  class="d-t-sm" text-anchor="middle">数字の文字列</text>
+
+              <rect x="8"   y="112" width="150" height="40" rx="2" class="d-box-crit"/>
+              <text x="83"  y="130" class="d-t-sm" text-anchor="middle">"1,234円"</text>
+              <text x="83"  y="146" class="d-t-sm" text-anchor="middle">記号が混ざる</text>
+
+              <line x1="164" y1="50"  x2="228" y2="50"  class="d-line" marker-end="url(#t3-ar)"/>
+              <line x1="164" y1="132" x2="228" y2="132" class="d-line-crit" marker-end="url(#t3-ar-crit)"/>
+
+              <rect x="234" y="60" width="150" height="62" rx="2" class="d-box-acc"/>
+              <text x="309" y="88"  class="d-t"    text-anchor="middle">CAST</text>
+              <text x="309" y="108" class="d-t-sm" text-anchor="middle">INT へ</text>
+
+              <line x1="390" y1="72"  x2="452" y2="50"  class="d-line" marker-end="url(#t3-ar)"/>
+              <line x1="390" y1="110" x2="452" y2="132" class="d-line-crit" marker-end="url(#t3-ar-crit)"/>
+
+              <rect x="458" y="30"  width="150" height="40" rx="2" class="d-box-ship"/>
+              <text x="533" y="55"  class="d-t" text-anchor="middle">1234</text>
+
+              <rect x="458" y="112" width="150" height="40" rx="2" class="d-box-crit"/>
+              <text x="533" y="130" class="d-t-crit" text-anchor="middle">NULL</text>
+              <text x="533" y="146" class="d-t-sm"   text-anchor="middle">エラーは出ない</text>
+
+              <text x="624" y="126" class="d-t-crit">気づけない</text>
+              <text x="624" y="144" class="d-t-crit">まま進む</text>
+
+              <text x="8" y="192" class="d-t-mono">だから「変換できたか」を数えて確かめる</text>
+              <text x="8" y="216" class="d-t-sm">元の値が NULL でないのに、変換後が NULL になった行を数える。ここが0でなければ、静かに失敗している。</text>
+            </svg>
+            <figcaption><strong>失敗が例外ではなく NULL として返るのが厄介なところです。</strong>ジョブは成功し、行数も変わりません。下流で集計して初めて「金額の合計が合わない」と気づきます。型変換を入れたら、変換できなかった行数を必ず数えてください。確実に落としたいなら <code>try_cast</code> ではなく、変換前に検証を挟むか、Expectations で宣言します。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">cast は失敗してもエラーにならない</p>
+            <p><code>amount</code> に <code>"1,200"</code>（カンマ区切り）や <code>"N/A"</code> が入っていたとします。
+            <code>cast("double")</code> すると——<strong>例外は出ません。静かに NULL になります。</strong></p>
+            <p>処理は正常に終わり、そのまま集計されます。結果として<strong>金額が過少に出ます</strong>。
+            「なんか数字が合わないな」となったときに、原因を探すのが大変です。</p>
+          </div>
+
+          <p>対処は2つ。<strong>cast の前に整形する</strong>（カンマ・空白の除去）か、
+          <strong>cast の後に検証する</strong>（NULL 率が異常に高くないかを
+          <a href="#sec-ldp">Expectations</a> で機械的に検出する）。</p>
+          <p class="note">これは <strong>Delta の機能ではなく Spark の型変換の仕様</strong>です。
+          「集計結果の数値が合わない。考えられる原因は」という設問で、
+          <strong>cast 失敗による NULL 化</strong>を候補として持っておいてください。</p>
+
+          <h3>④ Silver へ書く — mode は4つ</h3>
+          <div class="scroll-x"><pre><code>(silver.write
+   .mode("append")            # append / overwrite / error / ignore
+   .saveAsTable("prod.silver.orders"))</code></pre></div>
+
+          <div class="scroll-x"><table><thead><tr><th>mode</th><th>既存テーブルがあったら</th><th>SQL の対応</th></tr></thead><tbody><tr><td><code>append</code></td><td><strong>追記する</strong></td><td><code>INSERT INTO</code></td></tr><tr><td><code>overwrite</code></td><td><strong>中身を入れ替える</strong></td><td><code>INSERT OVERWRITE</code></td></tr><tr><td><code>error</code> / <code>errorifexists</code></td><td><strong>失敗する（既定）</strong></td><td>—</td></tr><tr><td><code>ignore</code></td><td>何もしない</td><td><code>CREATE TABLE IF NOT EXISTS</code> に近い発想</td></tr></tbody></table></div>
+
+          <p class="note">試験は SQL と PySpark のどちらの形でも出ます。
+          <strong>「追記なら SQL は INSERT INTO、PySpark は mode の append」</strong>のように、
+          セットで思い出せるようにしておくと強いです。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-silver-impl" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Bronze → Silver を通しで書く<span class="tag">4手順をそのままコードにする</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>前節の4手順を、切れ目なく1本のコードにします。
+          この形が頭に入っていると、選択肢の中で「どこが欠けているか」が見えるようになります。</p>
+
+          <h3>PySpark で書く</h3>
+          <div class="scroll-x"><pre><code>from pyspark.sql.functions import col, to_date, trim, upper, coalesce, lit
+
+# ① Bronze を読む
+bronze = spark.table("prod.bronze.orders")
+
+# ② NULL を処理する（キーは落とす／数量は埋める／地域は代替値）
+cleaned = (bronze
+  .na.drop(subset=["order_id", "customer_id"])
+  .na.fill({"qty": 0})
+  .withColumn("region", coalesce(col("region"), lit("UNKNOWN"))))
+
+# ③ 型を標準化する（cast は失敗しても NULL になるだけ、を忘れない）
+typed = (cleaned
+  .withColumn("order_id",   col("order_id").cast("int"))
+  .withColumn("amount",     col("amount").cast("double"))
+  .withColumn("order_date", to_date(col("order_date"), "yyyy-MM-dd"))
+  .withColumn("region",     upper(trim(col("region")))))
+
+# ④ Silver へ書く
+(typed.write
+   .mode("overwrite")
+   .saveAsTable("prod.silver.orders"))</code></pre></div>
+
+          <h3>同じことを SQL で書く</h3>
+          <div class="scroll-x"><pre><code>CREATE OR REPLACE TABLE prod.silver.orders AS
+SELECT
+  CAST(order_id AS INT)                    AS order_id,
+  customer_id,
+  COALESCE(CAST(qty AS INT), 0)            AS qty,
+  CAST(amount AS DOUBLE)                   AS amount,
+  TO_DATE(order_date, 'yyyy-MM-dd')        AS order_date,
+  UPPER(TRIM(COALESCE(region, 'UNKNOWN'))) AS region
+FROM prod.bronze.orders
+WHERE order_id IS NOT NULL
+  AND customer_id IS NOT NULL;</code></pre></div>
+
+          <p>PySpark 版が <code>mode("overwrite")</code>、SQL 版が <code>CREATE OR REPLACE</code>。
+          <strong>どちらも「作り直す」側</strong>で対応しています。
+          日次で積み上げたいなら <code>mode("append")</code> ／ <code>INSERT INTO</code> に変えます。</p>
+
+          <h3>書いたあとに、必ず測る</h3>
+          <p>cast は静かに失敗します。だから<strong>書きっぱなしにせず、NULL 率を見る</strong>のが実務の作法です。</p>
+          <div class="scroll-x"><pre><code>SELECT
+  COUNT(*)                                          AS rows_total,
+  SUM(CASE WHEN amount     IS NULL THEN 1 ELSE 0 END) AS amount_null,
+  SUM(CASE WHEN order_date IS NULL THEN 1 ELSE 0 END) AS date_null
+FROM prod.silver.orders;</code></pre></div>
+
+          <div class="callout" data-kind="wait">
+            <p class="callout-title">この検証を「宣言」に変えたのが Expectations</p>
+            <p>上のような検証クエリを毎回自分で書き、件数を数え、ログに残し、除外する——
+            その3つ（チェック・記録・除外）をまとめて宣言できるのが
+            <a href="#sec-ldp">Declarative Pipelines の Expectations</a> です。
+            「自前で書くとこうなる」を知っていると、Expectations の価値が具体的に説明できます。</p>
+          </div>
+
+          <p class="note">なお <code>count("amount")</code> は<strong>NULL を数えません</strong>。
+          NULL 件数を数えたいときに <code>count(列)</code> を使うと、逆に見えなくなります。
+          上のように <code>CASE WHEN</code> か <code>count(*)</code> との差で見ます。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-pyspark" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>PySpark の要点 — 列と行・結合・集計<span class="tag">ガイドが関数名を1つずつ列挙している領域</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>この領域だけ、ガイドの書き方が違います。
+          <em>adding, dropping, splitting, renaming column names, applying filters, and exploding arrays</em> のように
+          <strong>操作名が具体的に列挙</strong>されています。「この操作をする関数はどれか」を直接聞ける状態です。
+          だから、<strong>関数名レベル</strong>で押さえます。</p>
+
+          <h3>列と行</h3>
+          <div class="scroll-x"><table><thead><tr><th>やりたいこと</th><th>関数</th><th>注意点</th></tr></thead><tbody><tr><td>計算列を足す</td><td><code>withColumn</code></td><td><strong>同名を指定すると上書き</strong>（cast がこの形）</td></tr><tr><td>固定値の列を足す</td><td><code>withColumn</code> ＋ <strong><code>lit</code></strong></td><td><code>lit</code> を付けないとエラー</td></tr><tr><td>列名を変える</td><td><code>withColumnRenamed</code></td><td>（旧名, 新名）の順</td></tr><tr><td>列を消す</td><td><code>drop</code></td><td>複数並べてまとめて消せる</td></tr><tr><td>文字列を分ける</td><td><code>split</code></td><td><strong>結果は配列</strong>。添字か explode で取り出す</td></tr><tr><td>行を絞る</td><td><code>filter</code> / <code>where</code></td><td>同じもの。複数条件は <code>&amp;</code> <code>|</code> と括弧。<strong>Python の and / or は使えない</strong></td></tr><tr><td>配列を行に開く</td><td><code>explode</code></td><td><strong>空・NULL の行は消える</strong>。残すなら <code>explode_outer</code></td></tr></tbody></table></div>
+
+          <div class="scroll-x"><pre><code>from pyspark.sql.functions import col, lit, split, explode, explode_outer
+
+df = (df
+  .withColumn("total",  col("qty") * col("price"))   # 計算列
+  .withColumn("source", lit("web"))                  # 固定値には lit が必須
+  .withColumnRenamed("cust_id", "customer_id")
+  .drop("tmp_a", "tmp_b"))
+
+# split の結果は「配列」。そのままでは列にならない
+parts = split(col("region_code"), "-")               # "JP-TOKYO" -&gt; ["JP", "TOKYO"]
+df = df.withColumn("country", parts[0]).withColumn("city", parts[1])
+
+# 複数条件は &amp; | と括弧。Python の and / or は不可
+df = df.filter((col("amount") &gt; 1000) &amp; (col("region") == "JP"))
+
+# 配列を行に開く
+one_per_item = df.select("order_id", explode("items").alias("item"))
+keep_empty   = df.select("order_id", explode_outer("items").alias("item"))</code></pre></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">lit を付けないとエラーになる理由</p>
+            <p><code>withColumn("source", "web")</code> と書くと、Spark は
+            <strong><code>"web"</code> という名前の列を探しにいきます</strong>。見つからないのでエラーです。
+            <code>lit</code>（literal の略）を付けて「これは列名ではなく値です」と伝える必要があります。</p>
+          </div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">explode は行を減らす</p>
+            <p>配列が<strong>空、または NULL の行は結果から消えます</strong>。
+            「注文はあるが商品が1つも入っていない」行が、集計から丸ごと落ちます。
+            症状は<strong>「行数が減った」</strong>。残したいなら <code>explode_outer</code>——
+            値は NULL になりますが、行自体は残ります。</p>
+          </div>
+
+          <h3>結合</h3>
+          <div class="scroll-x"><pre><code>orders.join(customers, on="customer_id", how="inner")      # 結合列は1つにまとまる
+orders.join(customers, on=["customer_id", "region"], how="left")  # 複数キー
+orders.join(customers,
+            orders.cust_id == customers.customer_id, "left")      # 両方の列が残る
+
+from pyspark.sql.functions import broadcast
+orders.join(broadcast(region_master), on="region", how="left")    # シャッフルを避ける</code></pre></div>
+
+          <p><code>on="col"</code> と<strong>文字列で渡すと結合列が1つにまとまり</strong>、
+          <strong>条件式で渡すと両方の列が残ります</strong>。
+          「なぜ同じような列が2つあるんだ」となるのは、たいてい後者です。あとで <code>select</code> で片方を落とします。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>結合</th><th>残るもの</th><th>典型的な使いどころ</th></tr></thead><tbody><tr><td><code>inner</code></td><td>両方にある行だけ</td><td>マスタに無い注文は不正、という設計なら</td></tr><tr><td><code>left</code></td><td>左は全部（右が無ければ NULL）</td><td><strong>売上を落としたくない</strong>とき</td></tr><tr><td><code>cross</code></td><td><strong>全組み合わせ</strong></td><td>日付マスタ × 店舗マスタで「枠」を作る</td></tr><tr><td><code>broadcast()</code></td><td>（結合方法の指定）</td><td>大 × 小。<strong>シャッフルを避ける</strong></td></tr></tbody></table></div>
+
+          <p><strong>broadcast join</strong> は、小さい方を全ノードにコピーして
+          <strong>シャッフル（同じキーのデータを同じノードに集める通信）を避ける</strong>手です。
+          注文1億行と地域マスタ50行を結合するのに、1億行を動かすのはもったいない——という発想です。
+          自動判定の閾値が <code>spark.sql.autoBroadcastJoinThreshold</code>（既定 10MB）。
+          明示的な <code>broadcast()</code> は、この閾値を無視して強制します。</p>
+
+          <p class="note"><strong>cross join は事故で起きます。</strong>結合条件を書き忘れた join が実質 cross join になり、
+          1万行 × 1万行で1億行。症状は「処理が終わらない」「行数が爆発した」。
+          一方で、日付 × 店舗の全組み合わせを作ってから実績を left join すれば
+          「売上ゼロの日を0として表示する」土台になります。<strong>意図して使うぶんには正しい道具です。</strong></p>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">PySpark の union は重複を排除しない</p>
+            <p>SQL の <code>UNION</code> は重複を排除しますが、
+            <strong>PySpark の <code>df1.union(df2)</code> は排除しません</strong>（SQL の <code>UNION ALL</code> 相当）。
+            消したいなら <code>.distinct()</code> を明示します。
+            <code>unionAll</code> は <code>union</code> の別名（非推奨）で、動作は同じです。</p>
+            <p>さらに <code>union</code> は<strong>列名ではなく位置</strong>で結合します。
+            型が同じならエラーにならず、顧客名の列に地域名が入ったまま通ります。
+            <strong>「列の順序が違う可能性がある」と書いてあれば <code>unionByName</code></strong>。</p>
+          </div>
+
+          <h3>集計 — 公式サンプル問題</h3>
+          <div class="scroll-x"><pre><code>from pyspark.sql.functions import sum, count_distinct
+
+daily = (billing
+  .groupBy("billing_date")
+  .agg(sum("amount_billed").alias("total_revenue"),
+       count_distinct("billing_id").alias("total_invoices")))</code></pre></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">日ごとの請求額合計と、ユニークな請求書数を集計する</p>
+            <ul>
+              <li>A <code>sum(amount)</code>, <code>sum(billing_id)</code> — <strong>ID を合計している</strong></li>
+              <li>B <code>sum(amount)</code>, <code>count_distinct(patient_id)</code>
+                — <strong>列が違う</strong>（患者数であって請求書数ではない）</li>
+              <li><strong>C（正解）</strong> <code>sum(amount)</code>, <code>count_distinct(billing_id)</code></li>
+              <li>D <code>col(amount)</code>, <code>count(billing_id)</code>
+                — <code>col</code> は集計関数ではない。<code>agg</code> に置けない</li>
+            </ul>
+            <p>いちばん厄介なのは B です。文法的に正しく、それらしく見えます。
+            C と B を分けるには、問題文の<strong>「ユニークな」という一語を正確に読む</strong>必要があります。
+            この問題が本当に試しているのは、PySpark の知識だけではありません。</p>
+          </div>
+
+          <p>誤答の作られ方は3種類に整理できます。
+          <strong>関数が違う（A）／集計になっていない（D）／列が違う（B）</strong>。
+          A と D はコードとして明らかにおかしいので気づけます。B だけが読解の勝負になります。</p>
+
+          <h3>押さえる集計関数</h3>
+          <div class="scroll-x"><table><thead><tr><th>関数</th><th>返すもの</th><th>注意</th></tr></thead><tbody><tr><td><code>count("col")</code></td><td>NULL を<strong>除いた</strong>件数</td><td><strong>NULL を数えない</strong>。件数が合わない原因</td></tr><tr><td><code>count("*")</code></td><td>NULL を含む行数</td><td>—</td></tr><tr><td><code>count_distinct("col")</code></td><td>ユニーク数（<strong>正確</strong>）</td><td>全データを突き合わせるのでシャッフルが大きい</td></tr><tr><td><code>approx_count_distinct("col")</code></td><td>ユニーク数（<strong>近似</strong>）</td><td>誤差はあるが明確に速い。大規模向け</td></tr><tr><td><code>sum</code> / <code>mean</code> / <code>min</code> / <code>max</code></td><td>合計・平均・最小・最大</td><td><code>mean</code> は <code>avg</code> と同じ</td></tr><tr><td><code>summary</code> / <code>describe</code></td><td>件数・平均・標準偏差・分位数など</td><td>データの概要を掴むとき</td></tr></tbody></table></div>
+
+          <p class="note"><code>count("col")</code> が NULL を数えないことは、
+          <a href="#sec-cleansing">cast の失敗</a>と連鎖します。
+          <strong>型変換に失敗 → 静かに NULL → count で数えられない → 件数が合わない。</strong>
+          複数レクチャーをまたいだ出題ができる形です。</p>
+
+          <p>正確なユニーク数が要るなら <code>count_distinct</code>（経理の数字など）。
+          大規模データで概数が速く欲しいなら <code>approx_count_distinct</code>（ダッシュボードの「だいたい何万人」）。
+          ガイドがわざわざ approximate 版を名指ししているので、<strong>この対比は問われます</strong>。</p>
+
+          <h3>重複排除の3つの手</h3>
+          <div class="scroll-x"><table><thead><tr><th>手</th><th>何が同じ行を消すか</th><th>残る行</th></tr></thead><tbody><tr><td><code>df.distinct()</code></td><td><strong>全列</strong>が同じ行</td><td>（完全重複なのでどれでも同じ）</td></tr><tr><td><code>df.dropDuplicates(["k"])</code></td><td>指定した列が同じ行</td><td><strong>不定</strong>。どれが残るか分からない</td></tr><tr><td><code>ROW_NUMBER()</code> ＋ <code>rn = 1</code></td><td>指定したキー</td><td><strong>指定できる</strong>（例：更新日時が最新）</td></tr></tbody></table></div>
+
+          <p class="note"><strong>「重複を消したい」だけなら <code>dropDuplicates</code>、
+          「どれを残すかが重要」なら <code>ROW_NUMBER</code>。</strong>
+          <a href="#sec-merge">MERGE の前処理</a>で <code>dropDuplicates</code> が不適切なのは、まさにこの理由です。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-gold" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Gold 層のオブジェクト<span class="tag">ガイドが「違いを理解する」と明記した4つ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ガイドは <em>understand the differences between …materialized views, views, streaming tables, tables</em> と、
+          <strong>「違いを理解する」</strong>とはっきり書いています。4つを並べて選ばせる問題が来る、と読めます。</p>
+
+          <p>4つを個別に覚えると混乱します。<strong>軸を2つ</strong>立てます。
+          <strong>実体を持つか</strong>と、<strong>誰が更新するか</strong>です。</p>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>実体を持つ</th><th>更新のされ方</th><th>読むときのコスト</th></tr></thead><tbody><tr><td><strong>View</strong></td><td><strong>持たない</strong></td><td>毎回クエリを実行</td><td><strong>毎回かかる</strong></td></tr><tr><td><strong>Table</strong></td><td>持つ</td><td><strong>自分で</strong>書き込む</td><td>安い</td></tr><tr><td><strong>Materialized View</strong></td><td>持つ</td><td><strong>自動でリフレッシュ</strong></td><td>安い</td></tr><tr><td><strong>Streaming Table</strong></td><td>持つ</td><td><strong>到着分を増分で追記</strong></td><td>安い</td></tr></tbody></table></div>
+
+          <p>まず<strong>「実体を持つか」で 1 対 3</strong>に割れます。View だけが持ちません。
+          残り3つの違いは<strong>「誰が・どうやって更新するか」</strong>です。</p>
+
+          <h3>View — 保存されるのは定義だけ</h3>
+          <div class="scroll-x"><pre><code>CREATE OR REPLACE VIEW prod.gold.active_customers AS
+SELECT * FROM prod.silver.customers WHERE status = 'active';</code></pre></div>
+          <p>保存されるのは<strong>クエリの文面</strong>だけで、データは保存されません。
+          読むたびに、その場で元テーブルに対してクエリが走ります。</p>
+          <dl class="facts">
+            <div class="fact"><dt>いいところ</dt>
+              <dd>常に最新。元テーブルが変われば即座に反映されます。ストレージも消費しません。
+              「この集計の定義はこれです」を1箇所に置ける＝<strong>ロジックの共有</strong>に向きます。</dd></div>
+            <div class="fact"><dt>つらいところ</dt>
+              <dd>読むたびに全部計算し直します。重い集計を10人が1日10回ずつ見たら、
+              <strong>100回計算している</strong>ことになります。</dd></div>
+            <div class="fact"><dt>TEMP VIEW</dt>
+              <dd>一時的な View。<strong>セッションの中だけ</strong>で有効です。</dd></div>
+          </dl>
+
+          <h3>Materialized View — 結果を持ち、自動で更新される</h3>
+          <div class="scroll-x"><pre><code>CREATE OR REPLACE MATERIALIZED VIEW prod.gold.daily_sales AS
+SELECT order_date, region, SUM(amount) AS total
+FROM prod.silver.orders
+GROUP BY order_date, region;</code></pre></div>
+          <p>書き方は View とほぼ同じで、<code>MATERIALIZED</code> が入るだけ。しかし動作が違います。
+          <strong>計算結果を実体として保持する</strong>ので、読むときは既にある結果を返すだけです。速く、安い。</p>
+          <p>Table との違いは<strong>「更新を自分で書かない」</strong>こと。
+          Table なら <code>INSERT</code> や <code>MERGE</code> を自分で書いて自分で実行します。
+          MV は定義に基づいて自動でリフレッシュされ、可能なら<strong>増分で</strong>更新します。
+          <strong>View（毎回計算）と Table（自分で更新）の中間</strong>、というイメージです。</p>
+
+          <h3>Streaming Table — 到着した分だけ足す</h3>
+          <p>追記されるデータを、<strong>到着した分だけ処理して積んでいく</strong>ものです。
+          <a href="02-ingestion.html">Auto Loader</a> の書き込み先として使われます。</p>
+          <div class="callout" data-kind="win">
+            <p class="callout-title">MV と ST の分かれ目は「作り直す／足す」</p>
+            <p>MV は<strong>定義の結果を作り直す</strong>もの。日次売上合計は、新しい注文が来ればその日の合計が変わるので、
+            その日の全データを見る必要があります。<strong>集計のように全体を見るもの</strong>に向きます。</p>
+            <p>ST は<strong>新しく来た分を足す</strong>もの。イベントログのように過去は変わらず、
+            ただ増えていくデータに向きます。</p>
+          </div>
+
+          <h3>引き方（逆引き）</h3>
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答え</th></tr></thead><tbody><tr><td>ロジックを共有したい／常に最新であればよい</td><td><strong>View</strong></td></tr><tr><td>ストレージを消費したくない</td><td><strong>View</strong></td></tr><tr><td>重い集計を BI が繰り返し読む</td><td><strong>Materialized View</strong></td></tr><tr><td>集計結果を自動で最新に保ちたい</td><td><strong>Materialized View</strong></td></tr><tr><td>到着したデータを増分で積み上げたい</td><td><strong>Streaming Table</strong></td></tr><tr><td>Auto Loader の書き込み先</td><td><strong>Streaming Table</strong></td></tr><tr><td>自分で書き込みを制御したい</td><td><strong>Table</strong></td></tr></tbody></table></div>
+
+          <p class="note">MV と ST は、次節の <a href="#sec-ldp">Declarative Pipelines の中核オブジェクト</a>です。
+          ここでの判断が、そのまま次節の書き方（<code>MATERIALIZED VIEW</code> か <code>STREAMING TABLE</code> か）になります。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-ldp" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Declarative Pipelines と Expectations<span class="tag">旧 DLT。順番を書かず、関係だけを書く</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>正式名称は Lakeflow Spark Declarative Pipelines。<strong>旧 Delta Live Tables（DLT）</strong>です。
+          ネット上の情報はほぼ全部 DLT という名前で書かれているので、<strong>調べ物は DLT で検索</strong>してください。
+          ライブラリ名も <code>dlt</code> のままです。</p>
+
+          <h3>「宣言的」とは、順番を書かないこと</h3>
+          <p>手続き的なやり方は「bronze を作る → その後 silver → その後 gold」と<strong>順番を人が書き</strong>ます。
+          テーブルが1つ増えるたびに順番を直し、どこに挿入すべきかを人が考えます。
+          テーブルが50個、100個になると、順番の管理だけで大仕事になります。</p>
+          <p>宣言的なやり方は「silver は bronze から作られる」と<strong>関係だけを書き</strong>ます。
+          順序・依存・リトライは、その宣言から導出されます。
+          <strong>書くのは「どう作るか」ではなく「何であるか」</strong>——これが宣言的という言葉の意味です。</p>
+
+          <div class="scroll-x"><pre><code>CREATE OR REFRESH STREAMING TABLE bronze_orders
+AS SELECT * FROM cloud_files('/landing/orders', 'json');
+
+CREATE OR REFRESH STREAMING TABLE silver_orders (
+  CONSTRAINT valid_id     EXPECT (order_id IS NOT NULL) ON VIOLATION DROP ROW,
+  CONSTRAINT valid_amount EXPECT (amount &gt; 0),
+  CONSTRAINT has_date     EXPECT (order_date IS NOT NULL) ON VIOLATION FAIL UPDATE
+)
+AS SELECT * FROM STREAM(bronze_orders);
+
+CREATE OR REFRESH MATERIALIZED VIEW gold_daily_sales
+AS SELECT order_date, SUM(amount) AS total
+   FROM silver_orders GROUP BY order_date;</code></pre></div>
+
+          <p><code>STREAM(bronze_orders)</code> と<strong>参照しているだけ</strong>で、
+          「bronze_orders を先に作ってください」とは書いていません。この参照から依存関係が読み取られます。
+          積み上げは <code>STREAMING TABLE</code>、集計は <code>MATERIALIZED VIEW</code>。
+          <a href="#sec-gold">前節の判断</a>がそのまま効きます。</p>
+
+          <h3>Python で書く場合</h3>
+          <div class="scroll-x"><pre><code>import dlt
+from pyspark.sql.functions import col
+
+@dlt.table(name="silver_orders")
+@dlt.expect_or_drop("valid_id", "order_id IS NOT NULL")
+def silver_orders():
+    return dlt.read_stream("bronze_orders").filter(col("amount") &gt; 0)</code></pre></div>
+          <p><code>dlt.read</code> / <code>dlt.read_stream</code> の<strong>参照が、そのまま依存の宣言</strong>になり、
+          DAG（実行順序を表す図）が自動で組まれます。SQL でも Python でも考え方は同じです。</p>
+
+          <h3>何が自動になるのか</h3>
+          <div class="scroll-x"><table><thead><tr><th>論点</th><th>自前で組むと</th><th>LDP なら</th></tr></thead><tbody><tr><td>実行順序</td><td>人が決めて書く</td><td><strong>依存から自動導出</strong></td></tr><tr><td>失敗時の再開</td><td>どこから再開するか設計する</td><td>自動でハンドリング</td></tr><tr><td>チェックポイント</td><td>置き場所を自分で管理</td><td>自動</td></tr><tr><td>データ品質</td><td>別途チェック処理を書く</td><td><strong>Expectations として宣言</strong></td></tr><tr><td>リネージ</td><td>別途記録する</td><td>自動で可視化</td></tr></tbody></table></div>
+
+          <h3>実行モードは2軸</h3>
+          <div class="scroll-x"><table><thead><tr><th>軸</th><th>選択肢</th><th>性質</th></tr></thead><tbody><tr><td>実行のされ方</td><td><strong>Triggered</strong></td><td>起動 → 更新 → 停止。定期実行向き。<strong>コストが読みやすい</strong></td></tr><tr><td></td><td><strong>Continuous</strong></td><td>動き続け、到着のたびに更新。低遅延向き。<strong>コストは常時</strong></td></tr><tr><td>環境</td><td><strong>Development</strong></td><td>クラスタを使い回し、失敗しても即リトライしない。<strong>試行錯誤向き</strong></td></tr><tr><td></td><td><strong>Production</strong></td><td>毎回新しいクラスタ、失敗時はリトライ。<strong>本番運用向き</strong></td></tr></tbody></table></div>
+
+          <p class="note">開発中に Production モードを使うと、1行直すたびにクラスタ起動を待つことになります。
+          逆に本番で Development モードを使うと、失敗しても止まったままになります。この使い分けは押さえてください。</p>
+
+          <h3>Expectations — 品質を「書く」のではなく「宣言する」</h3>
+          <p>Expectations がないと、NULL 行の抽出 → 件数の記録 → フィルタで除外、を<strong>全部自分で書きます</strong>。
+          ルールが10個あれば10回書きます。Expectations は
+          <strong>ルールと、違反したときの振る舞いだけ</strong>を宣言します。チェック処理は書きません。記録も自動で残ります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>宣言（SQL）</th><th>Python</th><th>違反した行</th><th>パイプライン</th></tr></thead><tbody><tr><td><code>EXPECT (...)</code><br>（<code>ON VIOLATION</code> なし）</td><td><code>@dlt.expect</code></td><td><strong>テーブルに入る</strong></td><td><strong>続く</strong>（件数だけ記録）</td></tr><tr><td><code>ON VIOLATION DROP ROW</code></td><td><code>@dlt.expect_or_drop</code></td><td><strong>捨てられる</strong></td><td>続く</td></tr><tr><td><code>ON VIOLATION FAIL UPDATE</code></td><td><code>@dlt.expect_or_fail</code></td><td>—</td><td><strong>止まる</strong></td></tr></tbody></table></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 264" role="img" aria-label="Expectations の3つの振る舞いを示す分岐図。既定は記録するだけで行は残り、DROP ROW はその行を落とし、FAIL UPDATE は更新ごと止める">
+              <defs>
+                <marker id="t4-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="t4-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="t4-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="8" y="96" width="130" height="46" rx="2" class="d-box-acc"/>
+              <text x="73" y="116" class="d-t"    text-anchor="middle">条件を満たさない行</text>
+              <text x="73" y="134" class="d-t-sm" text-anchor="middle">どう扱うか</text>
+
+              <path d="M144,119 H184 V38  H222" class="d-line" marker-end="url(#t4-ar)"/>
+              <path d="M144,119 H184 V118 H222" class="d-line" marker-end="url(#t4-ar)"/>
+              <path d="M144,119 H184 V198 H222" class="d-line-crit" marker-end="url(#t4-ar-crit)"/>
+
+              <rect x="228" y="16"  width="200" height="44" rx="2" class="d-box"/>
+              <text x="328" y="36"  class="d-t"    text-anchor="middle">EXPECT</text>
+              <text x="328" y="52"  class="d-t-sm" text-anchor="middle">既定</text>
+
+              <rect x="228" y="96"  width="200" height="44" rx="2" class="d-box"/>
+              <text x="328" y="116" class="d-t"    text-anchor="middle">ON VIOLATION DROP ROW</text>
+
+              <rect x="228" y="176" width="200" height="44" rx="2" class="d-box-crit"/>
+              <text x="328" y="196" class="d-t"    text-anchor="middle">ON VIOLATION FAIL UPDATE</text>
+
+              <line x1="434" y1="38"  x2="470" y2="38"  class="d-line" marker-end="url(#t4-ar)"/>
+              <line x1="434" y1="118" x2="470" y2="118" class="d-line" marker-end="url(#t4-ar)"/>
+              <line x1="434" y1="198" x2="470" y2="198" class="d-line-crit" marker-end="url(#t4-ar-crit)"/>
+
+              <rect x="476" y="16"  width="236" height="44" rx="2" class="d-box-block"/>
+              <text x="594" y="36"  class="d-t"    text-anchor="middle">記録するだけ</text>
+              <text x="594" y="52"  class="d-t-sm" text-anchor="middle">行はテーブルに残る</text>
+
+              <rect x="476" y="96"  width="236" height="44" rx="2" class="d-box-ship"/>
+              <text x="594" y="116" class="d-t"    text-anchor="middle">その行だけ落とす</text>
+              <text x="594" y="132" class="d-t-sm" text-anchor="middle">処理は続く</text>
+
+              <rect x="476" y="176" width="236" height="44" rx="2" class="d-box-crit"/>
+              <text x="594" y="196" class="d-t"     text-anchor="middle">更新ごと止める</text>
+              <text x="594" y="212" class="d-t-crit" text-anchor="middle">1行でも違反したら失敗</text>
+
+              <text x="8" y="248" class="d-t-crit">既定は「記録するだけ」。データ品質を守るつもりで書いても、指定しなければ悪い行はそのまま入ります。</text>
+            </svg>
+            <figcaption><strong>既定では、悪い行はテーブルに入ります。</strong>Expectations を書いたのだから弾かれる、と思い込むのが典型的な誤りです。既定の <code>EXPECT</code> は違反を記録するだけで、行は残ります。落としたいなら <code>DROP ROW</code>、1行でも許さないなら <code>FAIL UPDATE</code> を明示します。問題文が「品質を保証したい」なのか「監視したい」なのかで、答えが変わります。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">既定は「記録するだけで、行は残る」</p>
+            <p>「品質ルールに違反したのだから除外されるはず」と思い込むと間違えます。
+            明示的に <code>DROP ROW</code> と書かなければ、違反行はテーブルに入ります。
+            <strong>この既定の挙動が、そのまま選択肢の切り分けに効きます。</strong></p>
+          </div>
+
+          <h3>どれを選ぶか</h3>
+          <div class="scroll-x"><table><thead><tr><th>要件</th><th>選ぶもの</th></tr></thead><tbody><tr><td>品質違反の件数をまず把握したい</td><td><strong>記録のみ</strong>（ON VIOLATION なし）</td></tr><tr><td>不正なデータを下流に流したくない</td><td><strong>DROP ROW</strong></td></tr><tr><td>NULL のデータを保存したくない</td><td><strong>DROP ROW</strong></td></tr><tr><td>キー列が壊れている。続けても意味がない</td><td><strong>FAIL UPDATE</strong></td></tr><tr><td>上流の障害をすぐ検知したい</td><td><strong>FAIL UPDATE</strong></td></tr></tbody></table></div>
+
+          <p class="note">判断の軸を1語にすると<strong>「その行が混ざると、どれくらい困るか」</strong>。
+          少し困る＝記録、混ぜたくない＝除外、あってはならない＝失敗。この3段階で考えます。</p>
+
+          <p>Expectations は <strong>Declarative Pipelines の中でだけ</strong>使えます。素の Spark ジョブには付けられません。
+          「宣言的に品質ルールを定義したい」という要件があれば、<strong>Declarative Pipelines を使う</strong>という答えに繋がります。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-streaming" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Structured Streaming の基礎<span class="tag">Auto Loader も LDP も、この土台の上</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>継続的に到着するデータを処理するための仕組みです。ここが土台で、その上に2つが乗っています。</p>
+
+          <dl class="facts">
+            <div class="fact"><dt>Structured Streaming</dt>
+              <dd><strong>継続処理の土台</strong>。マイクロバッチの実行と進捗管理を担う。</dd></div>
+            <div class="fact"><dt>Auto Loader</dt>
+              <dd>その上に乗る<strong>ファイル用のデータソース</strong>。
+              <code>format("cloudFiles")</code> と書く部分以外は、通常の Structured Streaming そのもの。</dd></div>
+            <div class="fact"><dt>Declarative Pipelines</dt>
+              <dd>その上に乗る<strong>宣言的に組む層</strong>。<code>STREAMING TABLE</code> の内部では
+              Structured Streaming が動いている。</dd></div>
+          </dl>
+
+          <h3>実体はマイクロバッチ</h3>
+          <p>ストリーミングと聞くと「1行ずつ、届いたそばから処理している」と思うかもしれません。違います。
+          <strong>小さなバッチを繰り返し実行しています。</strong>これをマイクロバッチと呼びます。</p>
+          <p>この設計には大きな利点があります。<strong>バッチ処理と同じ DataFrame API で書ける</strong>ことです。
+          <code>read</code> が <code>readStream</code> に、<code>write</code> が <code>writeStream</code> に変わるだけ。
+          間の <code>filter</code>・<code>join</code>・<code>groupBy</code> は<a href="#sec-pyspark">バッチと同じ書き方</a>です。
+          <strong>覚え直す必要がありません。</strong></p>
+
+          <div class="scroll-x"><pre><code>(spark.readStream.table("prod.bronze.orders")
+   .filter(col("amount") &gt; 0)
+ .writeStream
+   .option("checkpointLocation", "/chk/silver_orders")   # ← 必須
+   .outputMode("append")
+   .trigger(availableNow=True)
+   .toTable("prod.silver.orders"))</code></pre></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">checkpointLocation は必須。省略できない</p>
+            <p>ここに<strong>「どこまで処理したか」</strong>が記録されます。
+            <a href="02-ingestion.html">Auto Loader のチェックポイント</a>は、まさにこれのことです。
+            Auto Loader が特別な仕組みを持っているのではなく、Structured Streaming の仕組みを使っています。</p>
+            <p>注意が2つ。<strong>①消せば最初から処理し直します。
+            ②別のストリームと共有してはいけません</strong>——進捗が混ざって正しく動かなくなります。
+            ストリームごとに別の場所を指定してください。</p>
+          </div>
+
+          <h3>outputMode の3つ</h3>
+          <div class="scroll-x"><table><thead><tr><th>モード</th><th>何を書くか</th><th>使える場面</th></tr></thead><tbody><tr><td><strong><code>append</code></strong>（既定）</td><td><strong>新しい行だけ</strong>を追記</td><td>集計しない変換。追記型のデータ</td></tr><tr><td><strong><code>complete</code></strong></td><td><strong>結果テーブル全体</strong>を毎回書き直す</td><td>集計あり。全体を保持したい</td></tr><tr><td><strong><code>update</code></strong></td><td><strong>変わった行だけ</strong>を書く</td><td>集計あり。差分だけでよい</td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">集計を含むストリームで append がそのまま使えない理由</p>
+            <p>日ごとの売上を集計しているとします。今日の売上がいま100万円。これを append で書き出します。
+            そのあと、さらに注文が来て今日の売上は120万円になります。
+            しかし <strong>append は追記しかしないので、100万円という行を後から120万円に直せません</strong>。</p>
+            <p>つまり<strong>集計値は後から変わりうるので、追記だけでは表現できない</strong>のです。
+            これを解決するには「もうこの日の集計は確定した」と言える仕組み——
+            遅れて届くデータをどこまで待つかを決める <strong>watermark</strong>——が要ります。
+            Associate では深くは問われませんが、<strong>この理由</strong>は理解しておいてください。</p>
+          </div>
+
+          <h3>trigger — いつ動かすか</h3>
+          <div class="scroll-x"><table><thead><tr><th>指定</th><th>動き</th><th>使いどころ</th></tr></thead><tbody><tr><td>指定なし</td><td>前のバッチが終わり次第、次を実行（できるだけ速く）</td><td>低遅延が要件のとき</td></tr><tr><td><code>processingTime="5 minutes"</code></td><td>5分ごとにマイクロバッチを実行</td><td>常時起動だが間隔を制御したいとき</td></tr><tr><td><strong><code>availableNow=True</code></strong></td><td><strong>今ある未処理を全部処理して停止</strong></td><td><strong>バッチとして回すとき</strong></td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">「Auto Loader ＝常時起動」ではない、の根拠がこれ</p>
+            <p><code>availableNow</code> と <a href="04-jobs-cicd.html">Lakeflow Jobs</a> を組み合わせれば、
+            <strong>増分の管理だけ Structured Streaming に借りて、実行は日次のバッチ</strong>にできます。
+            「継続的に取り込む＝クラスタを24時間動かす」という思い込みで選ぶと外します。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-tuning" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>チューニングパラメータ<span class="tag">ガイドがパラメータ名を4つ名指ししている</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ガイドは <em>basic tuning parameters (spark.sql.shuffle.partitions, spark.default.parallelism,
+          spark.executor/driver.memory, spark.sql.autoBroadcastJoinThreshold)</em> と、
+          <strong>パラメータ名をそのまま4つ</strong>書いています。名前と役割を知っている前提だ、ということです。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>パラメータ</th><th>何を決めるか</th><th>注意</th></tr></thead><tbody><tr><td><code>spark.sql.shuffle.partitions</code></td><td>シャッフル後の分割数（既定 200）</td><td>大きすぎるとタスク管理のオーバーヘッド、小さすぎると<strong>ディスクに溢れる</strong></td></tr><tr><td><code>spark.default.parallelism</code></td><td>RDD 系の既定並列度</td><td>DataFrame では上の方が効く</td></tr><tr><td><code>spark.executor.memory</code><br><code>spark.driver.memory</code></td><td>それぞれのメモリ量</td><td><strong>driver は結果を集める側</strong>。<code>collect()</code> で溢れるのはここ</td></tr><tr><td><code>spark.sql.autoBroadcastJoinThreshold</code></td><td>broadcast の自動判定（既定 10MB）</td><td>上げすぎるとメモリを圧迫。<code>-1</code> で無効化</td></tr></tbody></table></div>
+
+          <h3>shuffle.partitions — 大きすぎても小さすぎても害</h3>
+          <p><code>groupBy</code> や <code>join</code> をすると、同じキーのデータを同じノードに集める必要があります。
+          この移動が<strong>シャッフル</strong>です。集めたあと、いくつに分けて処理するかを決めるのがこのパラメータ。</p>
+          <dl class="facts">
+            <div class="fact"><dt>大きすぎると</dt>
+              <dd>小さなタスクが大量に生まれ、<strong>タスク管理のオーバーヘッドが実処理を上回ります</strong>。
+              データが少ないのに既定の200は多すぎることがあります。</dd></div>
+            <div class="fact"><dt>小さすぎると</dt>
+              <dd>1タスクが扱う量が増え、メモリに乗り切らず<strong>ディスクに溢れます（disk spill）</strong>。
+              ディスク書き出しは遅いので、性能が大きく落ちます。</dd></div>
+          </dl>
+          <p class="note">このパラメータは<strong>シャッフルが起きる処理にだけ</strong>効きます
+          （<code>groupBy</code>・<code>join</code>・<code>distinct</code>）。
+          単純な <code>filter</code> や <code>withColumn</code> にはシャッフルが起きないので無関係です。
+          <code>disk spill</code> という語は <a href="05-optimization.html">Spark UI</a> から読み取る対象として再登場します。</p>
+
+          <h3>driver と executor — 役割が違う</h3>
+          <p><strong>executor は分散して計算する側</strong>（実際のデータ処理を行うワーカー）。
+          <strong>driver は指揮する側</strong>で、計画を立て、指示を出し、<strong>結果を受け取ります</strong>。</p>
+          <p class="note"><code>collect()</code> で大量のデータを持ってきてメモリエラーになるのは
+          <strong>driver 側の問題</strong>です。<strong>executor を増やしても直りません。</strong>
+          この切り分けは、そのまま誤答の作り分けに使われます。</p>
+
+          <h3>autoBroadcastJoinThreshold — 上げすぎると壊れる</h3>
+          <p>既定 10MB。これより小さいテーブルは自動的に broadcast join になります。
+          値を上げると、やや大きめのテーブルも broadcast されるようになり、大 × 中の結合が速くなる可能性があります。</p>
+          <p>ただし上げすぎると、大きなテーブルが全ノードに配られて各ノードのメモリを圧迫し、
+          さらに<strong>配る前にいったん driver に集める</strong>ので driver のメモリも圧迫します。結果はメモリエラーです。
+          <code>-1</code> にすると broadcast join を無効化できます。</p>
+          <p class="note">自動判定に任せるのが<strong>閾値</strong>、手動で指示するのが
+          <a href="#sec-pyspark"><code>broadcast()</code> 関数</a>。後者は閾値を無視して強制します。</p>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">objective は「re-measure」で終わっている</p>
+            <p><em>…and <strong>re-measure the performance</strong>.</em>
+            パラメータを4つ紹介して「これを覚えろ」で終わるなら、この一文は要りません。
+            わざわざ書かれているということは、そこが評価対象だということです。</p>
+            <p>正しい順序は <strong>測る → 原因に合った手を打つ → 測り直す</strong>。
+            シャッフルが問題なら shuffle.partitions か broadcast join、メモリ不足ならメモリ設定、
+            というように<strong>原因と手が対応</strong>していなければなりません。
+            原因を特定せずに数字を大きくする／クラスタを大きくする選択肢は誤答です。
+            測る手段そのものが <a href="05-optimization.html">Spark UI</a> です。</p>
+          </div>
+
+          <p class="note"><strong>「ボトルネックが違うのに増強する」</strong>という誤りは、この試験全体を貫くテーマです。
+          <a href="02-ingestion.html">取り込み</a>でも「検出が遅い」「JDBC が遅い」をクラスタ増強で解こうとする誤答が出ます。
+          同じ型だと気づけば、まとめて切れます。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-myths" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>このドメインでよくある誤解<span class="tag">誤答は「機能の守備範囲」を外して作られる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>この試験の誤答には、はっきりした作り方があります。もっとも多いのが
+          <strong>「その機能が解決する問題を、別の問題にすり替える」</strong>型です。
+          性能の話に品質の機能を出す、品質の話に削除の機能を出す。
+          対処はシンプルで、<strong>「その機能は、何の問題を解決するために存在するのか」</strong>に戻ることです。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>よくある思い込み</th><th>実際は</th><th>どこで効くか</th></tr></thead><tbody><tr><td>Expectations に違反した行は除外される</td><td><strong>既定は記録のみで、行は残る</strong>。除外は <code>DROP ROW</code> と明示したときだけ</td><td><a href="#sec-ldp">Expectations</a></td></tr><tr><td>Expectations は検索性能を上げる／古いファイルを消す</td><td><strong>どちらも違う</strong>。品質検証の機能。削除は VACUUM</td><td>守備範囲の外し</td></tr><tr><td>Expectations は素の Spark ジョブでも使える</td><td><strong>Declarative Pipelines の中だけ</strong></td><td>問題の前提条件になる</td></tr><tr><td>cast に失敗するとエラーになる</td><td><strong>静かに NULL になる</strong>。処理は正常終了する</td><td><a href="#sec-cleansing">クレンジング</a></td></tr><tr><td><code>count(列)</code> は行数を数える</td><td><strong>NULL を除いた件数</strong>。行数は <code>count(*)</code></td><td>「件数が合わない」の定番</td></tr><tr><td>PySpark の <code>union</code> は重複を排除する</td><td><strong>排除しない</strong>（SQL の <code>UNION ALL</code> 相当）</td><td><a href="#sec-pyspark">結合</a></td></tr><tr><td><code>union</code> は列名で合わせてくれる</td><td><strong>位置で合わせる</strong>。型が同じならエラーも出ない。名前なら <code>unionByName</code></td><td>静かに壊れる型</td></tr><tr><td>MERGE の分岐は2つ</td><td><strong>3つ</strong>。<code>NOT MATCHED BY SOURCE</code> がある</td><td><a href="#sec-merge">MERGE</a></td></tr><tr><td>MERGE が遅い → クラスタを大きくする／VACUUM する</td><td><strong>どちらも探索範囲を減らさない</strong>。Liquid Clustering</td><td>原因と手の対応</td></tr><tr><td>DELETE すればストレージが減る</td><td><strong>減らない</strong>。旧ファイルは残る。減らすのは VACUUM</td><td>操作と物理削除は別</td></tr><tr><td>CTAS で空のテーブルが作れる</td><td><strong>作れない</strong>。SELECT の結果がそのまま入る</td><td><a href="#sec-ddl">DDL</a></td></tr><tr><td>ストリーミングは1行ずつ処理している</td><td><strong>マイクロバッチ</strong>。だからバッチと同じ API で書ける</td><td><a href="#sec-streaming">Streaming</a></td></tr><tr><td>ストリーミング＝クラスタを24時間動かす</td><td><code>availableNow</code> ＋ Jobs で<strong>バッチとして回せる</strong></td><td>コストの設問</td></tr><tr><td>集計するストリームでも <code>append</code> でよい</td><td><strong>そのままでは使えない</strong>。集計値は後から変わりうる</td><td>outputMode</td></tr><tr><td><code>collect()</code> でメモリエラー → executor を増やす</td><td><strong>driver 側の問題</strong>。executor を増やしても直らない</td><td><a href="#sec-tuning">チューニング</a></td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="wait">
+            <p class="callout-title">「静かに壊れる」ものだけ別枠で覚える</p>
+            <p>エラーになるものは、実務でも試験でも気づけます。危ないのは
+            <strong>エラーにならずに結果だけが変わる</strong>もの——
+            <code>cast</code> の NULL 化、<code>explode</code> の行落ち、<code>inner join</code> の行落ち、
+            <code>union</code> の位置ずれ、<code>count(列)</code> の NULL 除外。
+            この5つは「症状から原因を逆引きさせる」設問の材料そのものです。</p>
+            <p>とくに<strong>「行数が減った」</strong>という症状には原因候補が複数あります——
+            <code>inner join</code>／<code>explode</code>／フィルタ条件。セットで思い出せるようにしておいてください。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-quiz" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>確認問題<span class="tag">最大ドメインなので厚めに</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>答えは畳んであります。まず自分の言葉で答えてから開いてください。
+          <strong>言葉にできないものは、選択肢を見ても切れません。</strong></p>
+
+          <ul class="qa"><li><p class="q"><b>Q1</b>既に同じ名前のテーブルがあるかどうかに<strong>関係なく</strong>、空の Delta テーブルをその形で作りたい。どの DDL を使うか。また <code>CREATE TABLE IF NOT EXISTS</code> はなぜ不正解か。</p><details><summary>答えを見る</summary><p class="a"><code>CREATE OR REPLACE TABLE t (列定義)</code>。<code>IF NOT EXISTS</code> は既存があると<strong>作り直さない</strong>ので、「関係なく」という条件を満たさない。なお CTAS（<code>AS SELECT</code>）は SELECT の結果が入るので<strong>空にならない</strong>。<code>WITH COLUMNS</code> は<strong>存在しない構文</strong>。</p></details></li><li><p class="q"><b>Q2</b><code>INSERT INTO</code> と <code>INSERT OVERWRITE</code> の違いは。PySpark ではそれぞれ何に対応するか。</p><details><summary>答えを見る</summary><p class="a"><code>INSERT INTO</code> は<strong>足す</strong>、<code>INSERT OVERWRITE</code> は<strong>入れ替える</strong>（洗い替え）。PySpark ではそれぞれ <code>mode("append")</code> と <code>mode("overwrite")</code>。</p></details></li><li><p class="q"><b>Q3</b>MERGE の分岐を<strong>すべて</strong>挙げ、それぞれが何を指すか説明せよ。</p><details><summary>答えを見る</summary><p class="a">3つある。<code>WHEN MATCHED</code>＝ON の条件で一致した行（UPDATE / DELETE）。<code>WHEN NOT MATCHED</code>＝source にあって target に無い行（INSERT）。<code>WHEN NOT MATCHED BY SOURCE</code>＝<strong>target にあって source に無い行</strong>。全件リストから消えた顧客を <code>status = &#39;inactive&#39;</code> にする、といった論理削除に使う。</p></details></li><li><p class="q"><b>Q4</b>「MERGE がエラーで落ちる」。まず何を疑うか。その対処に <code>dropDuplicates</code> を使ってはいけないのはなぜか。</p><details><summary>答えを見る</summary><p class="a"><strong>source 側のキー重複</strong>を疑う。1つの target 行に複数の更新が当たるため。対処は MERGE 前の重複排除だが、<code>dropDuplicates</code> は<strong>どの行が残るか不定</strong>なので不適切。<code>ROW_NUMBER() OVER (PARTITION BY key ORDER BY updated_at DESC)</code> で <code>rn = 1</code> を残し、「最新の1件」を明示的に選ぶ。</p></details></li><li><p class="q"><b>Q5</b>NULL の処理方針は3つ。「<code>customer_id</code> が NULL」と「<code>qty</code> が NULL」で、それぞれどれを選ぶか。理由も。</p><details><summary>答えを見る</summary><p class="a"><code>customer_id</code> は<strong>落とす</strong>（<code>na.drop</code> / <code>WHERE ... IS NOT NULL</code>）。キーが無いと結合も集計単位も決まらず、Silver に置く意味がないから。<code>qty</code> は<strong>埋める</strong>（<code>na.fill({"qty": 0})</code> / <code>COALESCE(qty, 0)</code>）。落とすと注文自体が消えてしまうから。<strong>「全部落とす」「全部埋める」は誤答</strong>——列の意味で使い分ける。</p></details></li><li><p class="q"><b>Q6</b><code>amount</code> 列に <code>"1,200"</code> や <code>"N/A"</code> が入った状態で <code>cast("double")</code> するとどうなるか。集計にどう影響するか。</p><details><summary>答えを見る</summary><p class="a"><strong>エラーにならず、静かに NULL になる。</strong>処理は正常終了し、そのまま集計され、金額が<strong>過少</strong>に出る。対処は ①cast 前に整形（カンマ・空白の除去）②cast 後に NULL 率を検証（Expectations で機械的に）。これは Delta ではなく <strong>Spark の型変換の仕様</strong>。</p></details></li><li><p class="q"><b>Q7</b><code>withColumn("source", "web")</code> はなぜエラーになるか。正しくはどう書くか。また <code>split</code> の結果は何型か。</p><details><summary>答えを見る</summary><p class="a">Spark が <code>"web"</code> を<strong>列名として探しに行く</strong>ため。正しくは <code>withColumn("source", lit("web"))</code>。<code>lit</code> は literal の略で「これは列名ではなく値」と伝える。<code>split</code> の結果は<strong>配列</strong>で、そのままでは列にならない。添字（<code>parts[0]</code>）か <code>explode</code> で取り出す。</p></details></li><li><p class="q"><b>Q8</b>「変換したら行数が減った」。原因の候補を3つ挙げ、それぞれの対処を述べよ。</p><details><summary>答えを見る</summary><p class="a">①<code>inner join</code>——マスタに無い行が落ちた。対処は <code>left</code> に変える。②<code>explode</code>——配列が空／NULL の行が落ちた。対処は <code>explode_outer</code>。③フィルタ条件——想定より広く切っている。なお <strong>逆に行数が爆発</strong>したら、結合条件を書き忘れた<strong>意図しない cross join</strong> を疑う。</p></details></li><li><p class="q"><b>Q9</b>PySpark の <code>df1.union(df2)</code> は SQL の <code>UNION</code> と同じか。また、列の順序が違う可能性があるときは何を使うか。</p><details><summary>答えを見る</summary><p class="a">同じではない。<strong>PySpark の <code>union</code> は重複を排除しない</strong>（SQL の <code>UNION ALL</code> 相当）。消すなら <code>.distinct()</code> を明示する。さらに <code>union</code> は<strong>列名ではなく位置</strong>で結合し、型が同じならエラーも出ずに値が混ざる。名前で合わせるなら <code>unionByName</code>。</p></details></li><li><p class="q"><b>Q10</b>Gold 層の4オブジェクトを、2つの軸で整理せよ。「BI が繰り返し叩く重い集計を、速く安く読みたい」ならどれか。</p><details><summary>答えを見る</summary><p class="a">軸は<strong>①実体を持つか ②誰が更新するか</strong>。<strong>View だけが実体を持たない</strong>（毎回クエリを実行）。残り3つは実体を持ち、Table は自分で書き込む、Materialized View は自動でリフレッシュ、Streaming Table は到着分を増分で追記。設問の要件は <strong>Materialized View</strong>。「Auto Loader の書き込み先」「増分で積み上げたい」なら Streaming Table。</p></details></li><li><p class="q"><b>Q11</b>Expectations で <code>ON VIOLATION</code> を書かなかった場合、違反行とパイプラインはどうなるか。また、Expectations が<strong>できないこと</strong>を2つ挙げよ。</p><details><summary>答えを見る</summary><p class="a">違反行は<strong>テーブルに入り</strong>、パイプラインは<strong>続く</strong>（件数だけ記録される）。除外したいなら <code>ON VIOLATION DROP ROW</code>、止めたいなら <code>FAIL UPDATE</code> と明示する。できないこと：<strong>検索性能の改善</strong>と<strong>古いファイルの削除</strong>（それは VACUUM）。さらに <strong>Declarative Pipelines の中でしか使えない</strong>。</p></details></li><li><p class="q"><b>Q12</b>Structured Streaming で <code>checkpointLocation</code> は必須か。集計を含むストリームで <code>outputMode("append")</code> がそのまま使えないのはなぜか。</p><details><summary>答えを見る</summary><p class="a"><strong>必須</strong>。「どこまで処理したか」を記録する場所で、消せば最初から処理し直し、<strong>別ストリームと共有してはいけない</strong>。append が使えない理由：<strong>集計値は後から変わりうる</strong>から。今日の売上100万円を追記した後で120万円になっても、append は既に書いた行を直せない。確定を宣言する仕組み（watermark）が要る。全体を書き直すなら <code>complete</code>、差分でよいなら <code>update</code>。</p></details></li><li><p class="q"><b>Q13</b><code>spark.sql.shuffle.partitions</code> を「小さすぎる値」にすると何が起きるか。また <code>collect()</code> でメモリエラーが出たとき、増やすべきは executor か driver か。</p><details><summary>答えを見る</summary><p class="a">小さすぎると1タスクの担当量が増え、メモリに乗り切らず<strong>ディスクに溢れる（disk spill）</strong>。ディスク書き出しは遅く、性能が大きく落ちる。逆に大きすぎると、タスク管理のオーバーヘッドが実処理を上回る。既定は200。<code>collect()</code> は<strong>結果を driver に集める</strong>操作なので、これは <strong>driver 側</strong>の問題。executor を増やしても直らない。</p></details></li><li><p class="q"><b>Q14</b>objective が <em>re-measure the performance</em> で終わっていることから、どんな選択肢が誤答だと分かるか。</p><details><summary>答えを見る</summary><p class="a"><strong>原因を特定せずに数字を大きくする</strong>選択肢（「遅いからクラスタを大きくする」「遅いからパラメータを上げる」）。正しい順序は <strong>測る → 原因に合った手を打つ → 測り直す</strong>で、測る手段が Spark UI。シャッフルが原因なら shuffle.partitions か broadcast join、メモリ不足ならメモリ設定、というように<strong>原因と手が対応</strong>している必要がある。「ボトルネックが違うのに増強する」は、この試験全体を貫く誤答の型。</p></details></li></ul>
+
+          <p class="note">解けなかった問題があれば、対応する節に戻ってください。
+          このドメインは<strong>知識の量ではなく、区別の精度</strong>が点になります。
+          「関係なく」「ユニークな」「列の順序が違う可能性がある」——
+          問題文の一語が、そのまま正解のスイッチになっています。</p>
+
+          <ul class="links">
+            <li><a href="07-exam-tactics.html">試験の解き方 — 誤答の型と読み方</a></li>
+            <li><a href="05-optimization.html">監視と最適化 — Spark UI / Liquid Clustering / VACUUM</a></li>
+            <li><a href="02-ingestion.html">データの取り込み — Auto Loader とスキーマ推論</a></li>
+          </ul>
+
+        </div>
+      </details>
+      <hr>
+      <h3>このシリーズの他のドキュメント</h3>
+      <ul class="links"><li><span class="star">★</span> <a href="index.html">総合インデックス</a></li><li><a href="00-exam-changes.html">2026年5月改訂で何が変わったか</a></li><li><a href="01-platform.html">プラットフォーム基盤</a></li><li><a href="02-ingestion.html">データの取り込み</a></li><li><a href="04-jobs-cicd.html">Jobs と CI/CD</a></li><li><a href="05-optimization.html">監視と最適化</a></li><li><a href="06-governance.html">ガバナンスとセキュリティ</a></li><li><a href="07-exam-tactics.html">試験の解き方</a></li></ul>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-05</span></span>
+        <span>出典: Databricks 公式 Exam Guide（2026-05-04 版）</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>

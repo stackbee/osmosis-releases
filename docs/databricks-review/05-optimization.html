@@ -1,0 +1,1607 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>監視と最適化 — Databricks DE Associate</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 7. 追記：コードブロック ------------------------------ */
+.scroll-x > pre{
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  font-family: var(--f-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.75;
+  letter-spacing: 0;
+}
+.scroll-x > pre code{ font-size: inherit; }
+@media print{ .scroll-x > pre{ white-space: pre-wrap; } }
+
+/* --- 8. 追記：確認問題（答えは畳んでおく） ----------------- */
+.qa{ margin: var(--sp-4) 0; }
+.qa > li{
+  border-top: 1px solid var(--rule);
+  padding: var(--sp-3) 0 var(--sp-2);
+  list-style: none;
+}
+.qa > li:last-child{ border-bottom: 1px solid var(--rule); }
+.qa .q{ margin: 0 0 var(--sp-2); }
+.qa .q b{
+  font-family: var(--f-mono); font-size: var(--fs-xs);
+  color: var(--faint); margin-right: .6em; letter-spacing: .06em;
+}
+.qa details{ font-size: var(--fs-sm); }
+.qa summary{
+  cursor: pointer; color: var(--accent-ink);
+  font-size: var(--fs-xs); letter-spacing: .04em;
+  list-style: none; display: inline-block;
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .1rem .55rem;
+}
+.qa summary::-webkit-details-marker{ display: none; }
+.qa details[open] summary{ margin-bottom: var(--sp-2); }
+.qa .a{ color: var(--muted); margin: 0; padding-left: var(--sp-3);
+        border-left: 2px solid var(--rule-bold); }
+@media print{ .qa details{ } .qa summary{ display: none; } }
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">Databricks DE Associate</div>
+    <p class="rail-title">監視と最適化<br>Spark UI / Liquid Clustering</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-measure"><span class="dot" data-status="active"></span><span>まず測る</span></a></li>
+        <li><a href="#sec-flow"><span class="dot" data-status="crit"></span><span>症状から入る診断フロー</span></a></li>
+        <li><a href="#sec-sparkui"><span class="dot" data-status="new"></span><span>Spark UI の読み方</span></a></li>
+        <li><a href="#sec-smallfiles"><span class="dot" data-status="new"></span><span>小さなファイル問題の全体像</span></a></li>
+        <li><a href="#sec-liquid"><span class="dot" data-status="new"></span><span>Liquid Clustering</span></a></li>
+        <li><a href="#sec-po"><span class="dot" data-status="new"></span><span>Predictive Optimization</span></a></li>
+        <li><a href="#sec-compare"><span class="dot" data-status="ship"></span><span>【比較】5つの手法</span></a></li>
+        <li><a href="#sec-vacuum"><span class="dot" data-status="crit"></span><span>VACUUM と Time Travel</span></a></li>
+        <li><a href="#sec-diagnose"><span class="dot" data-status="active"></span><span>障害の切り分け</span></a></li>
+        <li><a href="#sec-myths"><span class="dot" data-status="block"></span><span>よくある誤解</span></a></li>
+        <li><a href="#sec-quiz"><span class="dot" data-status="ship"></span><span>確認問題</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/zHOpzCW4Nyw" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/zHOpzCW4Nyw" rel="noopener">▶ 動画で見る</a></span>
+          <span>ドメイン 6 / Troubleshooting, Monitoring, and Optimization</span>
+          <span class="num">2026-08-05 時点</span>
+        </div>
+        <h1>監視と最適化</h1>
+        <p class="lede">新範囲が最も集中するドメインです。Spark UI による診断も Liquid Clustering も、旧版には存在しませんでした。そして OPTIMIZE・VACUUM・ZORDER といった定番のキーワードも、ここで整理し直されます。</p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <dl class="kpis"><div class="kpi"><dt>新しく入った柱</dt><dd class="num">3</dd><p class="kpi-sub">Spark UI / Liquid Clustering / Predictive Optimization</p></div><div class="kpi"><dt>新ガイドの ZORDER BY</dt><dd class="num">0<small>件</small></dd><p class="kpi-sub">本文に記載なし。主役は Liquid Clustering</p></div><div class="kpi"><dt>VACUUM の既定保持</dt><dd class="num">7<small>日</small></dd><p class="kpi-sub"><code>RETAIN 168 HOURS</code> と同じ長さ</p></div><div class="kpi"><dt>最初に切る二択</dt><dd class="num">2</dd><p class="kpi-sub">落ちたのか、遅いのか。見る場所が違う</p></div></dl>
+      <details class="sec" id="sec-measure" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>まず測る<span class="tag">「遅い」は単独の数字では判断できない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ガイドのキーワードは <em>compare current execution times against
+          <strong>historical baselines</strong></em>。過去との比較です。</p>
+
+          <p>「今日は40分かかった」——これは遅いでしょうか。答えられません。
+          普段が10分なら異常、38分なら誤差です。<strong>単独の数字では判断できません。</strong>
+          当たり前に見えますが、実務ではここが飛ばされます。「なんか重い」「遅い気がする」という
+          感覚から対応が始まってしまう。run history があれば
+          「過去30日の平均は12分。今日は40分」と言えます。しかも<strong>いつから変わったか</strong>まで分かります。</p>
+
+          <p>ここは<a href="03-transformation.html">変換とモデリング</a>で出てきた
+          <em>measure → 手を打つ → re-measure</em> の、最初の measure にあたります。
+          <strong>測らずに手を打つ選択肢は、この試験では誤答です。</strong>
+          「遅いのでクラスタを大きくした」は測っていません。
+          「run history を見たら、ある日から急に伸びていた」は測っています。</p>
+
+          <h3>run history 画面で見るもの</h3>
+          <p>実行ごとに、開始時刻・所要時間・ステータスが一覧で並びます。失敗した実行は色分けされ、
+          各実行を開けばタスク単位まで展開できます。ここでのコツは1つです。</p>
+          <p><strong>見るべきは1本の実行ではなく、並んだ実行の傾向です。</strong>
+          グラフで言えば、点ではなく線を見る。どこで折れ線が跳ねたか。それが原因を探す起点になります。</p>
+
+          <h3>run history の傾向から読めること</h3>
+          <div class="scroll-x"><table><thead><tr><th>履歴の形</th><th>疑うこと</th></tr></thead><tbody><tr><td><strong>ある日を境に急に伸びた</strong></td><td>その日のデプロイ・設定変更・上流の変化</td></tr><tr><td><strong>少しずつ伸び続けている</strong></td><td>データ量の増加／<strong>小さなファイルの蓄積</strong></td></tr><tr><td>日によって大きくばらつく</td><td>他ジョブとのリソース競合／入力データ量の変動</td></tr><tr><td>特定の曜日だけ遅い</td><td>週次バッチと実行時間帯が重なっている</td></tr><tr><td>失敗が断続的に起きる</td><td>一時的な障害 → <a href="04-jobs-cicd.html">retry の設定</a></td></tr><tr><td>毎回失敗する</td><td>retry は無意味。コード・権限・スキーマを疑う</td></tr></tbody></table></div>
+
+          <p class="note"><strong>急に伸びた → 変更を疑う。じわじわ伸びた → 蓄積を疑う。</strong>
+          この切り分けが、対処の方向を決めます。</p>
+
+          <p>2行目の「じわじわ」に理由があります。データを書き込むたびに新しいファイルが作られ、
+          ファイル数が少しずつ増えていきます。読むときに開くファイルの数が増えるので、少しずつ遅くなる。
+          これが<a href="#sec-smallfiles">小さなファイル問題</a>の典型的な現れ方です。</p>
+
+          <h3>DAG で震源地を探す</h3>
+          <p>ガイドは <em>viewing DAG-based task graphs to spot <strong>upstream blockers</strong></em> と書いています。</p>
+          <p>タスクが A → B → D、C → D と依存しているジョブを考えます。
+          A は実行中で45分経過、B は待機中、C は3分で完了、D は待機中。
+          上がってくる報告は「ジョブ全体が終わりません」「D がずっと待機のままです」です。</p>
+          <p>ここで D を調べても、何も出てきません。D は待っているだけで、エラーもログもありません。
+          詰まっているのは A です。A が終わらないから B が始まらず、D も始まらない。
+          <strong>症状が出ている場所と、原因の場所は違います。</strong>
+          DAG を見る目的は、詰まりの震源地を特定することです。</p>
+
+          <p class="note"><a href="04-jobs-cicd.html">Jobs</a> で見た DAG と同じ画面ですが、目的が違います。
+          設計時は<strong>「構造」</strong>——どういうタスクがあってどう依存しているか。
+          運用時は<strong>「状態」</strong>——いまどこまで進んで、どこで止まっているか。
+          同じ画面を2つの目的で読み分けます。</p>
+
+          <h3>ステータス別・次に見る場所</h3>
+          <div class="scroll-x"><table><thead><tr><th>ステータス</th><th>意味</th><th>次に見るもの</th></tr></thead><tbody><tr><td><strong>Failed</strong></td><td>エラーで停止した</td><td><strong>ログとエラーメッセージ</strong></td></tr><tr><td><strong>Running（長時間）</strong></td><td>進んではいるが遅い</td><td><strong><a href="#sec-sparkui">Spark UI</a></strong></td></tr><tr><td>Pending / Queued</td><td>まだ始まっていない</td><td>上流タスク／コンピュートに空きがあるか</td></tr><tr><td>Skipped</td><td>条件で飛ばされた</td><td>依存条件（<a href="04-jobs-cicd.html">Run if</a>）</td></tr><tr><td>Timed out</td><td>上限時間を超えた</td><td>遅い原因を追うので Spark UI</td></tr></tbody></table></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 312" role="img" aria-label="障害の診断フロー。まず落ちたのか遅いのかで二分し、落ちたなら実行履歴、遅いなら過去との比較へ進む分岐図">
+              <defs>
+                <marker id="o1-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="o1-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="o1-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="266" y="8" width="188" height="44" rx="2" class="d-box-acc"/>
+              <text x="360" y="28" class="d-t"    text-anchor="middle">何かおかしい</text>
+              <text x="360" y="46" class="d-t-sm" text-anchor="middle">まず二択で切る</text>
+
+              <path d="M330,58 V86 H150 V114" class="d-line-crit" marker-end="url(#o1-ar-crit)"/>
+              <path d="M390,58 V86 H570 V114" class="d-line-acc"  marker-end="url(#o1-ar-acc)"/>
+              <text x="212" y="80" class="d-t-crit" text-anchor="middle">落ちた</text>
+              <text x="508" y="80" class="d-t-key"  text-anchor="middle">遅い</text>
+
+              <rect x="40"  y="120" width="220" height="44" rx="2" class="d-box-crit"/>
+              <text x="150" y="140" class="d-t"    text-anchor="middle">run history / Jobs UI</text>
+              <text x="150" y="157" class="d-t-sm" text-anchor="middle">どのタスクで止まったか</text>
+
+              <rect x="460" y="120" width="220" height="44" rx="2" class="d-box-acc"/>
+              <text x="570" y="140" class="d-t"    text-anchor="middle">過去と比べる</text>
+              <text x="570" y="157" class="d-t-sm" text-anchor="middle">いつから伸びたか</text>
+
+              <path d="M150,170 V198" class="d-line-crit" marker-end="url(#o1-ar-crit)"/>
+              <path d="M510,170 V198 H420 V226" class="d-line" marker-end="url(#o1-ar)"/>
+              <path d="M630,170 V198 H660 V226" class="d-line" marker-end="url(#o1-ar)"/>
+
+              <rect x="20"  y="204" width="260" height="44" rx="2" class="d-box"/>
+              <text x="150" y="224" class="d-t-sm" text-anchor="middle">クラスタ起動失敗 / 権限 /</text>
+              <text x="150" y="241" class="d-t-sm" text-anchor="middle">ライブラリ競合 / OOM</text>
+
+              <rect x="310" y="232" width="220" height="44" rx="2" class="d-box"/>
+              <text x="420" y="252" class="d-t-sm" text-anchor="middle">急に伸びた</text>
+              <text x="420" y="269" class="d-t-sm" text-anchor="middle">→ 変更を疑う</text>
+
+              <rect x="550" y="232" width="162" height="44" rx="2" class="d-box"/>
+              <text x="631" y="252" class="d-t-sm" text-anchor="middle">じわじわ伸びた</text>
+              <text x="631" y="269" class="d-t-sm" text-anchor="middle">→ 蓄積を疑う</text>
+
+              <text x="8" y="296" class="d-t-crit">この二択を飛ばすと、落ちている問題に最適化の答えを選んでしまいます。</text>
+            </svg>
+            <figcaption><strong>見る場所が違うので、最初の二択を外すと全部ずれます。</strong>落ちたなら実行履歴、遅いなら過去との比較です。遅い側はさらに、急に伸びたのか、じわじわ伸びたのかで分かれます。急なら直前の変更、じわじわならデータ量か小さなファイルの蓄積。「なんとなく重い」から入ると、この切り分けができません。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">落ちたのか、遅いのか</p>
+            <p>この2つは<strong>見る場所が違います</strong>。落ちたならログ——エラーメッセージから原因が辿れます。
+            遅いなら Spark UI——エラーは出ていないので、<strong>ログを見ても何も書いてありません</strong>。
+            「遅いのでログを見たが、何も出ていない」は当然です。エラーではないからです。
+            ここを取り違えると、調査が空回りします。</p>
+          </div>
+
+          <h3>失敗も「単独の事象」では判断できない</h3>
+          <p>ガイドの3つ目のキーワードが <em>failure rates</em>、失敗率です。
+          30回に1回程度なら一時的な障害の可能性が高く、
+          <a href="04-jobs-cicd.html">retry</a> が効きます。100%失敗しているなら retry は無意味です。
+          3回リトライしても3回失敗するだけで、疑うべきはコード・権限・スキーマです。</p>
+          <p>そして重要なのは、<strong>1回の失敗だけでは、たまたまなのか毎回なのかが分からない</strong>ことです。
+          失敗率という「複数回の集計」を見て、初めて判断できます。
+          「遅い」も「失敗する」も、単独では判断できない。このドメインは一貫してこの考え方です。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-flow" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>症状から入る診断フロー<span class="tag">入口は3つしかない——遅い / 落ちる / 容量が増える</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>このドメインは道具の数が多く、機能名から覚えると混ざります。
+          実務でも試験でも、入ってくるのは<strong>症状</strong>です。
+          そこで、症状から辿れる形に組み替えておきます。入口は3つです。</p>
+
+          <div class="scroll-x"><pre><code>症状
+ ├─ 遅い（落ちてはいない）
+ │   ├─ 前から遅い？   → run history で傾向を見る（急 / じわじわ）
+ │   ├─ じわじわ遅い   → 小さなファイルの蓄積 → OPTIMIZE
+ │   ├─ 特定条件が遅い → 絞り込みが効いていない → Liquid Clustering
+ │   └─ 実行中が遅い   → Spark UI（stage レベル）
+ │        ├─ Max だけ長い        → data skew
+ │        ├─ Shuffle が巨大      → shuffling
+ │        └─ Spill に数字        → disk spilling
+ │
+ ├─ 落ちる（エラーで停止）
+ │   ├─ 処理が始まっていない → クラスタ起動失敗（クォータ / 権限 / init script）
+ │   ├─ import・実行時エラー → ライブラリ競合（Runtime / スコープ）
+ │   └─ OOM
+ │        ├─ driver   → collect() / 大きな broadcast
+ │        └─ executor → skew / shuffle.partitions が小さい
+ │
+ └─ 容量が増える
+     ├─ DELETE したのに減らない → 仕様。VACUUM が必要
+     ├─ OPTIMIZE したら増えた   → 仕様。旧ファイルは VACUUM まで残る
+     └─ Time Travel も維持したい → RETAIN で期間を確保して VACUUM</code></pre></div>
+
+          <h3>入口ごとの最初の一手</h3>
+          <div class="scroll-x"><table><thead><tr><th>症状</th><th>まず確認すること</th><th>見る場所</th></tr></thead><tbody><tr><td><strong>遅い</strong></td><td>過去と比べて遅いのか。急に変わったのか、じわじわか</td><td><a href="#sec-measure">run history</a> → <a href="#sec-sparkui">Spark UI</a></td></tr><tr><td><strong>終わらない</strong></td><td>そのタスク自身が動いているのか、上流を待っているのか</td><td><a href="#sec-measure">DAG（upstream blockers）</a></td></tr><tr><td><strong>落ちる</strong></td><td>処理が始まったのか、始まる前に失敗したのか</td><td><a href="#sec-diagnose">クラスタのイベントログ／ジョブのログ</a></td></tr><tr><td><strong>たまに落ちる</strong></td><td>失敗率。毎回か、断続的か</td><td><a href="#sec-measure">run history の失敗率</a></td></tr><tr><td><strong>容量が増える</strong></td><td>どこまで遡れる必要があるか（Time Travel の要件）</td><td><a href="#sec-vacuum">VACUUM と保持期間</a></td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">このフローを使う理由</p>
+            <p>症状を見た瞬間に原因を当てにいくと、<strong>「遅い → クラスタを大きくする」</strong>に吸い込まれます。
+            これはこの試験で<strong>最も頻繁に出てくる誤答</strong>です。
+            上から順に絞り込めば、増強が答えになる枝が1本も無いことが分かります。
+            ガイドの動詞が <em>diagnose</em>（診断する）であって <em>fix</em> でないのは、そういう意味です。</p>
+          </div>
+
+          <h3>「同じ症状」でも原因が違う例</h3>
+          <div class="scroll-x"><table><thead><tr><th>症状の文言</th><th>答えになりやすい誤答</th><th>実際に見るべきもの</th></tr></thead><tbody><tr><td>クラスタを大きくしたが変わらない</td><td>さらに大きくする</td><td><strong>skew</strong>。1タスクが重いので並列度は効かない</td></tr><tr><td>ジョブが終わらない</td><td>そのタスクのコード</td><td><strong>上流タスク</strong>。待っているだけの可能性</td></tr><tr><td>少しずつ遅くなってきた</td><td>データ量が増えたから仕方ない</td><td><strong>小さなファイルの蓄積</strong>を先に疑う</td></tr><tr><td>検索が遅い</td><td>VACUUM で掃除する</td><td><strong>Liquid Clustering</strong>。VACUUM は性能の機能ではない</td></tr><tr><td>OOM が出る</td><td>エグゼキュータを増やす</td><td><strong>どこで溢れたか</strong>。driver なら逆効果</td></tr></tbody></table></div>
+
+          <p class="note">この表の左列は、<strong>問題文にそのまま出てくる言い回し</strong>です。
+          中列の選択肢が必ず混ぜてあります。<a href="07-exam-tactics.html">誤答の型</a>で言えば
+          「ボトルネックが違う」型にあたります。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-sparkui" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Spark UI の読み方<span class="tag">ガイドが3つのボトルネックを名指ししている</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p><em>Identify common performance bottlenecks such as <strong>data skew, shuffling,
+          and disk spilling</strong> by interpreting <strong>stage-level metrics</strong> in the Spark UI.</em></p>
+
+          <p>ボトルネックが3つ名指しされ、<strong>見る場所も指定されています</strong>。
+          <em>stage-level metrics</em>——ジョブ全体ではなく、ステージ単位の指標です。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>ボトルネック</th><th>Spark UI で見る指標</th><th>症状</th><th>打つ手</th></tr></thead><tbody><tr><td><strong>data skew</strong><br>（偏り）</td><td>タスク所要時間の <strong>Median と Max の差</strong></td><td>同じステージなのに1タスクだけ桁違いに遅い</td><td>キーの偏りを解消。<strong>ノードを増やしても直らない</strong></td></tr><tr><td><strong>shuffling</strong><br>（データの移動）</td><td><strong>Shuffle Read / Write</strong> のサイズ</td><td>特定ステージが時間を食っている</td><td><strong>broadcast join</strong> で回避／閾値調整</td></tr><tr><td><strong>disk spilling</strong><br>（溢れ）</td><td><strong>Spill (Memory) / Spill (Disk)</strong></td><td>メモリに乗り切らずディスクへ書き出している</td><td><code>shuffle.partitions</code> を<strong>増やす</strong>／メモリ増</td></tr></tbody></table></div>
+
+          <h3>Stages タブの Summary Metrics で見る列</h3>
+          <p>Spark UI の <strong>Stages タブ</strong>からステージの詳細を開くと、
+          <strong>Summary Metrics</strong> という表があります。ここに、そのステージのタスクの分布が並びます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>列</th><th>中身</th><th>どう読むか</th></tr></thead><tbody><tr><td><strong>Duration</strong></td><td><strong>Min / 25th / Median / 75th / Max</strong> の5点</td><td>Median と Max の比を見る。分布の形で原因が変わる</td></tr><tr><td><strong>Shuffle Read</strong></td><td>このステージが他ノードから受け取ったデータ量</td><td>大きいステージが、そのジョブで時間を食っている</td></tr><tr><td><strong>Shuffle Write</strong></td><td>次のステージへ渡すために書き出した量</td><td>Read とセットで見る。両方大きければシャッフルが主因</td></tr><tr><td><strong>Spill (Memory)</strong></td><td>メモリに収まらず退避されたデータ</td><td><strong>正常なら空か 0</strong>。数字が見えた時点で異常</td></tr><tr><td><strong>Spill (Disk)</strong></td><td>実際にディスクへ書き出された量</td><td>入力サイズに匹敵するなら、処理の大半がディスク経由</td></tr></tbody></table></div>
+
+          <h3>読む順序と、それぞれの閾値感</h3>
+          <p>順序は <strong>① Max と Median の差（skew）→ ② Shuffle のサイズ → ③ Spill の有無</strong>。
+          この順に見れば、名指しされた3つを一通り確認できます。目安はこう持っておきます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>見るもの</th><th>ふつう</th><th>疑う</th><th>確実に異常</th></tr></thead><tbody><tr><td>Max ÷ Median</td><td>2〜3倍程度のばらつき</td><td><strong>5〜10倍</strong></td><td><strong>10倍超</strong>（例：Median 2秒に対し Max 18分）</td></tr><tr><td>Duration の分布の形</td><td>Min から Max までなだらか＝全体が重い</td><td>25th〜75th はほぼ同じで Max だけ跳ねる</td><td>同上。<strong>一部のタスクだけ重い＝skew</strong></td></tr><tr><td>Shuffle Read / Write</td><td>入力より小さい</td><td>入力と同じ桁</td><td>入力より大きい。<strong>そのステージが主因</strong></td></tr><tr><td>Spill (Memory) / (Disk)</td><td><strong>空か 0</strong></td><td>数字が出ている</td><td>Spill (Disk) が入力サイズ級</td></tr></tbody></table></div>
+
+          <p class="note">分布の形が効きます。<strong>なだらかに伸びている</strong>なら全タスクが等しく重い——
+          データ量やリソースの問題です。<strong>Max だけ跳ねている</strong>なら一部のタスクだけ重い——skew です。
+          同じ「遅い」でも、打つ手が変わります。</p>
+
+          <h3>① data skew — 偏り</h3>
+          <p>同じステージのタスクなのに、1つだけ極端に遅い状態です。
+          タスク1が2秒、タスク2が2秒、タスク3が2秒、<strong>タスク4だけ18分</strong>。
+          このステージ全体は18分かかったことになります。タスク4が終わるまで次に進めないからです。</p>
+          <p>原因は、特定のキーにデータが集中していることです。よくあるのは2つ。
+          <strong>NULL や既定値が大量にある</strong>——たとえば <code>customer_id</code> が未入力のレコードが
+          すべて NULL になっていて、それが1つのパーティションに集まる。
+          もう1つは<strong>巨大な1件が混じっている</strong>——売上の9割を占める取引先がいれば、
+          その1社ぶんだけで巨大なパーティションになります。</p>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 268" role="img" aria-label="データの偏りがあると1つの task だけ極端に長くなり、ノードを増やしても最長の task が変わらないため全体の所要時間が縮まないことを示す図">
+              <defs>
+                <marker id="o2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="o2-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="o2-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <text x="8" y="18" class="d-t-mono">同じ stage の task ごとの処理時間</text>
+
+              <text x="8" y="46" class="d-t-sm">データが偏っている（skew）</text>
+              <rect x="8"   y="56" width="40"  height="24" rx="2" class="d-box"/>
+              <rect x="56"  y="56" width="44"  height="24" rx="2" class="d-box"/>
+              <rect x="108" y="56" width="38"  height="24" rx="2" class="d-box"/>
+              <rect x="154" y="56" width="42"  height="24" rx="2" class="d-box"/>
+              <rect x="204" y="56" width="330" height="24" rx="2" class="d-box-crit"/>
+              <text x="546" y="73" class="d-t-crit">1つだけ桁違いに長い</text>
+
+              <text x="8" y="112" class="d-t-sm">ノードを2倍にしても</text>
+              <rect x="8"   y="122" width="24"  height="24" rx="2" class="d-box"/>
+              <rect x="40"  y="122" width="26"  height="24" rx="2" class="d-box"/>
+              <rect x="74"  y="122" width="22"  height="24" rx="2" class="d-box"/>
+              <rect x="104" y="122" width="24"  height="24" rx="2" class="d-box"/>
+              <rect x="136" y="122" width="330" height="24" rx="2" class="d-box-crit"/>
+              <text x="478" y="139" class="d-t-crit">長い1つは変わらない</text>
+
+              <path d="M534,88 V116" class="d-line-crit"/>
+              <text x="8" y="176" class="d-t-crit">全体の所要時間は、いちばん長い task で決まります。</text>
+              <text x="8" y="196" class="d-t-sm">短い task がさらに短くなっても、待ち時間は減りません。ノードを足しても効かないのはこのためです。</text>
+
+              <text x="8" y="232" class="d-t-key">効くのは、偏りそのものを崩すこと</text>
+              <text x="8" y="252" class="d-t-sm">結合キーの見直し、salting、あるいは小さい側をブロードキャストして shuffle を避ける。</text>
+            </svg>
+            <figcaption><strong>「遅い → 増強」が効かない典型がここです。</strong>stage の所要時間は、いちばん長い task に引きずられます。偏った1つが残っている限り、他をいくら速くしても全体は縮みません。Spark UI では task の時間分布を見ます。最大値だけが中央値から大きく離れていれば偏りです。打つ手は増強ではなく、偏りを崩すことになります。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">なぜ skew はノードを増やしても直らないのか</p>
+            <p>問題は「1つのタスクが重いこと」であって、並列度ではないからです。
+            ノードを10台に増やしても、そのタスクを処理するのは1台です。その1台が18分かかることに変わりはありません。
+            <strong>「遅いのでクラスタを大きくした。でも変わらなかった」</strong>は skew の典型的な症状です。</p>
+          </div>
+
+          <h3>② shuffling — データの移動</h3>
+          <p><code>groupBy</code>・<code>join</code>・<code>distinct</code> を実行するとき、
+          同じキーのデータを同じノードに集める必要があります。そのための通信がシャッフルです。
+          打てる手は3つ——<strong>broadcast join で回避する</strong>、
+          <code>autoBroadcastJoinThreshold</code> を調整する、<code>shuffle.partitions</code> を調整する。</p>
+          <p class="note"><a href="03-transformation.html">変換とモデリング</a>では、これらを
+          「こういう手法があります」として学びました。<strong>いつ使うのかが決まるのが、ここです。</strong>
+          broadcast join を使う判断は、Spark UI で Shuffle のサイズを見て決めます。
+          知識と使いどころが結びつく場所です。</p>
+
+          <h3>③ disk spilling — ディスクへの溢れ</h3>
+          <p>メモリに乗り切らず、ディスクに書き出しながら処理している状態です。
+          ディスクへの読み書きはメモリに比べて圧倒的に遅いので、これが起きると処理が大幅に遅くなります。
+          打てる手は3つ——<code>shuffle.partitions</code> を<strong>増やして</strong>1タスクの担当量を減らす、
+          メモリの大きいノードにする、そして<strong>そもそも skew を直す</strong>。</p>
+          <p>3つ目が大事です。skew があると1つのタスクに大量のデータが集まり、だから溢れます。
+          <strong>skew と spill は同時に起きることがあります。</strong>
+          Spill だけ見て <code>shuffle.partitions</code> を増やしても、
+          偏りが原因なら効きが悪い、ということが起こります。</p>
+
+          <h3>症状 → 原因 → 手</h3>
+          <div class="scroll-x"><table><thead><tr><th>Spark UI で見えるもの</th><th>原因</th><th>打つ手</th></tr></thead><tbody><tr><td>Max だけ桁違いに長い</td><td>data skew</td><td>キーの偏りを解消</td></tr><tr><td>Shuffle Read/Write が巨大</td><td>shuffling</td><td>broadcast join / 閾値調整</td></tr><tr><td>Spill (Disk) に数字が出る</td><td>メモリ不足</td><td><code>shuffle.partitions</code> を増やす</td></tr><tr><td>タスク数が異常に多く各々短い</td><td>パーティション過多</td><td><code>shuffle.partitions</code> を<strong>減らす</strong></td></tr><tr><td>読むファイル数が異常に多い</td><td><strong>小さなファイル問題</strong></td><td><a href="#sec-smallfiles">OPTIMIZE</a> / <a href="#sec-liquid">Liquid Clustering</a></td></tr></tbody></table></div>
+
+          <p class="note">どの行も<strong>「クラスタを大きくする」が答えになっていません</strong>。1行もありません。
+          原因ごとに打つ手が違い、原因を特定せずに増強するのは常に誤答——
+          これがこの試験の一貫した姿勢です。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-smallfiles" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>小さなファイル問題の全体像<span class="tag">なぜ起きる → どう気づく → どう直す → どう防ぐ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>このドメインの半分は、突き詰めると<strong>ファイルの置き方</strong>の話です。
+          その中心にあるのが小さなファイル問題（スモールファイル問題）で、
+          OPTIMIZE も Liquid Clustering も Predictive Optimization も、ここに接続しています。
+          4段階で通して見ておきます。</p>
+
+          <h3>① なぜ起きるのか</h3>
+          <p>Databricks では、<strong>データを書き込むたびに Parquet ファイルが作られます</strong>。
+          書き込みの回数だけファイルが増える、という単純な仕組みです。
+          そのため、書き込みが細かく・頻繁になるほど、小さなファイルが溜まります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>溜まり方</th><th>起きる場面</th></tr></thead><tbody><tr><td><strong>頻繁な追記</strong></td><td>短い間隔のマイクロバッチ／<a href="02-ingestion.html">ストリーミング取り込み</a></td></tr><tr><td><strong>更新の繰り返し</strong></td><td><code>MERGE</code>・<code>UPDATE</code>・<code>DELETE</code>。書き換えのたびに新しいファイルが書かれる</td></tr><tr><td><strong>分割しすぎ</strong></td><td><code>shuffle.partitions</code> が大きく、1タスクあたりの出力が小さい</td></tr><tr><td><strong>パーティションの切りすぎ</strong></td><td><strong>高カーディナリティの列</strong>で <code>PARTITIONED BY</code>。ディレクトリの数だけ小さなファイルができる</td></tr></tbody></table></div>
+
+          <h3>② どう気づくのか</h3>
+          <p>症状は地味です。壊れないので、気づかないまま進行します。</p>
+          <ul>
+            <li><strong>run history がじわじわ伸びる</strong>——急な跳ねではなく、緩い右肩上がり</li>
+            <li><strong>Spark UI で読むファイル数が異常に多い</strong></li>
+            <li><strong>タスク数が多く、それぞれが短い</strong>——処理より段取りに時間を使っている状態</li>
+            <li>データ量はさほど増えていないのに、読み取りだけが重くなっている</li>
+          </ul>
+          <p>1000個の小さなファイルを開くより、10個の適切なサイズのファイルを開くほうが圧倒的に速い。
+          ファイルを開く操作には、1つずつオーバーヘッドがあるからです。</p>
+
+          <h3>③ どう直すのか — OPTIMIZE</h3>
+          <div class="scroll-x"><pre><code>OPTIMIZE prod.silver.orders;
+-- 小さなファイルを読み直して、適切なサイズのファイルに再構成する
+-- CLUSTER BY を指定したテーブルなら、同時にクラスタリングも実行される</code></pre></div>
+
+          <p>コマンドは1行です。実行すると<strong>何が変わるか</strong>を整理しておきます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>項目</th><th>OPTIMIZE 実行後</th></tr></thead><tbody><tr><td>ファイル数</td><td><strong>減る</strong>。小さなファイルがまとめられる</td></tr><tr><td>行数・データの中身</td><td><strong>変わらない</strong>。行は1行も減らない</td></tr><tr><td>読み取り性能</td><td>開くファイル数が減るので<strong>速くなる</strong></td></tr><tr><td>ストレージ使用量</td><td><strong>一時的にむしろ増える</strong>。新しいファイルを書き、古いファイルは <a href="#sec-vacuum">VACUUM</a> するまで残る</td></tr><tr><td>テーブル履歴</td><td>新しいバージョンが記録される。<strong>Time Travel は引き続き使える</strong></td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">OPTIMIZE は削除しない</p>
+            <p>目的はファイルをまとめて読み取り効率を上げることであって、消すことではありません。
+            <strong>「ストレージを減らしたい → OPTIMIZE」は誤答</strong>です。
+            減るどころか、旧ファイルが残るぶん一時的には増えます。ここが VACUUM との決定的な違いです。</p>
+          </div>
+
+          <p><strong>実行コストも意識してください。</strong>
+          OPTIMIZE はテーブルを読み直して書き直す処理なので、そのぶんコンピュートを消費します。
+          月に1回しか更新されないテーブルに毎晩流しても、改善は起きず費用だけがかかります。
+          <strong>「全テーブルに一律で OPTIMIZE」は、改善の対象になる運用</strong>だと覚えておいてください。
+          その答えが <a href="#sec-po">Predictive Optimization</a> です。</p>
+
+          <h3>④ どう防ぐのか</h3>
+          <div class="scroll-x"><table><thead><tr><th>打ち手</th><th>効き方</th></tr></thead><tbody><tr><td><strong><a href="#sec-liquid">Liquid Clustering</a></strong></td><td>ファイルサイズの管理も込みで面倒を見るため、そもそも起きにくい</td></tr><tr><td><strong>高カーディナリティ列でパーティションを切らない</strong></td><td>発生源そのものを絶つ。日付程度の粒度に留める</td></tr><tr><td><strong><a href="#sec-po">Predictive Optimization</a></strong></td><td>断片化したテーブルを検出して、必要なものだけ自動で OPTIMIZE</td></tr><tr><td>書き込み間隔の見直し</td><td>取り込み側の設計。細かすぎる追記は、そのままファイル数になる</td></tr></tbody></table></div>
+
+          <p class="note">「じわじわ遅い」の答えがここにあります。
+          <a href="#sec-measure">run history の傾向</a>で緩い右肩上がりを見つけたら、
+          まず小さなファイルの蓄積を疑ってください。
+          データ量の増加と違って、<strong>これは掃除すれば直ります</strong>。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-liquid" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Liquid Clustering<span class="tag">新ガイドが名指しした、レイアウト最適化の主役</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <h3>目的は Data Skipping を効かせること</h3>
+          <p><code>WHERE customer_id = 10001</code> というクエリを考えます。
+          テーブルに1000個のファイルがあるとして、データが散らばっていれば、
+          どのファイルに 10001 が入っているか分からないので<strong>1000個すべてを開いて確認</strong>します。
+          値が近いデータが同じファイルに寄っていれば、<strong>1個だけ開けば済みます</strong>。</p>
+
+          <p>これを可能にしているのが Data Skipping です。仕組みは統計情報です。
+          Delta は各ファイルについて、列の<strong>最小値と最大値を記録</strong>しています。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>ファイルの統計（min / max）</th><th><code>customer_id = 10001</code> のとき</th></tr></thead><tbody><tr><td>10000 〜 10500</td><td>範囲に含まれる → <strong>読む</strong></td></tr><tr><td>50000 〜 50500</td><td>含まれない → <strong>読み飛ばす</strong></td></tr><tr><td>1 〜 999999<br>（データが散らばっている）</td><td>含まれるかもしれない → <strong>読むしかない</strong></td></tr></tbody></table></div>
+
+          <p>3行目が問題です。データが散らばっていると、どのファイルも
+          「10001 が含まれるかもしれない」範囲になり、1つも読み飛ばせません。
+          統計情報はあるのに、効かない状態です。
+          <strong>データの置き方が、そのまま読み取り性能に効きます。</strong>
+          その置き方を最適化するのが Liquid Clustering です。</p>
+
+          <h3>書き方</h3>
+          <div class="scroll-x"><pre><code>CREATE TABLE prod.silver.orders (
+  order_id BIGINT, customer_id BIGINT, order_date DATE, amount DOUBLE
+)
+CLUSTER BY (customer_id, order_date);      -- 作成時に指定（複数列を指定できる）
+
+ALTER TABLE prod.silver.orders CLUSTER BY (customer_id);   -- 後から変更できる
+ALTER TABLE prod.silver.orders CLUSTER BY AUTO;            -- 列選びを Databricks に任せる
+
+OPTIMIZE prod.silver.orders;               -- クラスタリングを実行する</code></pre></div>
+
+          <p>いちばん大きいのは<strong>キーを後から変更できる</strong>ことです。
+          パーティションは一度決めると変えられず、変えるにはテーブルを作り直す必要がありました。
+          つまり<strong>最初に正しく選ばなければならない</strong>仕組みだった。
+          しかし最初の時点では、どのクエリがよく実行されるか分かりません。
+          「この列で絞ることが多い」と分かるのは、運用が始まってからです。
+          Liquid Clustering なら、そのときに <code>ALTER</code> で変えられます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>パーティション</th><th>ZORDER BY</th><th><strong>Liquid Clustering</strong></th></tr></thead><tbody><tr><td>指定</td><td><code>PARTITIONED BY</code></td><td><code>OPTIMIZE … ZORDER BY</code></td><td><code>CLUSTER BY</code></td></tr><tr><td>キーの変更</td><td><strong>作り直しが必要</strong></td><td>都度指定できる</td><td><strong><code>ALTER</code> で変更可</strong></td></tr><tr><td>カーディナリティ</td><td><strong>低い列に限る</strong></td><td>中〜高でも可</td><td><strong>選ばない</strong></td></tr><tr><td>小さなファイル問題</td><td><strong>起きやすい</strong></td><td>OPTIMIZE で解消</td><td>起きにくい</td></tr><tr><td>新ガイドでの扱い</td><td>記載なし</td><td><strong>記載なし</strong></td><td><strong>明記</strong></td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">パーティションの弱点</p>
+            <p><code>customer_id</code> でパーティションを切ると、顧客が100万人いれば100万個のディレクトリができ、
+            それぞれに小さなファイルが入ります。これが<a href="#sec-smallfiles">小さなファイル問題</a>です。
+            日付なら1年で365個——適度な数です。
+            <strong>日付で切るのは良くても、高カーディナリティの列で切ると破綻します。</strong></p>
+            <p>つまりパーティションは「切る列を正しく選ぶ」ことが前提の仕組みでした。
+            <strong>Liquid Clustering は、その選択自体を不要にします。</strong>
+            カーディナリティを気にせず、絞り込みに使う列を指定すればいい。ここが大きな進歩です。</p>
+          </div>
+
+          <h3>パーティションと併用できるのか</h3>
+          <p>できません。Liquid Clustering は<strong>パーティションや ZORDER BY を置き換える機能</strong>であって、
+          その上に重ねる機能ではありません。<code>CLUSTER BY</code> を使うテーブルでは
+          <code>PARTITIONED BY</code> を指定しませんし、<code>ZORDER BY</code> も併用しません。
+          「パーティションを残したまま Liquid Clustering も有効にする」という選択肢が出たら、
+          そこが誤りです。</p>
+
+          <h3>何をキーにするか</h3>
+          <p>良いキーは <strong>WHERE でよく使う列 / JOIN のキー / MERGE のキー</strong>——
+          共通しているのは<strong>絞り込みに使われる列</strong>だという点です。
+          逆に、絞り込みに使わない列を指定しても意味がありません。</p>
+          <p>迷うなら <code>CLUSTER BY AUTO</code> です。列を自分で選ばず、
+          <strong>クエリ履歴から「どの列でよく絞り込まれているか」を Databricks が判断</strong>します。
+          選定の判断自体を任せる形で、人が決めることを減らしていくという
+          Databricks 全体の方向性とも一致しています。</p>
+
+          <p class="note"><a href="03-transformation.html">MERGE が遅い</a>問題の答えがこれです。
+          MERGE は <code>ON</code> の条件で target を探すため、そのキーでクラスタリングすれば探索範囲が減ります。
+          「クラスタを大きくする」でも「VACUUM する」でもありません。</p>
+
+          <h3>引き方</h3>
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答え</th></tr></thead><tbody><tr><td>特定の列で頻繁に絞り込む。検索が遅い</td><td><strong>Liquid Clustering</strong></td></tr><tr><td>MERGE のキーでの探索が遅い</td><td><strong>Liquid Clustering</strong></td></tr><tr><td>パーティション列の選定に悩んでいる</td><td><strong>Liquid Clustering</strong>（選ばなくてよい）</td></tr><tr><td>パーティションで小さなファイルが大量に発生</td><td><strong>Liquid Clustering</strong></td></tr><tr><td>後からクラスタリング列を変えたい</td><td><code>ALTER TABLE … CLUSTER BY</code></td></tr><tr><td>どの列が良いか分からない</td><td><code>CLUSTER BY AUTO</code></td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">旧教材との最大の差</p>
+            <p>古い教材では、上の1行目・2行目の答えが <strong>ZORDER BY</strong> になっています。
+            そしてそれは間違いではありません。ZORDER でも改善はします。
+            しかし<strong>新ガイドの本文に ZORDER BY の記載はありません</strong>。
+            選択肢に両方あれば Liquid Clustering を選ぶ。この癖をつけてください。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-po" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Predictive Optimization<span class="tag">メンテナンスを自分で回すのをやめる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>自前で回すと、夜間バッチに「全テーブルへ OPTIMIZE」「全テーブルへ VACUUM」
+          「ANALYZE で統計更新」を並べることになります。これで動きはします。
+          ただし<strong>「いつ、どのテーブルに必要か」を人が決めている</strong>状態です。</p>
+
+          <p>毎日更新されるテーブルと月1のテーブルに、同じ頻度の OPTIMIZE は要りません。
+          月1のテーブルに毎晩流しても、改善は起きずコンピュート費用だけがかかります。
+          しかしテーブルが100個あれば、1つずつ判断するのは現実的ではないので、結局一律で流すことになります。</p>
+
+          <p><strong>"Predictive" ＝ 効果を予測して、やる価値のあるものだけ実行する。</strong>
+          どのテーブルが断片化しているか、どこに効果があるかを Databricks が判断して動きます。
+          全テーブルに一律で流すのとは、コストの意味が違います。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>自動実行される操作</th><th>何をするか</th><th>手動での扱い</th></tr></thead><tbody><tr><td><code>OPTIMIZE</code></td><td>小さなファイルをまとめる</td><td><a href="#sec-smallfiles">小さなファイル問題</a></td></tr><tr><td><code>VACUUM</code></td><td>参照されない古いファイルを削除</td><td><a href="#sec-vacuum">VACUUM と Time Travel</a></td></tr><tr><td><code>ANALYZE</code></td><td>統計情報を更新し、クエリ計画を改善</td><td>—</td></tr><tr><td>クラスタリング</td><td>Liquid Clustering の維持</td><td><a href="#sec-liquid">Liquid Clustering</a></td></tr></tbody></table></div>
+
+          <div class="scroll-x"><pre><code>ALTER CATALOG prod ENABLE PREDICTIVE OPTIMIZATION;
+ALTER SCHEMA prod.silver ENABLE PREDICTIVE OPTIMIZATION;</code></pre></div>
+
+          <p>対象は Unity Catalog の <strong>managed table</strong> です。
+          カタログで有効にすれば、配下のスキーマ・テーブルに<strong>継承</strong>されるので、
+          個別に設定して回る必要はありません。
+          UC の階層（カタログ → スキーマ → テーブル）に沿って上から効く——
+          <a href="06-governance.html">権限や ABAC</a> とまったく同じ構造です。
+          <strong>UC の階層は、いろいろな設定の土台になっている</strong>と理解しておくと、覚えることが減ります。</p>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">hands-off という語</p>
+            <p><a href="01-platform.html">Serverless</a> のガイド原文
+            <em>use serverless for a <strong>hands-off</strong>, auto-optimized compute</em>
+            と同じキーワードです。
+            「運用を手放したい」という要件が出たら、対象を見ます。
+            <strong>コンピュートなら Serverless、テーブル保守なら Predictive Optimization。</strong>
+            対象が違うだけで、思想は同じです。</p>
+          </div>
+
+          <h3>引き方</h3>
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答え</th></tr></thead><tbody><tr><td>メンテナンスジョブを自分で管理したくない</td><td><strong>Predictive Optimization</strong></td></tr><tr><td>OPTIMIZE や VACUUM をいつ流すか判断できない</td><td><strong>Predictive Optimization</strong></td></tr><tr><td>手放しで最適化したい（hands-off）</td><td><strong>Predictive Optimization</strong></td></tr><tr><td>全テーブルに一律で OPTIMIZE を流している</td><td><strong>改善の対象</strong>。無駄が多い状態</td></tr><tr><td>特定のテーブルだけ、今すぐ最適化したい</td><td><strong>手動の <code>OPTIMIZE</code></strong>。自動化があっても手動は使える</td></tr></tbody></table></div>
+
+          <p class="note">自動化があっても、個々の操作が何をするかは知っておく必要があります。
+          「Time Travel で3日前に戻れない」といった問題が起きたとき、
+          VACUUM の挙動を知らなければ原因が分かりません。
+          <strong>自動化の存在を知っていることと、個々の操作を理解していることは別の知識</strong>で、
+          試験はその両方を問います。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-compare" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>【比較】データレイアウト最適化の全体像<span class="tag">最初の分岐は「読み取り性能か、ストレージ容量か」</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>最初の分岐がいちばん重要です。ここを取り違えると OPTIMIZE と VACUUM を混同します。
+          そして<strong>この混同が、このドメインでいちばん狙われます</strong>。</p>
+
+          <div class="scroll-x"><pre><code>何を解決したいのか
+ ├─ 読み取りを速くしたい（レイアウトの最適化）
+ │    ├─ ファイルが小さすぎる     → OPTIMIZE
+ │    └─ 絞り込みが効いていない   → Liquid Clustering
+ └─ ストレージを減らしたい        → VACUUM</code></pre></div>
+
+          <div class="scroll-x"><table><thead><tr><th>手法</th><th>目的</th><th>削除するか</th><th>新ガイド</th></tr></thead><tbody><tr><td><strong>OPTIMIZE</strong></td><td>小さなファイルをまとめる</td><td><strong>しない</strong></td><td>間接的（PO 経由）</td></tr><tr><td><strong>Liquid Clustering</strong></td><td>絞り込みが効くよう配置する</td><td>しない</td><td><strong>明記</strong></td></tr><tr><td>ZORDER BY</td><td>同上（旧来の手法）</td><td>しない</td><td><strong>記載なし</strong></td></tr><tr><td>パーティション</td><td>物理的にディレクトリを分ける</td><td>しない</td><td>記載なし</td></tr><tr><td><strong>VACUUM</strong></td><td>参照されない古いファイルを削除</td><td><strong>する</strong></td><td>間接的（PO 経由）</td></tr></tbody></table></div>
+
+          <p><strong>削除する側は VACUUM だけです。</strong>他の4つはすべて「置き方」の話であって、
+          データが減ることはありません。</p>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 310" role="img" aria-label="データレイアウト最適化の最初の分岐を示す図。読み取りを速くしたいなら OPTIMIZE か Liquid Clustering、ストレージを減らしたいなら VACUUM で、削除するのは VACUUM だけ">
+              <defs>
+                <marker id="o3-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="o3-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="o3-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="250" y="8" width="220" height="44" rx="2" class="d-box-acc"/>
+              <text x="360" y="28" class="d-t"    text-anchor="middle">何を解決したいのか</text>
+              <text x="360" y="46" class="d-t-sm" text-anchor="middle">ここを外すと全部ずれる</text>
+
+              <path d="M310,58 V84 H160 V110" class="d-line-acc" marker-end="url(#o3-ar-acc)"/>
+              <path d="M410,58 V84 H560 V110" class="d-line-crit" marker-end="url(#o3-ar-crit)"/>
+
+              <rect x="40"  y="116" width="240" height="40" rx="2" class="d-box-acc"/>
+              <text x="160" y="141" class="d-t" text-anchor="middle">読み取りを速くしたい</text>
+
+              <rect x="440" y="116" width="240" height="40" rx="2" class="d-box-crit"/>
+              <text x="560" y="141" class="d-t" text-anchor="middle">ストレージを減らしたい</text>
+
+              <path d="M120,162 V188" class="d-line" marker-end="url(#o3-ar)"/>
+              <path d="M210,162 V188" class="d-line" marker-end="url(#o3-ar)"/>
+              <path d="M560,162 V188" class="d-line-crit" marker-end="url(#o3-ar-crit)"/>
+
+              <rect x="20"  y="194" width="190" height="52" rx="2" class="d-box"/>
+              <text x="115" y="214" class="d-t"    text-anchor="middle">OPTIMIZE</text>
+              <text x="115" y="232" class="d-t-sm" text-anchor="middle">ファイルが小さすぎる</text>
+
+              <rect x="222" y="194" width="190" height="52" rx="2" class="d-box"/>
+              <text x="317" y="214" class="d-t"    text-anchor="middle">Liquid Clustering</text>
+              <text x="317" y="232" class="d-t-sm" text-anchor="middle">絞り込みが効いていない</text>
+
+              <rect x="464" y="194" width="190" height="52" rx="2" class="d-box-crit"/>
+              <text x="559" y="214" class="d-t"     text-anchor="middle">VACUUM</text>
+              <text x="559" y="232" class="d-t-crit" text-anchor="middle">唯一、削除する側</text>
+
+              <text x="8" y="274" class="d-t-sm">左の2つは「置き方」を変えるだけで、データは減りません。右だけが実際に消します。</text>
+              <text x="8" y="294" class="d-t-crit">OPTIMIZE は新しいファイルを書くので、一時的にはむしろ増えます。</text>
+            </svg>
+            <figcaption><strong>OPTIMIZE と VACUUM の混同が、このドメインでいちばん狙われます。</strong>整理整頓とゴミ捨ての違いです。並べ直しても部屋は狭いままだし、捨てても使いやすくはなりません。「検索が遅い → VACUUM」も「容量を減らしたい → OPTIMIZE」も、どちらも目的の側を取り違えています。まず読み取りかストレージかを決めてから、選択肢を読んでください。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">覚え方</p>
+            <p><strong>OPTIMIZE は「整理整頓」、VACUUM は「ゴミ捨て」。</strong>
+            荷物を使いやすく並べ直すのが OPTIMIZE、不要なものを捨てるのが VACUUM。
+            どちらも部屋をきれいにしますが、やっていることは違います。
+            <strong>並べ直しても部屋は狭いままだし、捨てても使いやすくはなりません。</strong>
+            この比喩で区別を固定しておいてください。</p>
+          </div>
+
+          <h3>誤答パターン</h3>
+          <ul>
+            <li><strong>「検索が遅い → VACUUM」</strong>
+              — VACUUM は性能改善の機能ではない。古いファイルを消しても、現行データの読み方は変わらない</li>
+            <li><strong>「ストレージを減らしたい → OPTIMIZE」</strong>
+              — OPTIMIZE は削除しない。新しいファイルを書くので<strong>一時的にはむしろ増える</strong></li>
+            <li><strong>「MERGE が遅い → クラスタを大きくする」</strong>
+              — 探索の範囲は減らない。<a href="#sec-liquid">Liquid Clustering</a> の担当</li>
+            <li><strong>「読むファイル数が多い → メモリを増やす」</strong>
+              — ファイル数の問題は OPTIMIZE の担当。メモリとは関係がない</li>
+            <li><strong>「特定列の検索が遅い → ZORDER BY」</strong>
+              — 誤りではないが、<strong>新ガイドの主役は Liquid Clustering</strong>。両方あれば後者</li>
+          </ul>
+
+          <h3>逆引き表</h3>
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答え</th></tr></thead><tbody><tr><td>大量の小さな Parquet ファイルが存在する</td><td><strong><code>OPTIMIZE</code></strong></td></tr><tr><td>ファイルを適切なサイズにまとめたい</td><td><strong><code>OPTIMIZE</code></strong></td></tr><tr><td>特定の列で頻繁に検索する。WHERE でよく使う</td><td><strong>Liquid Clustering</strong></td></tr><tr><td>MERGE のキーでの探索が遅い</td><td><strong>Liquid Clustering</strong></td></tr><tr><td>ストレージ使用量を削減したい</td><td><strong><code>VACUUM</code></strong></td></tr><tr><td>参照されないファイルをクリーンアップしたい</td><td><strong><code>VACUUM</code></strong></td></tr><tr><td>これらを自分で回したくない</td><td><strong>Predictive Optimization</strong></td></tr><tr><td>実行時間の偏り・シャッフル・溢れ</td><td><strong><a href="#sec-sparkui">Spark UI で診断</a></strong></td></tr></tbody></table></div>
+
+          <p class="note">最後の行が重要です。
+          <strong>レイアウトで直る問題と、Spark UI で診断すべき問題は別です。</strong>
+          ファイルの置き方の問題なのか、処理の仕方の問題なのか。ここも切り分けてください。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-vacuum" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>VACUUM と Time Travel<span class="tag">「削減したい＋Time Travel も維持」が試験の定番</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <h3>なぜ古いファイルが残っているのか</h3>
+          <p>Delta では、<code>UPDATE</code>・<code>DELETE</code>・<code>MERGE</code> を実行しても、
+          <strong>古いファイルは物理削除されません</strong>。新しいファイルが書かれ、ログが切り替わるだけです。
+          古いファイルは一定期間ストレージ上に残ります。</p>
+          <p>残す理由は Time Travel です。過去のバージョンを参照するには、
+          そのバージョンが使っていたファイルが必要だからです。消してしまえば戻れません。
+          しかし残し続ければ、ストレージは増え続けます。そこで VACUUM です。</p>
+
+          <div class="scroll-x"><pre><code>VACUUM prod.silver.orders;                    -- 既定の保持期間（7日）を過ぎたものを削除
+VACUUM prod.silver.orders RETAIN 168 HOURS;   -- 7日ぶんは残す（168 = 24 × 7）
+VACUUM prod.silver.orders RETAIN 720 HOURS;   -- 30日ぶんは残す
+VACUUM prod.silver.orders DRY RUN;            -- 何が消えるかだけ確認（削除はしない）</code></pre></div>
+
+          <div class="scroll-x"><table><thead><tr><th>書き方</th><th>意味</th></tr></thead><tbody><tr><td><code>VACUUM テーブル名</code></td><td><strong>既定の保持期間は7日</strong>。それより古い未参照ファイルを削除</td></tr><tr><td><code>RETAIN n HOURS</code></td><td>保持期間を明示する。<strong>単位は時間のみ</strong>——日で書く構文はない（7日なら <code>168 HOURS</code>）</td></tr><tr><td><code>DRY RUN</code></td><td><strong>削除せず、対象ファイルの一覧だけを返す</strong>。本番前の確認に使う</td></tr></tbody></table></div>
+
+          <h3>7日より短くはできない — 既定では止められる</h3>
+          <p>ここに<strong>知らないと必ず引っかかる仕様</strong>があります。
+          <code>RETAIN</code> に <strong>168 HOURS 未満</strong>を指定すると、
+          Databricks は実行せずに<strong>エラーで止めます</strong>。
+          「ストレージをすぐ減らしたいので24時間だけ残す」は、そのままでは動きません。</p>
+
+          <p>止める理由は<strong>実行中の読み取り</strong>です。
+          Delta では、クエリが開始した時点のバージョンを見続けます。長く走っているクエリやストリームは、
+          いま現行ではないファイルをまだ参照していることがあります。
+          そこを消すと、実行中の処理が「ファイルが無い」で落ちます。
+          この事故を防ぐための安全弁が、既定で入っています。</p>
+
+          <div class="scroll-x"><pre><code>VACUUM prod.silver.orders RETAIN 24 HOURS;
+-- エラー。既定では168時間（7日）未満を受け付けない
+
+-- どうしても短くしたいときは、安全弁を外してから
+SET spark.databricks.delta.retentionDurationCheck.enabled = false;
+VACUUM prod.silver.orders RETAIN 24 HOURS;</code></pre></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">安全弁を外す選択肢は、まず正解にならない</p>
+            <p><code>retentionDurationCheck</code> を無効化する選択肢が並んでいたら、疑ってかかってください。
+            この試験は「要件を満たす<strong>安全な</strong>方法」を選ばせます。
+            短い保持期間が本当に必要なら、テーブルの設定
+            <code>delta.deletedFileRetentionDuration</code> を下げるのが筋であって、
+            セッション設定で検査を切って回避するのは応急処置です。</p>
+            <p>そもそも「ストレージを削減したい」という要件に対して、
+            <strong>保持期間を極端に短くする必要はありません</strong>。
+            既定の7日ぶんを残すだけでも、それより古いファイルは全部消えます。</p>
+          </div>
+
+          <p>消すのは<strong>「もう参照されていない」ファイルだけ</strong>です。
+          現行のテーブルが使っているファイルは消しません。「VACUUM したらデータが消えた」は起きません。
+          消えるのは過去バージョンだけです。</p>
+
+          <h3>トレードオフの正体</h3>
+          <p>トレードオフは <strong>ストレージ ⇄ 遡れる期間</strong>。
+          古いファイルを残せば Time Travel はできるがストレージが増え、
+          消せばストレージは減るが過去に戻れなくなります。</p>
+          <p>ただしこれは<strong>どちらか一方を選ぶ話ではありません</strong>。
+          「7日前までは戻れるようにしたい」なら、7日ぶんを残してそれより古いものを消せばいい。
+          <strong>全部残すか全部消すかの二択ではなく、保持期間をどこに置くかの調整です。</strong>
+          ここを理解しておくと、選択肢を正しく読めます。</p>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">この形で出る</p>
+            <p><strong>「ストレージを削減したい。ただし Time Travel は今後も利用したい」</strong></p>
+            <p>条件が2つ並んでいます。「保持期間を短くして VACUUM」は前半しか満たしていません。
+            ストレージは減りますが、その期間より前には戻れなくなります。
+            正解は<strong>必要な遡り期間を <code>RETAIN</code> で確保した上で VACUUM</strong> するか、
+            <a href="#sec-po">Predictive Optimization</a> に判断を委ねることです。</p>
+            <p>問題文に2つの条件が並んでいたら、<strong>両方を満たす選択肢</strong>を探します。
+            片方だけ満たす選択肢が必ず混ぜてあります。条件を1つ読み落とすと、そちらを選んでしまいます。
+            <strong>問題文を読むときは、条件がいくつあるかを数えてください。</strong></p>
+          </div>
+
+          <h3>VACUUM がやらないこと</h3>
+          <div class="scroll-x"><table><thead><tr><th>やると誤解されること</th><th>実際</th></tr></thead><tbody><tr><td>検索性能を改善する</td><td><strong>しない</strong>。読むファイルの数は変わらない（消えるのは読んでいないファイル）</td></tr><tr><td>小さなファイルをまとめる</td><td><strong>しない</strong>。それは <a href="#sec-smallfiles">OPTIMIZE</a></td></tr><tr><td>現行データを削除する</td><td><strong>しない</strong>。参照されていないものだけ</td></tr><tr><td>ログ（履歴の記録）を消す</td><td><strong>消すのはデータファイル</strong>。ログの保持期間は別の設定</td></tr></tbody></table></div>
+
+          <p>4つ目が効いてきます。<strong>ログは残っていても、ログが指すファイルが消えれば復元できません。</strong>
+          <code>DESCRIBE HISTORY</code> を実行すれば「バージョン10はこの日にこの操作でできた」と表示されるのに、
+          そのバージョンを <code>SELECT</code> するとエラーになる。
+          <strong>「履歴は見えるのに、戻れない」</strong>——これが VACUUM のあとに起きる現象です。
+          この理屈を理解しておけば、暗記しなくても判断できます。</p>
+
+          <h3>引き方</h3>
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答え</th></tr></thead><tbody><tr><td>不要な古いファイルを削除したい</td><td><strong><code>VACUUM</code></strong></td></tr><tr><td>ストレージ使用量を削減したい</td><td><strong><code>VACUUM</code></strong></td></tr><tr><td>削減したいが Time Travel も維持したい</td><td><strong><code>RETAIN</code> で期間を確保して VACUUM</strong></td></tr><tr><td>何が消えるか事前に確認したい</td><td><strong><code>DRY RUN</code></strong></td></tr><tr><td>保持期間を7日より短くしたい</td><td>既定では<strong>エラー</strong>。<code>retentionDurationCheck</code> を切る前に、本当に必要か疑う</td></tr><tr><td><code>DELETE</code> したのに容量が減らない</td><td><strong>仕様</strong>。VACUUM が必要</td></tr><tr><td>検索が遅い</td><td>VACUUM は無関係。<a href="#sec-compare">比較表</a>へ</td></tr></tbody></table></div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-diagnose" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>障害の切り分け<span class="tag">動詞は diagnose ——「直せ」ではなく「診断せよ」</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p><em>Diagnose <strong>cluster startup failures, library conflicts,
+          and out-of-memory issues</strong>.</em></p>
+
+          <p>動詞に注目してください。<strong>diagnose——診断する</strong>です。「直せ」ではありません。
+          対処法そのものより、<strong>「これは何が原因か」を判断できるか</strong>が問われます。</p>
+
+          <p>最初の分岐は<strong>「処理が始まったか」</strong>です。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>状況</th><th>疑うもの</th><th>見るところ</th></tr></thead><tbody><tr><td><strong>処理が始まっていない</strong></td><td>クラスタ起動失敗</td><td>クラウドのクォータ／インスタンス在庫／権限／ネットワーク／init script</td></tr><tr><td>import・実行時エラー</td><td>ライブラリ競合</td><td>Runtime のバージョン／スコープ（<code>%pip</code> かクラスタライブラリか）</td></tr><tr><td><strong>OOM（ドライバ）</strong></td><td><code>collect()</code> / 大きな broadcast</td><td><strong>エグゼキュータを増やしても直らない</strong></td></tr><tr><td><strong>OOM（エグゼキュータ）</strong></td><td>data skew／<code>shuffle.partitions</code> が小さい</td><td>分割を増やす／偏りを直す</td></tr><tr><td>落ちずに遅い</td><td>性能の問題</td><td><a href="#sec-sparkui">Spark UI</a></td></tr></tbody></table></div>
+
+          <h3>① クラスタ起動失敗</h3>
+          <p>最大の特徴は<strong>処理が始まる前に失敗する</strong>ことです。コードの問題ではありません。
+          典型的な原因は5つ——クラウド側の<strong>クォータ超過</strong>（インスタンス数の上限）、
+          <strong>インスタンスタイプが利用不可</strong>（そのリージョンで在庫がない）、
+          <strong>権限不足</strong>（インスタンスプロファイルやサービスプリンシパルの設定）、
+          <strong>ネットワーク設定</strong>（VPC・サブネット・セキュリティグループ）、
+          そして<strong>init script の失敗</strong>です。</p>
+          <p>起動失敗なら、コードをいくら直しても解決しません。ノートブックを見直しても無駄です。
+          見るべきはクラスタのイベントログやクラウド側の設定です。
+          試験ではこの形で問われます——
+          <strong>「ジョブが失敗する。ノートブックのコードを確認したが問題ない。次に何を見るか」。
+          答えは、クラスタが起動しているかどうか</strong>です。</p>
+
+          <h3>② ライブラリ競合</h3>
+          <p>同じライブラリの異なるバージョンが同居して、実行時に壊れる現象です。よくある形が3つあります。</p>
+          <div class="scroll-x"><table><thead><tr><th>よくある形</th><th>中身</th></tr></thead><tbody><tr><td>Runtime 同梱 vs 自前インストール</td><td>Databricks Runtime には多くのライブラリが最初から入っている。別バージョンを入れると、どちらが使われるかが不安定になる</td></tr><tr><td>クラスタ全体 vs ノートブックスコープ</td><td><code>%pip</code> はノートブックスコープ。クラスタライブラリとして入れたものと混ざる</td></tr><tr><td>依存の噛み合わせ</td><td>A が C のバージョン1を要求し、B が C のバージョン2を要求する</td></tr></tbody></table></div>
+          <p>切り分けの手は3つ。<strong>Runtime のバージョンを確認する</strong>——
+          Runtime が変われば同梱ライブラリも変わるので、「昨日まで動いていたのに」はここを疑います。
+          <strong>スコープを揃える</strong>——<code>%pip</code> かクラスタライブラリか、どちらかに統一します。
+          <strong>別のクラスタで再現するか試す</strong>——再現しなければ、そのクラスタ固有の問題です。</p>
+          <p class="note">症状の特徴も覚えておいてください。
+          <strong>import では通るのに実行時に落ちる。あるいは別の環境では動く。</strong>
+          こういう症状なら、ライブラリ競合を疑います。</p>
+
+          <h3>③ OOM — どこで溢れたか</h3>
+
+          
+          <figure>
+            <svg viewBox="0 0 720 310" role="img" aria-label="メモリ不足が executor 側で起きたか driver 側で起きたかによって、対処が分割を細かくすることと集約をやめることに分かれる図">
+              <defs>
+                <marker id="o4-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="o4-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="o4-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="266" y="8" width="188" height="44" rx="2" class="d-box-crit"/>
+              <text x="360" y="28" class="d-t"     text-anchor="middle">メモリ不足で落ちた</text>
+              <text x="360" y="46" class="d-t-crit" text-anchor="middle">どこで溢れたか</text>
+
+              <path d="M330,58 V86 H160 V114" class="d-line" marker-end="url(#o4-ar)"/>
+              <path d="M390,58 V86 H560 V114" class="d-line" marker-end="url(#o4-ar)"/>
+
+              <rect x="40"  y="120" width="240" height="52" rx="2" class="d-box"/>
+              <text x="160" y="140" class="d-t"    text-anchor="middle">executor 側</text>
+              <text x="160" y="158" class="d-t-sm" text-anchor="middle">各ノードで処理中に溢れた</text>
+
+              <rect x="440" y="120" width="240" height="52" rx="2" class="d-box"/>
+              <text x="560" y="140" class="d-t"    text-anchor="middle">driver 側</text>
+              <text x="560" y="158" class="d-t-sm" text-anchor="middle">結果を1か所に集めて溢れた</text>
+
+              <path d="M160,178 V206" class="d-line-acc" marker-end="url(#o4-ar-acc)"/>
+              <path d="M560,178 V206" class="d-line-acc" marker-end="url(#o4-ar-acc)"/>
+
+              <rect x="20"  y="212" width="280" height="56" rx="2" class="d-box-ship"/>
+              <text x="160" y="234" class="d-t"    text-anchor="middle">分割を細かくする</text>
+              <text x="160" y="252" class="d-t-sm" text-anchor="middle">パーティション数を増やす</text>
+
+              <rect x="420" y="212" width="280" height="56" rx="2" class="d-box-ship"/>
+              <text x="560" y="234" class="d-t"    text-anchor="middle">集めるのをやめる</text>
+              <text x="560" y="252" class="d-t-sm" text-anchor="middle">collect / toPandas を外す</text>
+
+              <text x="8" y="294" class="d-t-crit">executor 側の対処を driver に打っても効きません。逆も同じです。</text>
+            </svg>
+            <figcaption><strong>同じ「メモリ不足」でも、打つ手が正反対になります。</strong>executor 側なら、1つあたりの担当量が多すぎるので細かく割ります。driver 側は、全件を1か所へ集めていることが原因です。こちらは分割を細かくしても解決しません——集める行為そのものをやめます。問題文に <code>collect</code> や <code>toPandas</code> が出てきたら、driver 側を疑ってください。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">OOM は「どこで溢れたか」で打つ手が正反対</p>
+            <p><strong>driver は結果を集める側、executor は分散して計算する側。</strong>
+            ドライバなら持ってくる量を減らし、エグゼキュータなら1タスクの担当を減らす。方向が逆です。
+            <strong>ドライバの OOM にエグゼキュータを増やしても直りません。</strong>
+            溢れているのはドライバだからです。
+            OOM という症状を見たら、まず「どこで?」を確認してください。</p>
+          </div>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>ドライバの OOM</th><th>エグゼキュータの OOM</th></tr></thead><tbody><tr><td>典型的な原因</td><td><code>collect()</code> / <code>toPandas()</code> で全件を集める。<code>autoBroadcastJoinThreshold</code> を上げすぎた大きな broadcast</td><td>1タスクの担当量が大きすぎる。<a href="#sec-sparkui">data skew</a>／<code>shuffle.partitions</code> が小さい</td></tr><tr><td>打つ手</td><td><strong>持ってくる量を減らす</strong>（集約してから collect、broadcast 閾値を下げる）</td><td><strong>1タスクの担当を減らす</strong>（分割を増やす、偏りを直す）</td></tr><tr><td>やってはいけないこと</td><td><strong>エグゼキュータを増やす</strong>（効かない）</td><td>ドライバのメモリだけ増やす（効かない）</td></tr></tbody></table></div>
+
+          <h3>切り分けフロー</h3>
+          <div class="scroll-x"><pre><code>処理は始まったか
+ ├─ No  → クラスタ起動失敗（クォータ / 権限 / ネットワーク / init script）
+ └─ Yes → エラーで落ちたか
+      ├─ import・実行時エラー → ライブラリ競合（Runtime / スコープ）
+      ├─ OOM → どこで溢れた？
+      │         ├─ driver   → collect() / broadcast
+      │         └─ executor → skew / shuffle.partitions
+      └─ 落ちていない（ただ遅い） → Spark UI で診断</code></pre></div>
+
+          <p class="note">いきなり原因を当てにいくのではなく、上から絞り込む。
+          <strong>これが diagnose、診断するということです。</strong></p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-myths" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>このドメインでよくある誤解<span class="tag">選択肢はこの誤解を突いて作られている</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ここまでの内容を、<strong>誤りの側から</strong>並べ直します。
+          選択肢は「もっともらしく聞こえる誤り」で作られているので、
+          誤りの形を覚えておくと消去法が効きます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>よくある誤解</th><th>実際はどうか</th></tr></thead><tbody><tr><td><strong>遅いなら、クラスタを大きくすれば直る</strong></td><td><strong>この試験で最も頻出の誤答</strong>。skew・小さなファイル・シャッフル・ドライバ OOM——どれも増強では直らない。原因ごとに手が違う</td></tr><tr><td>skew はノードを増やせば直る</td><td>直らない。問題は1タスクが重いことで、<strong>並列度は無関係</strong></td></tr><tr><td>遅いのでログを見る</td><td>遅いだけならエラーは出ていないので<strong>ログには何も書かれていない</strong>。見るのは Spark UI</td></tr><tr><td>1回失敗したので retry を設定する</td><td><strong>失敗率</strong>を見ないと判断できない。毎回失敗するなら retry は無意味</td></tr><tr><td><strong>VACUUM で検索が速くなる</strong></td><td>ならない。VACUUM は性能改善の機能ではない。消えるのは、そもそも読んでいないファイル</td></tr><tr><td><strong>OPTIMIZE でストレージが減る</strong></td><td>減らない。<strong>OPTIMIZE は削除しない</strong>。新しいファイルを書くので、一時的にはむしろ増える</td></tr><tr><td><strong>DELETE すればストレージが減る</strong></td><td>減らない。旧ファイルは残る。<strong>減らすには VACUUM が必要</strong>——これは仕様</td></tr><tr><td>VACUUM すると現行データも消えるかもしれない</td><td>消えない。<strong>参照されていないファイルだけ</strong>が対象</td></tr><tr><td>VACUUM すると履歴（ログ）が消える</td><td>消えるのはデータファイル。<strong>履歴は見えるのに戻れない</strong>状態になる</td></tr><tr><td>保持期間を短くして VACUUM すれば、削減と Time Travel を両立できる</td><td>両立していない。<strong>必要な遡り期間を <code>RETAIN</code> で確保</strong>してから VACUUM する</td></tr><tr><td><strong>特定列の検索が遅い → ZORDER BY</strong></td><td>誤りではないが、<strong>新ガイドの本文に ZORDER BY の記載はない</strong>。主役は Liquid Clustering</td></tr><tr><td>Liquid Clustering はパーティションの上に重ねて使う</td><td><strong>併用しない</strong>。置き換える機能。<code>CLUSTER BY</code> のテーブルに <code>PARTITIONED BY</code> は指定しない</td></tr><tr><td>Liquid Clustering のキーは最初に正しく選ばないといけない</td><td><code>ALTER TABLE … CLUSTER BY</code> で<strong>後から変更できる</strong>。迷えば <code>CLUSTER BY AUTO</code></td></tr><tr><td>OOM ならエグゼキュータを増やす</td><td><strong>ドライバの OOM には逆効果</strong>。まず「どこで溢れたか」</td></tr><tr><td>Predictive Optimization があるので、OPTIMIZE と VACUUM は覚えなくてよい</td><td>問題が起きたときに判断できない。<strong>自動化の存在と、個々の操作の理解は別の知識</strong></td></tr><tr><td>ジョブが終わらないので、そのタスクを調べる</td><td>待っているだけかもしれない。<strong>上流（upstream blockers）</strong>を見る</td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">1行目だけは別格</p>
+            <p>「遅い → 増強」は、<a href="02-ingestion.html">取り込み</a>から
+            <a href="03-transformation.html">変換</a>、そしてこのドメインまで、
+            繰り返し形を変えて出てきます。
+            <strong>増強が答えになる問題は、実質的にありません。</strong>
+            選択肢に「より大きなクラスタ」「ノードを追加」が並んでいたら、
+            まずそれを外して残りを読む——それくらいの姿勢で構いません。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-quiz" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>確認問題<span class="tag">スライドを見ずに、声に出して答えられるか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>このドメインは「知っている」と「使える」の差が出ます。
+          10問、答えを見る前に自分の言葉で言ってみてください。
+          言えなかったものは、リンク先の節に戻ります。</p>
+
+          <ul class="qa"><li><p class="q"><b>Q1</b>run history を見たら、実行時間が<strong>少しずつ伸び続けて</strong>いました。何を疑いますか。<strong>ある日を境に急に伸びていた</strong>場合とは、どう違いますか。</p><details><summary>答えを見る</summary><p class="a">じわじわ伸びているなら、<strong>データ量の増加</strong>と<strong>小さなファイルの蓄積</strong>を疑います。書き込むたびにファイルが増え、読むときに開くファイル数が増えるためです。急に伸びたなら<strong>その日の変更</strong>——デプロイ・設定変更・上流データの変化を疑います。<strong>急なら変更、じわじわなら蓄積。</strong>（<a href="#sec-measure">まず測る</a>／<a href="#sec-smallfiles">小さなファイル問題</a>）</p></details></li><li><p class="q"><b>Q2</b>Spark UI で <strong>data skew</strong> を見つけるには、どのタブのどの指標を見ますか。また、skew に対して<strong>ノードを増やす</strong>とどうなりますか。</p><details><summary>答えを見る</summary><p class="a"><strong>Stages タブ</strong>のステージ詳細にある <strong>Summary Metrics</strong>、その <strong>Duration の Median と Max の差</strong>を見ます。Min / 25th / Median / 75th / Max のうち、<strong>Max だけが桁違い</strong>（Median 2秒に対し Max 18分など）なら skew です。ノードを増やしても<strong>直りません</strong>。問題は1つのタスクが重いことで、並列度の問題ではないからです。10台に増やしても、そのタスクを処理するのは1台です。（<a href="#sec-sparkui">Spark UI の読み方</a>）</p></details></li><li><p class="q"><b>Q3</b><strong>Spill (Disk)</strong> に大きな数字が出ていました。何が起きていて、打つ手は何ですか。</p><details><summary>答えを見る</summary><p class="a">メモリに乗り切らず、<strong>ディスクへ書き出しながら処理</strong>しています（disk spilling）。Spill の欄は正常なら空か 0 で、数字が見えた時点で異常です。打つ手は3つ——<strong><code>shuffle.partitions</code> を増やして</strong>1タスクの担当量を減らす、メモリの大きいノードにする、そして<strong>そもそも skew を直す</strong>。skew があると1タスクにデータが集中して溢れるため、<strong>skew と spill は同時に起きることがあります</strong>。（<a href="#sec-sparkui">Spark UI の読み方</a>）</p></details></li><li><p class="q"><b>Q4</b><strong>OPTIMIZE と VACUUM</strong> の目的の違いを、一言で言ってください。また、OPTIMIZE を実行するとストレージ使用量はどうなりますか。</p><details><summary>答えを見る</summary><p class="a"><strong>OPTIMIZE は整理整頓、VACUUM はゴミ捨て。</strong>OPTIMIZE は小さなファイルをまとめて読み取りを速くする機能で、<strong>データを削除しません</strong>。行は1行も減りません。VACUUM は参照されない古いファイルを削除する機能で、<strong>5つの手法のうち削除するのはこれだけ</strong>です。ストレージは、OPTIMIZE 実行後<strong>一時的にむしろ増えます</strong>。新しいファイルを書き、古いファイルは VACUUM するまで残るからです。（<a href="#sec-compare">比較</a>／<a href="#sec-smallfiles">小さなファイル問題</a>）</p></details></li><li><p class="q"><b>Q5</b><strong>「ストレージを削減したい。ただし Time Travel は今後も利用したい」</strong>——この問題文にどう答えますか。また、<code>DELETE</code> したのに容量が減らないのはなぜですか。</p><details><summary>答えを見る</summary><p class="a">条件が<strong>2つ</strong>あります。「保持期間を短くして VACUUM」は前半しか満たしていません。正解は<strong>必要な遡り期間を <code>RETAIN</code> で確保した上で VACUUM</strong> するか、<strong>Predictive Optimization に委ねる</strong>ことです。問題文に条件が2つ並んでいたら、片方だけ満たす選択肢が必ず混ぜてあります。<code>DELETE</code> で容量が減らないのは<strong>仕様</strong>です。Delta は古いファイルを物理削除せず、新しいファイルを書いてログを切り替えるだけなので、<strong>減らすには VACUUM が必要</strong>です。（<a href="#sec-vacuum">VACUUM と Time Travel</a>）</p></details></li><li><p class="q"><b>Q6</b><strong>Liquid Clustering がパーティションより優れている点</strong>を3つ挙げてください。また、両者を併用できますか。</p><details><summary>答えを見る</summary><p class="a">① <strong>キーを後から <code>ALTER</code> で変更できる</strong>（パーティションは作り直しが必要）。② <strong>カーディナリティを選ばない</strong>（パーティションは低カーディナリティ列に限られ、<code>customer_id</code> で切れば100万ディレクトリになる）。③ <strong>小さなファイル問題が起きにくい</strong>。<strong>併用はできません。</strong>Liquid Clustering はパーティションや ZORDER BY を<strong>置き換える</strong>機能で、<code>CLUSTER BY</code> のテーブルに <code>PARTITIONED BY</code> は指定しません。（<a href="#sec-liquid">Liquid Clustering</a>）</p></details></li><li><p class="q"><b>Q7</b>「特定の列での検索が遅い」という問題で、選択肢に<strong>ZORDER BY と Liquid Clustering が両方</strong>ありました。どちらを選びますか。</p><details><summary>答えを見る</summary><p class="a"><strong>Liquid Clustering</strong> です。ZORDER BY でも改善はするので誤りではありませんが、<strong>新ガイドの本文に ZORDER BY の記載はありません</strong>。明記されているのは Liquid Clustering と Predictive Optimization です。旧教材はこの行の答えを ZORDER BY にしているので、<strong>まず Liquid Clustering を思い浮かべる</strong>癖をつけてください。（<a href="#sec-liquid">Liquid Clustering</a>）</p></details></li><li><p class="q"><b>Q8</b><strong>ドライバの OOM とエグゼキュータの OOM</strong> で、打つ手はどう違いますか。</p><details><summary>答えを見る</summary><p class="a"><strong>正反対</strong>です。ドライバは結果を集める側、エグゼキュータは分散して計算する側だからです。<strong>ドライバの OOM</strong> は <code>collect()</code>・<code>toPandas()</code> や大きな broadcast が原因なので、<strong>持ってくる量を減らします</strong>。<strong>エグゼキュータを増やしても直りません。</strong><strong>エグゼキュータの OOM</strong> は1タスクの担当量が大きすぎることが原因（skew や <code>shuffle.partitions</code> が小さい）なので、<strong>1タスクの担当を減らします</strong>。OOM を見たら、まず「どこで?」です。（<a href="#sec-diagnose">障害の切り分け</a>）</p></details></li><li><p class="q"><b>Q9</b>「ジョブが失敗する。ノートブックのコードを確認したが問題ない」——次に何を見ますか。</p><details><summary>答えを見る</summary><p class="a"><strong>クラスタが起動しているか</strong>です。最初の分岐は<strong>「処理が始まったか」</strong>で、始まる前に失敗しているならクラスタ起動失敗です。クォータ超過・インスタンスタイプが利用不可・権限不足・ネットワーク設定・init script の失敗を疑い、クラスタのイベントログやクラウド側の設定を見ます。<strong>起動失敗はコードをいくら直しても解決しません。</strong>なお <code>import</code> は通るのに実行時に落ちる／別環境では動く、という症状なら<strong>ライブラリ競合</strong>（Runtime のバージョンとスコープ）を疑います。（<a href="#sec-diagnose">障害の切り分け</a>）</p></details></li><li><p class="q"><b>Q10</b><strong>Predictive Optimization</strong> は何を自動実行し、どの単位で有効にでき、対象は何ですか。</p><details><summary>答えを見る</summary><p class="a">自動実行するのは <strong><code>OPTIMIZE</code>・<code>VACUUM</code>・<code>ANALYZE</code>・クラスタリング</strong>の4つです。有効化は <code>ALTER CATALOG … ENABLE PREDICTIVE OPTIMIZATION</code> のように<strong>カタログ／スキーマ単位</strong>で行い、配下に<strong>継承</strong>されます。対象は <strong>Unity Catalog の managed table</strong> です。"Predictive" は<strong>効果を予測して、やる価値のあるものだけ実行する</strong>の意で、全テーブルに一律で流すのとはコストの意味が違います。「hands-off」という要件なら、コンピュートは Serverless、テーブル保守はこれです。（<a href="#sec-po">Predictive Optimization</a>）</p></details></li></ul>
+
+          <p class="note">答えられなかった問いがあれば、
+          <a href="#sec-sparkui">Spark UI</a>・<a href="#sec-liquid">Liquid Clustering</a>・
+          <a href="#sec-compare">比較</a>・<a href="#sec-vacuum">VACUUM</a> のいずれかに戻ってください。
+          この4つが、このドメインの得点源です。</p>
+
+        </div>
+      </details>
+      <hr>
+      <h3>このシリーズの他のドキュメント</h3>
+      <ul class="links"><li><span class="star">★</span> <a href="index.html">総合インデックス</a></li><li><a href="00-exam-changes.html">2026年5月改訂で何が変わったか</a></li><li><a href="01-platform.html">プラットフォーム基盤</a></li><li><a href="02-ingestion.html">データの取り込み</a></li><li><a href="03-transformation.html">変換とモデリング</a></li><li><a href="04-jobs-cicd.html">Jobs と CI/CD</a></li><li><a href="06-governance.html">ガバナンスとセキュリティ</a></li><li><a href="07-exam-tactics.html">試験の解き方</a></li></ul>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-05</span></span>
+        <span>出典: Databricks 公式 Exam Guide（2026-05-04 版）</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>
