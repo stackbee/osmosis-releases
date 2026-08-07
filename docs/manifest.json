@@ -52,6 +52,11 @@
           "episode": "ep010",
           "title": "COPY INTOとは",
           "file": "databricks-shorts/copy-into-is-not-sync.html"
+        },
+        {
+          "episode": "ep011",
+          "title": "COPY INTOが大量ファイルに向かない理由",
+          "file": "databricks-shorts/copy-into-large-file-count.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
