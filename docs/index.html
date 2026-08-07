@@ -29,9 +29,26 @@ h1{ font-family:var(--f-display); font-size:2.25rem; font-weight:600; line-heigh
     margin:0 0 .75rem }
 .lede{ color:var(--muted); margin:0; max-width:60ch }
 .rule{ height:2px; background:var(--ink); width:3.5rem; margin:1.5rem 0 0 }
-h2{ font-size:1.25rem; font-weight:650; margin:3rem 0 .25rem }
-h2 .sub{ display:block; font-size:.8125rem; font-weight:400; color:var(--muted); margin-top:.25rem }
-ul{ list-style:none; margin:1rem 0 0; padding:0; border-top:1px solid var(--rule) }
+.tools{ display:flex; gap:.5rem; margin:2.5rem 0 0 }
+.btn{ font:inherit; font-size:.75rem; background:transparent; color:var(--muted);
+      border:1px solid var(--rule); border-radius:3px; padding:.3rem .6rem; cursor:pointer }
+.btn:hover{ color:var(--ink); border-color:var(--faint) }
+
+/* 番組ごとに折りたたむ。数が増えても一覧の頭から目的の番組へ届くようにする */
+details.show{ border-top:1px solid var(--rule); margin-top:1.5rem }
+details.show > summary{ list-style:none; cursor:pointer;
+      display:flex; flex-wrap:wrap; align-items:baseline; gap:.25rem .75rem; padding:1rem .25rem }
+details.show > summary::-webkit-details-marker{ display:none }
+details.show > summary:hover .show-name{ color:var(--accent) }
+.show-name{ font-size:1.25rem; font-weight:650 }
+.show-sub{ font-size:.8125rem; color:var(--muted) }
+.num{ font-variant-numeric:tabular-nums }
+.show-count{ margin-left:auto; font-family:var(--f-mono); font-size:.75rem; color:var(--faint) }
+.show-mark{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.1em;
+      color:var(--faint); white-space:nowrap }
+details.show[open] .show-mark::after{ content:"閉じる −" }
+details.show:not([open]) .show-mark::after{ content:"開く ＋" }
+ul{ list-style:none; margin:0 0 1rem; padding:0; border-top:1px solid var(--rule) }
 li{ border-bottom:1px solid var(--rule) }
 li a{ display:grid; grid-template-columns:5rem minmax(0,1fr); gap:1rem; align-items:baseline;
       padding:.75rem .25rem; color:inherit; text-decoration:none }
@@ -54,10 +71,19 @@ footer{ margin-top:4rem; padding-top:1rem; border-top:1px solid var(--rule);
         保存すればオフラインでも読めます。
       </p>
       <div class="rule"></div>
+      <div class="tools">
+        <button class="btn" type="button" id="toggle-all">全部たたむ</button>
+      </div>
     </header>
 
-      <h2>DatabricksReview<span class="sub">要件から機能を引く、Databricks DE Associate の総復習</span></h2>
-      <ul>
+      <details class="show" data-show="databricks-review" open>
+        <summary>
+          <span class="show-name">DatabricksReview</span>
+          <span class="show-sub">要件から機能を引く、Databricks DE Associate の総復習</span>
+          <span class="show-count num">9 件</span>
+          <span class="show-mark" aria-hidden="true"></span>
+        </summary>
+        <ul>
         <li><a href="databricks-review/index.html"><span class="ep">ep001</span><span class="t">試験の全体像と学習設計</span></a></li>
         <li><a href="databricks-review/00-exam-changes.html"><span class="ep">ep002</span><span class="t">2026年5月改訂で何が入れ替わったか</span></a></li>
         <li><a href="databricks-review/01-platform.html"><span class="ep">ep003</span><span class="t">プラットフォーム基盤</span></a></li>
@@ -67,10 +93,17 @@ footer{ margin-top:4rem; padding-top:1rem; border-top:1px solid var(--rule);
         <li><a href="databricks-review/05-optimization.html"><span class="ep">ep007</span><span class="t">監視と最適化</span></a></li>
         <li><a href="databricks-review/06-governance.html"><span class="ep">ep008</span><span class="t">ガバナンスとセキュリティ</span></a></li>
         <li><a href="databricks-review/07-exam-tactics.html"><span class="ep">ep009</span><span class="t">試験の解き方</span></a></li>
-      </ul>
+        </ul>
+      </details>
 
-      <h2>DatabricksShorts<span class="sub">Databricks の1トピックを1回で完結させる回</span></h2>
-      <ul>
+      <details class="show" data-show="databricks-shorts" open>
+        <summary>
+          <span class="show-name">DatabricksShorts</span>
+          <span class="show-sub">Databricks の1トピックを1回で完結させる回</span>
+          <span class="show-count num">7 件</span>
+          <span class="show-mark" aria-hidden="true"></span>
+        </summary>
+        <ul>
         <li><a href="databricks-shorts/medallion-architecture.html"><span class="ep">ep001</span><span class="t">メダリオンアーキテクチャは固定機能なのか</span></a></li>
         <li><a href="databricks-shorts/data-roles.html"><span class="ep">ep002</span><span class="t">データエンジニア・アナリスト・サイエンティストの違い</span></a></li>
         <li><a href="databricks-shorts/data-lineage.html"><span class="ep">ep003</span><span class="t">データリネージュとは</span></a></li>
@@ -78,9 +111,45 @@ footer{ margin-top:4rem; padding-top:1rem; border-top:1px solid var(--rule);
         <li><a href="databricks-shorts/analytics-platform-evolution-3min.html"><span class="ep">ep005</span><span class="t">ビッグデータ分析基盤の進化（3分版）</span></a></li>
         <li><a href="databricks-shorts/acid-transactions.html"><span class="ep">ep006</span><span class="t">ACIDとは</span></a></li>
         <li><a href="databricks-shorts/delta-lake-vs-lakehouse.html"><span class="ep">ep007</span><span class="t">Delta LakeとLakehouseの違い</span></a></li>
-      </ul>
+        </ul>
+      </details>
 
     <footer>16 件 / 更新 2026-08-07</footer>
   </div>
+
+<script>
+(function () {
+  "use strict";
+  // 開閉の状態は番組ごとに覚える。番組が増えるほど、毎回たたみ直す手間が効いてくる
+  var KEY = "osmosis-docs-closed";
+  var shows = Array.prototype.slice.call(document.querySelectorAll("details.show"));
+  var closed = {};
+  try { closed = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+
+  function save() {
+    var next = {};
+    shows.forEach(function (d) { if (!d.open) next[d.dataset.show] = 1; });
+    try { localStorage.setItem(KEY, JSON.stringify(next)); } catch (e) {}
+  }
+
+  var btn = document.getElementById("toggle-all");
+  function syncLabel() {
+    if (btn) btn.textContent = shows.some(function (d) { return d.open; }) ? "全部たたむ" : "全部開く";
+  }
+
+  shows.forEach(function (d) {
+    if (closed[d.dataset.show]) d.open = false;
+    d.addEventListener("toggle", function () { save(); syncLabel(); });
+  });
+  syncLabel();
+
+  if (btn) {
+    btn.addEventListener("click", function () {
+      var anyOpen = shows.some(function (d) { return d.open; });
+      shows.forEach(function (d) { d.open = !anyOpen; });
+    });
+  }
+})();
+</script>
 </body>
 </html>
