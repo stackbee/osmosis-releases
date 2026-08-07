@@ -62,6 +62,11 @@
           "episode": "ep012",
           "title": "Auto Loaderとクラウドストレージの相性",
           "file": "databricks-shorts/auto-loader-cloud-storage.html"
+        },
+        {
+          "episode": "ep013",
+          "title": "CTEとは",
+          "file": "databricks-shorts/cte-common-table-expression.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
