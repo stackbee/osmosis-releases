@@ -47,6 +47,11 @@
           "episode": "ep009",
           "title": "RDBとDelta Lakeの「原本」の違い",
           "file": "databricks-shorts/rdb-vs-delta-lake-source-of-truth.html"
+        },
+        {
+          "episode": "ep010",
+          "title": "COPY INTOとは",
+          "file": "databricks-shorts/copy-into-is-not-sync.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
