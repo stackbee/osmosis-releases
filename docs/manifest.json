@@ -67,6 +67,11 @@
           "episode": "ep013",
           "title": "CTEとは",
           "file": "databricks-shorts/cte-common-table-expression.html"
+        },
+        {
+          "episode": "ep014",
+          "title": "MERGEでWHENが必要な理由",
+          "file": "databricks-shorts/merge-why-when-is-needed.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
