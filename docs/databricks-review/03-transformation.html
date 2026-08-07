@@ -977,6 +977,17 @@ WHEN NOT MATCHED BY SOURCE THEN UPDATE SET status = 'inactive';</code></pre></di
 )
 SELECT * EXCEPT (rn) FROM ranked WHERE rn = 1;</code></pre></div>
 
+          <figure>
+            <a class="zoom" href="assets/row-number-dedup.webp">
+              <img class="sheet" alt="ROW_NUMBER() で customer_id ごとに最新1件だけを残す流れを4段階で示した図。1つ目は元データ staging.customer_updates で、customer_id 101 と 102 が2行ずつ重複している。2つ目は PARTITION BY customer_id でグループ分けし、各グループ内を updated_at の新しい順に並べて rn を付けた状態。3つ目は CTE ranked の結果で、各行に rn が付き、rn = 1 の行が最新1件として強調されている。4つ目は WHERE rn = 1 で絞り、EXCEPT (rn) で補助列を除いた最終結果で、customer_id 101・102・103 が1行ずつになっている。"
+                   src="assets/row-number-dedup.webp">
+            </a>
+            <figcaption><strong>上の SQL に、重複を含むデータを通したところです。</strong>
+            <code>dropDuplicates</code> との違いはここに出ます。
+            <code>ORDER BY updated_at DESC</code> があるので<strong>どの行が残るかが決まっている</strong>——
+            残るのは必ず最新の1件です。順序を指定しなければ、この図の「1番」がどれになるかは保証されません。</figcaption>
+          </figure>
+
           <p class="note"><strong>「MERGE が失敗する」と書いてあったら、まず source 側の重複を疑う。</strong>
           これは<a href="#sec-pyspark">重複排除の3手</a>と直結する論点です。</p>
 
