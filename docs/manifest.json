@@ -22,6 +22,11 @@
           "episode": "ep004",
           "title": "ビッグデータ分析基盤の進化",
           "file": "databricks-shorts/analytics-platform-evolution.html"
+        },
+        {
+          "episode": "ep005",
+          "title": "ビッグデータ分析基盤の進化（3分版）",
+          "file": "databricks-shorts/analytics-platform-evolution-3min.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
