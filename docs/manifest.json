@@ -27,6 +27,11 @@
           "episode": "ep005",
           "title": "ビッグデータ分析基盤の進化（3分版）",
           "file": "databricks-shorts/analytics-platform-evolution-3min.html"
+        },
+        {
+          "episode": "ep006",
+          "title": "ACIDとは",
+          "file": "databricks-shorts/acid-transactions.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
