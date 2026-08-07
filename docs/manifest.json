@@ -32,6 +32,11 @@
           "episode": "ep006",
           "title": "ACIDとは",
           "file": "databricks-shorts/acid-transactions.html"
+        },
+        {
+          "episode": "ep007",
+          "title": "Delta LakeとLakehouseの違い",
+          "file": "databricks-shorts/delta-lake-vs-lakehouse.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
