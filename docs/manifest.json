@@ -42,6 +42,11 @@
           "episode": "ep008",
           "title": "Lakehouseはコンピュートも含むのか",
           "file": "databricks-shorts/lakehouse-includes-compute.html"
+        },
+        {
+          "episode": "ep009",
+          "title": "RDBとDelta Lakeの「原本」の違い",
+          "file": "databricks-shorts/rdb-vs-delta-lake-source-of-truth.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
