@@ -37,6 +37,11 @@
           "episode": "ep007",
           "title": "Delta LakeとLakehouseの違い",
           "file": "databricks-shorts/delta-lake-vs-lakehouse.html"
+        },
+        {
+          "episode": "ep008",
+          "title": "Lakehouseはコンピュートも含むのか",
+          "file": "databricks-shorts/lakehouse-includes-compute.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
