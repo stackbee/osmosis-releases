@@ -911,6 +911,96 @@ WHEN NOT MATCHED BY SOURCE THEN UPDATE SET status = 'inactive';</code></pre></di
             <figcaption><strong>分岐は2つではなく3つあります。</strong>見落とされやすいのが左端の <code>NOT MATCHED BY SOURCE</code> です。ソース側に無くなった行——つまり元で削除された行を、ターゲットからも消したいときに使います。「同期したい」「元に無い行は消したい」と書いてあったら、この3つ目が要ります。<code>MATCHED</code> と<code>NOT MATCHED</code> の2つだけでは足りません。</figcaption>
           </figure>
 
+          <h3>1つの MERGE 文を、5件で追う</h3>
+          <p>上の SQL をそのまま、次の2つのテーブルに対して実行したとします。</p>
+
+          <p class="note"><strong>TARGET</strong>（更新される側）&nbsp;&nbsp;<code>prod.silver.customers</code></p>
+          <div class="scroll-x"><table>
+            <thead><tr><th class="num">customer_id</th><th>name</th><th>email</th><th>status</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1</td><td>山田 太郎</td><td>yamada@example.com</td><td>active</td></tr>
+              <tr><td class="num">2</td><td>佐藤 花子</td><td>sato@example.com</td><td>active</td></tr>
+              <tr><td class="num">3</td><td>鈴木 次郎</td><td>suzuki@example.com</td><td>active</td></tr>
+              <tr><td class="num">4</td><td>田中 三郎</td><td>tanaka@example.com</td><td>inactive</td></tr>
+            </tbody>
+          </table></div>
+
+          <p class="note"><strong>SOURCE</strong>（持ち込む側）&nbsp;&nbsp;<code>staging.customer_updates</code></p>
+          <div class="scroll-x"><table>
+            <thead><tr><th class="num">customer_id</th><th>name</th><th>email</th></tr></thead>
+            <tbody>
+              <tr><td class="num">2</td><td>佐藤 花子（更新）</td><td>sato.hanako@example.com</td></tr>
+              <tr><td class="num">3</td><td>鈴木 次郎（更新）</td><td>jiro.suzuki@example.com</td></tr>
+              <tr><td class="num">5</td><td>高橋 五郎（新規）</td><td>takahashi@example.com</td></tr>
+            </tbody>
+          </table></div>
+
+          <p><code>ON target.customer_id = source.customer_id</code> で突き合わせると、
+          5件の <code>customer_id</code>（1〜5）が3つの判定に分かれます。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 172" role="img"
+                 aria-label="MERGE の3つの判定パターンと、それぞれに対応する句・動作・この例で該当する customer_id を並べた図">
+              <defs>
+                <marker id="t5-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+              </defs>
+
+              <rect x="8" y="8" width="224" height="64" rx="2" class="d-box"/>
+              <text x="120" y="28" class="d-t-key" text-anchor="middle">① WHEN MATCHED</text>
+              <text x="120" y="46" class="d-t-sm"  text-anchor="middle">一致したとき</text>
+              <text x="120" y="64" class="d-t-sm"  text-anchor="middle">両方に customer_id がある</text>
+              <line x1="120" y1="74" x2="120" y2="88" class="d-line" marker-end="url(#t5-ar)"/>
+              <rect x="8" y="92" width="224" height="44" rx="2" class="d-box-acc"/>
+              <text x="120" y="112" class="d-t-sm" text-anchor="middle">UPDATE SET *</text>
+              <text x="120" y="128" class="d-t-sm" text-anchor="middle">target を更新する</text>
+              <text x="120" y="160" class="d-t-key" text-anchor="middle">この例では ID 2, 3</text>
+
+              <rect x="248" y="8" width="224" height="64" rx="2" class="d-box"/>
+              <text x="360" y="28" class="d-t-key" text-anchor="middle">② WHEN NOT MATCHED</text>
+              <text x="360" y="46" class="d-t-sm"  text-anchor="middle">一致しないとき</text>
+              <text x="360" y="64" class="d-t-sm"  text-anchor="middle">source にあって target にない</text>
+              <line x1="360" y1="74" x2="360" y2="88" class="d-line" marker-end="url(#t5-ar)"/>
+              <rect x="248" y="92" width="224" height="44" rx="2" class="d-box-ship"/>
+              <text x="360" y="112" class="d-t-sm" text-anchor="middle">INSERT *</text>
+              <text x="360" y="128" class="d-t-sm" text-anchor="middle">target に新規追加する</text>
+              <text x="360" y="160" class="d-t-key" text-anchor="middle">この例では ID 5</text>
+
+              <rect x="488" y="8" width="224" height="64" rx="2" class="d-box"/>
+              <text x="600" y="28" class="d-t-key" text-anchor="middle">③ NOT MATCHED BY SOURCE</text>
+              <text x="600" y="46" class="d-t-sm"  text-anchor="middle">source にないとき</text>
+              <text x="600" y="64" class="d-t-sm"  text-anchor="middle">target にあって source にない</text>
+              <line x1="600" y1="74" x2="600" y2="88" class="d-line" marker-end="url(#t5-ar)"/>
+              <rect x="488" y="92" width="224" height="44" rx="2" class="d-box-block"/>
+              <text x="600" y="112" class="d-t-sm" text-anchor="middle">UPDATE SET status = 'inactive'</text>
+              <text x="600" y="128" class="d-t-sm" text-anchor="middle">論理削除にあたる</text>
+              <text x="600" y="160" class="d-t-key" text-anchor="middle">この例では ID 1, 4</text>
+            </svg>
+            <figcaption><strong>1〜5 のどれも、必ずこの3つのどれかに落ちます。</strong>
+            2つしか書かなければ、③に落ちるはずだった ID 1 と 4 は<strong>何も起きずに残ります</strong>。
+            「消えた顧客が active のまま残る」という形で表面化します。</figcaption>
+          </figure>
+
+          <p class="note">実行後の <strong>TARGET</strong> テーブル</p>
+          <div class="scroll-x"><table>
+            <thead><tr><th class="num">customer_id</th><th>name</th><th>email</th><th>status</th><th>どの判定か</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1</td><td>山田 太郎</td><td>yamada@example.com</td><td><strong>inactive</strong></td><td>③ source に無いので失効</td></tr>
+              <tr><td class="num">2</td><td>佐藤 花子（更新）</td><td>sato.hanako@example.com</td><td>active</td><td>① 更新</td></tr>
+              <tr><td class="num">3</td><td>鈴木 次郎（更新）</td><td>jiro.suzuki@example.com</td><td>active</td><td>① 更新</td></tr>
+              <tr><td class="num">4</td><td>田中 三郎</td><td>tanaka@example.com</td><td>inactive</td><td>③ 元から inactive。値は変わらない</td></tr>
+              <tr><td class="num">5</td><td>高橋 五郎（新規）</td><td>takahashi@example.com</td><td>active</td><td>② 新規追加</td></tr>
+            </tbody>
+          </table></div>
+
+          <p class="note"><strong>この例の <code>INSERT *</code> には前提があります。</strong>
+          source 側に <code>status</code> 列が無いため、<code>INSERT *</code> をそのまま使うと列が揃いません。
+          実際には source 側にも <code>status</code> を持たせるか、
+          <code>INSERT (customer_id, name, email, status) VALUES (source.customer_id, source.name, source.email, 'active')</code>
+          のように列を指定します。上の表は後者として置いています。</p>
+
           <div class="callout" data-kind="risk">
             <p class="callout-title">分岐は3つある</p>
             <p>多くの人は <code>MATCHED</code> と <code>NOT MATCHED</code> の2つだと思っています。

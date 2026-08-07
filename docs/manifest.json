@@ -90,11 +90,6 @@
           "file": "databricks-review/02-ingestion.html"
         },
         {
-          "episode": "ep005",
-          "title": "変換とモデリング",
-          "file": "databricks-review/03-transformation.html"
-        },
-        {
           "episode": "ep006",
           "title": "Jobs と CI/CD",
           "file": "databricks-review/04-jobs-cicd.html"
@@ -113,6 +108,11 @@
           "episode": "ep009",
           "title": "試験の解き方",
           "file": "databricks-review/07-exam-tactics.html"
+        },
+        {
+          "episode": "ep005",
+          "title": "変換とモデリング",
+          "file": "databricks-review/03-transformation.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習"
