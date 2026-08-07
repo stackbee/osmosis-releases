@@ -72,6 +72,11 @@
           "episode": "ep014",
           "title": "MERGEでWHENが必要な理由",
           "file": "databricks-shorts/merge-why-when-is-needed.html"
+        },
+        {
+          "episode": "ep015",
+          "title": "MERGEが遅いとき",
+          "file": "databricks-shorts/merge-slow-liquid-clustering.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
