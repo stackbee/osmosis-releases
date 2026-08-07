@@ -57,6 +57,11 @@
           "episode": "ep011",
           "title": "COPY INTOが大量ファイルに向かない理由",
           "file": "databricks-shorts/copy-into-large-file-count.html"
+        },
+        {
+          "episode": "ep012",
+          "title": "Auto Loaderとクラウドストレージの相性",
+          "file": "databricks-shorts/auto-loader-cloud-storage.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回"
