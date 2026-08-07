@@ -17,9 +17,14 @@
           "episode": "ep003",
           "title": "データリネージュとは",
           "file": "databricks-shorts/data-lineage.html"
+        },
+        {
+          "episode": "ep004",
+          "title": "ビッグデータ分析基盤の進化",
+          "file": "databricks-shorts/analytics-platform-evolution.html"
         }
       ],
-      "subtitle": "Databricks の1トピックを数分で整理する短い回"
+      "subtitle": "Databricks の1トピックを1回で完結させる回"
     },
     "databricks-review": {
       "title": "DatabricksReview",
@@ -73,5 +78,5 @@
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習"
     }
   },
-  "updated_at": "2026-08-06"
+  "updated_at": "2026-08-07"
 }
