@@ -142,6 +142,11 @@
           "episode": "ep028",
           "title": "Lakeflow Connectとは",
           "file": "databricks/databricks-shorts/lakeflow-connect.html"
+        },
+        {
+          "episode": "ep029",
+          "title": "JDBCの並列読み込み",
+          "file": "databricks/databricks-shorts/jdbc-parallel-read.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
