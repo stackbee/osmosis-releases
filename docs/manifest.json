@@ -147,6 +147,11 @@
           "episode": "ep029",
           "title": "JDBCの並列読み込み",
           "file": "databricks/databricks-shorts/jdbc-parallel-read.html"
+        },
+        {
+          "episode": "ep030",
+          "title": "ウィンドウ関数とOVERの関係",
+          "file": "databricks/databricks-shorts/window-functions-over.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
