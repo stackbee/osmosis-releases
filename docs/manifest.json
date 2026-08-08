@@ -217,6 +217,11 @@
           "episode": "ep043",
           "title": "PySparkのjoinを図解で理解する",
           "file": "databricks/databricks-shorts/pyspark-join-diagram.html"
+        },
+        {
+          "episode": "ep044",
+          "title": "cross join 全組み合わせを作る結合",
+          "file": "databricks/databricks-shorts/pyspark-cross-join.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
