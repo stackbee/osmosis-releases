@@ -212,6 +212,11 @@
           "episode": "ep042",
           "title": "lit()とcol()の違い",
           "file": "databricks/databricks-shorts/pyspark-lit-col.html"
+        },
+        {
+          "episode": "ep043",
+          "title": "PySparkのjoinを図解で理解する",
+          "file": "databricks/databricks-shorts/pyspark-join-diagram.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",

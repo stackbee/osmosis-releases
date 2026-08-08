@@ -1,0 +1,49 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="1500" viewBox="0 0 1200 1500">
+<style>
+  .bg{fill:#07111f}.panel{fill:#0d1726;stroke:#29445f;stroke-width:2}.title{fill:#fff;font:700 44px sans-serif}.sub{fill:#72dbe0;font:700 26px sans-serif}.h{fill:#fff;font:700 28px sans-serif}.t{fill:#dce6f2;font:24px sans-serif}.small{fill:#c4cfdb;font:21px sans-serif}.blue{fill:#6ea8ff}.cyan{fill:#64e0d5}.line{stroke:#dce6f2;stroke-width:3}.dash{stroke:#64e0d5;stroke-width:3;stroke-dasharray:8 8}.tbl{fill:#111c2c;stroke:#6483a6;stroke-width:2}.cell{stroke:#6483a6;stroke-width:1}.accent{fill:#1e4f9e}.note{fill:#0f2032;stroke:#3f76aa;stroke-width:2}
+</style>
+<rect class="bg" width="1200" height="1500"/>
+<text x="600" y="70" text-anchor="middle" class="title">PySpark の結合を図解で理解する</text>
+<text x="600" y="112" text-anchor="middle" class="sub">join の種類・列の残り方・broadcast の考え方</text>
+
+<rect x="30" y="145" width="1140" height="380" rx="14" class="panel"/>
+<rect x="55" y="165" width="360" height="50" rx="10" class="accent"/><text x="75" y="199" class="h">1. on の書き方で列が変わる</text>
+<text x="110" y="252" class="sub">on="customer_id"</text><text x="665" y="252" class="sub">条件式で指定</text>
+<text x="85" y="292" class="small">同名キーを文字列で渡す</text><text x="640" y="292" class="small">orders.cust_id == customers.customer_id</text>
+
+<rect x="70" y="320" width="230" height="110" class="tbl"/><line x1="70" y1="355" x2="300" y2="355" class="cell"/><line x1="145" y1="320" x2="145" y2="430" class="cell"/><line x1="220" y1="320" x2="220" y2="430" class="cell"/>
+<text x="84" y="344" class="small">order</text><text x="155" y="344" class="small">cust</text><text x="228" y="344" class="small">amt</text><text x="88" y="392" class="small">101</text><text x="162" y="392" class="small">1</text><text x="235" y="392" class="small">1200</text>
+<rect x="355" y="320" width="230" height="110" class="tbl"/><line x1="355" y1="355" x2="585" y2="355" class="cell"/><line x1="470" y1="320" x2="470" y2="430" class="cell"/>
+<text x="370" y="344" class="small">customer_id</text><text x="487" y="344" class="small">name</text><text x="405" y="392" class="small">1</text><text x="505" y="392" class="small">佐藤</text>
+<text x="317" y="377" class="h">⋈</text>
+<text x="88" y="470" class="small">→ 結合キー列は1つにまとまる</text>
+
+<rect x="640" y="320" width="230" height="110" class="tbl"/><line x1="640" y1="355" x2="870" y2="355" class="cell"/><line x1="715" y1="320" x2="715" y2="430" class="cell"/><line x1="790" y1="320" x2="790" y2="430" class="cell"/>
+<text x="654" y="344" class="small">order</text><text x="727" y="344" class="small">cust</text><text x="800" y="344" class="small">amt</text><text x="658" y="392" class="small">101</text><text x="735" y="392" class="small">1</text><text x="806" y="392" class="small">1200</text>
+<rect x="925" y="320" width="230" height="110" class="tbl"/><line x1="925" y1="355" x2="1155" y2="355" class="cell"/><line x1="1040" y1="320" x2="1040" y2="430" class="cell"/>
+<text x="940" y="344" class="small">customer_id</text><text x="1056" y="344" class="small">name</text><text x="975" y="392" class="small">1</text><text x="1073" y="392" class="small">佐藤</text>
+<text x="887" y="377" class="h">⋈</text><text x="648" y="470" class="small">→ 両方のキー列が残る。あとで select / drop で整理</text>
+
+<rect x="30" y="555" width="1140" height="530" rx="14" class="panel"/>
+<rect x="55" y="575" width="250" height="50" rx="10" class="accent"/><text x="75" y="609" class="h">2. 結合の種類</text>
+
+<text x="95" y="690" class="h">inner</text>
+<circle cx="335" cy="685" r="75" fill="none" stroke="#6ea8ff" stroke-width="4"/><circle cx="420" cy="685" r="75" fill="none" stroke="#64e0d5" stroke-width="4"/><path d="M377 620 A75 75 0 0 1 377 750 A75 75 0 0 1 377 620" fill="#5f8fe0" opacity="0.7"/>
+<text x="307" y="694" class="h">A</text><text x="438" y="694" class="h">B</text><text x="555" y="690" class="t">両方にある行だけ残す</text><text x="555" y="730" class="small">例: マスタに存在しない注文を除外</text>
+
+<text x="95" y="850" class="h">left</text>
+<circle cx="335" cy="845" r="75" fill="#4a78c2" opacity="0.75" stroke="#6ea8ff" stroke-width="4"/><circle cx="420" cy="845" r="75" fill="none" stroke="#64e0d5" stroke-width="4"/><text x="307" y="854" class="h">A</text><text x="438" y="854" class="h">B</text><text x="555" y="850" class="t">左側は全部残す</text><text x="555" y="890" class="small">右に相手が無ければ NULL</text>
+
+<text x="95" y="1010" class="h">cross</text>
+<rect x="280" y="950" width="95" height="95" class="tbl"/><rect x="415" y="950" width="95" height="95" class="tbl"/><text x="385" y="1010" class="h">×</text><text x="555" y="1000" class="t">全組み合わせ</text><text x="555" y="1040" class="small">例: 日付マスタ × 店舗マスタで枠を作る</text>
+
+<rect x="30" y="1115" width="1140" height="250" rx="14" class="panel"/>
+<rect x="55" y="1135" width="290" height="50" rx="10" class="accent"/><text x="75" y="1169" class="h">3. broadcast() とは</text>
+<text x="80" y="1235" class="t">大きい表 orders</text><rect x="80" y="1260" width="220" height="70" class="tbl"/>
+<text x="380" y="1235" class="t">小さい表 region_master</text><rect x="430" y="1260" width="120" height="70" class="tbl"/>
+<text x="600" y="1280" class="h">→</text><rect x="680" y="1240" width="95" height="95" rx="10" class="note"/><rect x="810" y="1240" width="95" height="95" rx="10" class="note"/><rect x="940" y="1240" width="95" height="95" rx="10" class="note"/>
+<text x="682" y="1212" class="small">小さい表を各ワーカーへ配布</text><text x="725" y="1385" text-anchor="middle" class="small">シャッフルを減らして大×小の結合を高速化</text>
+
+<rect x="30" y="1390" width="1140" height="80" rx="12" class="note"/>
+<text x="70" y="1440" class="t">覚え方: inner = 共通部分 / left = 左を守る / cross = 全組み合わせ / broadcast = 小さい表を配る</text>
+</svg>
