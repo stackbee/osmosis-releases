@@ -242,6 +242,11 @@
           "episode": "ep048",
           "title": "PySparkでJSONを扱う",
           "file": "databricks/databricks-shorts/pyspark-json.html"
+        },
+        {
+          "episode": "ep049",
+          "title": "日ごとの合計とユニーク件数を集計する",
+          "file": "databricks/databricks-shorts/pyspark-daily-aggregation.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
