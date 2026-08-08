@@ -107,6 +107,11 @@
           "episode": "ep021",
           "title": "OVERとは（具体例で追う）",
           "file": "databricks/databricks-shorts/over-data-example.html"
+        },
+        {
+          "episode": "ep022",
+          "title": "SIMDとは",
+          "file": "databricks/databricks-shorts/simd.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
