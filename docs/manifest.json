@@ -97,6 +97,11 @@
           "episode": "ep019",
           "title": "Photonはなぜ高速なのか",
           "file": "databricks/databricks-shorts/photon-why-fast.html"
+        },
+        {
+          "episode": "ep020",
+          "title": "WITHとは（具体例で追う）",
+          "file": "databricks/databricks-shorts/with-data-example.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
