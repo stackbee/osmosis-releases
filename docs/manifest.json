@@ -177,6 +177,11 @@
           "episode": "ep035",
           "title": "Auto Loaderのチェックポイントの中身",
           "file": "databricks/databricks-shorts/autoloader-checkpoint-internals.html"
+        },
+        {
+          "episode": "ep036",
+          "title": "schemaEvolutionModeの4パターン",
+          "file": "databricks/databricks-shorts/autoloader-schema-evolution.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
