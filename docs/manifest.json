@@ -232,6 +232,11 @@
           "episode": "ep046",
           "title": "unionとunionByName",
           "file": "databricks/databricks-shorts/pyspark-union.html"
+        },
+        {
+          "episode": "ep047",
+          "title": "explode()とexplode_outer()",
+          "file": "databricks/databricks-shorts/pyspark-explode.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
