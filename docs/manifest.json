@@ -137,6 +137,11 @@
           "episode": "ep027",
           "title": "CTE・View・Materialized Viewの違い",
           "file": "databricks/databricks-shorts/cte-view-materialized-view.html"
+        },
+        {
+          "episode": "ep028",
+          "title": "Lakeflow Connectとは",
+          "file": "databricks/databricks-shorts/lakeflow-connect.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
