@@ -132,6 +132,11 @@
           "episode": "ep026",
           "title": "OVERとは（計算するスコープ）",
           "file": "databricks/databricks-shorts/over-scope.html"
+        },
+        {
+          "episode": "ep027",
+          "title": "CTE・View・Materialized Viewの違い",
+          "file": "databricks/databricks-shorts/cte-view-materialized-view.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
