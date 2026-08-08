@@ -192,6 +192,11 @@
           "episode": "ep038",
           "title": "VARIANT型のINSERTとSELECT",
           "file": "databricks/databricks-shorts/variant-insert-select.html"
+        },
+        {
+          "episode": "ep039",
+          "title": "VARIANT型はBronze層と相性がいい",
+          "file": "databricks/databricks-shorts/variant-bronze-pattern.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
