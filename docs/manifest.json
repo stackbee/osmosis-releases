@@ -87,6 +87,11 @@
           "episode": "ep017",
           "title": "WITHとは",
           "file": "databricks/databricks-shorts/with-cte-syntax.html"
+        },
+        {
+          "episode": "ep018",
+          "title": "OVERとは",
+          "file": "databricks/databricks-shorts/over-window-function.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
