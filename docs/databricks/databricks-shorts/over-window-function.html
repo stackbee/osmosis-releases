@@ -552,6 +552,7 @@ figcaption{
         <li><a href="#sec-what"><span class="dot" data-status="active"></span><span>どの範囲を見ながら計算するか</span></a></li>
         <li><a href="#sec-roles"><span class="dot" data-status="ship"></span><span>番号を付ける役と、範囲を決める役</span></a></li>
         <li><a href="#sec-partition"><span class="dot" data-status="new"></span><span>グループを分けて、並べる</span></a></li>
+        <li><a href="#sec-example"><span class="dot" data-status="idle"></span><span>具体例で確かめる</span></a></li>
         <li><a href="#sec-vs-groupby"><span class="dot" data-status="crit"></span><span>GROUP BY との違い</span></a></li>
       </ul>
     </nav>
@@ -678,6 +679,39 @@ figcaption{
             だから「各 <code>customer_id</code> の最新の1行」を取り出したいときは、
             この番号が <code>1</code> の行を選べば済みます。</figcaption>
           </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-example" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>具体例で確かめる<span class="tag">5行に番号を振る</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>元データ5行に <code>ROW_NUMBER()</code> で番号を振ると、こうなります。
+          <strong>番号はグループごとに1から振り直されます。</strong></p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>customer_id</th><th>updated_at</th><th>rn</th></tr></thead>
+            <tbody>
+              <tr><td class="num">101</td><td>8/3</td><td class="num"><strong>1</strong></td></tr>
+              <tr><td class="num">101</td><td>8/2</td><td class="num">2</td></tr>
+              <tr><td class="num">101</td><td>8/1</td><td class="num">3</td></tr>
+              <tr><td class="num">102</td><td>8/4</td><td class="num"><strong>1</strong></td></tr>
+              <tr><td class="num">102</td><td>8/1</td><td class="num">2</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>この結果を CTE などに入れて <code>WHERE rn = 1</code> とすれば、
+          <strong><code>customer_id</code> ごとに最新の1件だけ</strong>が取れます。</p>
+
+          <p class="note">この例を1本かけて追う回として、ep021「OVER とは（具体例で追う）」があります
+          → <a href="over-data-example.html">OVER とは（具体例で追う）</a></p>
         </div>
       </details>
 

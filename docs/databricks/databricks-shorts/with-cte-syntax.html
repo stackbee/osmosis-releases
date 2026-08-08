@@ -552,6 +552,7 @@ figcaption{
         <li><a href="#sec-what"><span class="dot" data-status="active"></span><span>本体の SQL の前に置く</span></a></li>
         <li><a href="#sec-syntax"><span class="dot" data-status="ship"></span><span>基本形</span></a></li>
         <li><a href="#sec-name"><span class="dot" data-status="crit"></span><span>名前を付けているだけ</span></a></li>
+        <li><a href="#sec-example"><span class="dot" data-status="new"></span><span>具体例で確かめる</span></a></li>
         <li><a href="#sec-steps"><span class="dot" data-status="block"></span><span>段階的に書ける</span></a></li>
       </ul>
     </nav>
@@ -666,6 +667,43 @@ SELECT * FROM ranked;</code></pre></div>
             <p><code>ranked</code> が<strong>物理的なテーブルとして保存されるわけではありません</strong>。
             基本的には、その SQL 文の中だけで使う<strong>一時的な結果セット</strong>です。</p>
           </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-example" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>具体例で確かめる<span class="tag">実データで追う</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>顧客データ4行から、東京の顧客だけを取り出して <code>tokyo_customers</code> と名付けてみます。</p>
+
+          <div class="scroll-x"><pre><code>WITH tokyo_customers AS (
+    SELECT * FROM customers
+    WHERE prefecture = 'Tokyo'
+)
+SELECT * FROM tokyo_customers;</code></pre></div>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>customer_id</th><th>name</th><th>prefecture</th><th>WITH 部分の結果</th></tr></thead>
+            <tbody>
+              <tr><td class="num">101</td><td>Tanaka</td><td>Tokyo</td><td>✅ 残る</td></tr>
+              <tr><td class="num">102</td><td>Sato</td><td>Chiba</td><td>—</td></tr>
+              <tr><td class="num">103</td><td>Suzuki</td><td>Tokyo</td><td>✅ 残る</td></tr>
+              <tr><td class="num">104</td><td>Yamada</td><td>Osaka</td><td>—</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p><strong>この2行に <code>tokyo_customers</code> という名前が付いた状態</strong>が、
+          後ろの <code>SELECT</code> から見えています。保存はされません。</p>
+
+          <p class="note">この例を1本かけて追う回として、ep020「WITH とは（具体例で追う）」があります
+          → <a href="with-data-example.html">WITH とは（具体例で追う）</a></p>
         </div>
       </details>
 
