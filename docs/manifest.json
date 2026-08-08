@@ -92,6 +92,11 @@
           "episode": "ep018",
           "title": "OVERとは",
           "file": "databricks/databricks-shorts/over-window-function.html"
+        },
+        {
+          "episode": "ep019",
+          "title": "Photonはなぜ高速なのか",
+          "file": "databricks/databricks-shorts/photon-why-fast.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
