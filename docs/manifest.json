@@ -182,6 +182,11 @@
           "episode": "ep036",
           "title": "schemaEvolutionModeの4パターン",
           "file": "databricks/databricks-shorts/autoloader-schema-evolution.html"
+        },
+        {
+          "episode": "ep037",
+          "title": "Auto LoaderのManaged File Events",
+          "file": "databricks/databricks-shorts/autoloader-managed-file-events.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
