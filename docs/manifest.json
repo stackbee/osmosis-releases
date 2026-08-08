@@ -82,6 +82,11 @@
           "episode": "ep016",
           "title": "Photonとは",
           "file": "databricks/databricks-shorts/photon-execution-engine.html"
+        },
+        {
+          "episode": "ep017",
+          "title": "WITHとは",
+          "file": "databricks/databricks-shorts/with-cte-syntax.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
