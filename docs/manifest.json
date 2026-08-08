@@ -222,6 +222,11 @@
           "episode": "ep044",
           "title": "cross join 全組み合わせを作る結合",
           "file": "databricks/databricks-shorts/pyspark-cross-join.html"
+        },
+        {
+          "episode": "ep045",
+          "title": "broadcast join 小さい表を配る",
+          "file": "databricks/databricks-shorts/pyspark-broadcast-join.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
