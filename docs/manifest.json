@@ -202,6 +202,11 @@
           "episode": "ep040",
           "title": "PandasとPySparkのDataFrameの違い",
           "file": "databricks/databricks-shorts/pandas-vs-pyspark-dataframe.html"
+        },
+        {
+          "episode": "ep041",
+          "title": "PySparkの列操作",
+          "file": "databricks/databricks-shorts/pyspark-columns.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
