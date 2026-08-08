@@ -122,6 +122,11 @@
           "episode": "ep024",
           "title": "PartitioningとZORDER BYの物理的な違い",
           "file": "databricks/databricks-shorts/partition-vs-zorder-physical.html"
+        },
+        {
+          "episode": "ep025",
+          "title": "PartitioningとZORDER BYの論理的な違い",
+          "file": "databricks/databricks-shorts/partition-vs-zorder-logical.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
