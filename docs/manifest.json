@@ -187,6 +187,11 @@
           "episode": "ep037",
           "title": "Auto LoaderのManaged File Events",
           "file": "databricks/databricks-shorts/autoloader-managed-file-events.html"
+        },
+        {
+          "episode": "ep038",
+          "title": "VARIANT型のINSERTとSELECT",
+          "file": "databricks/databricks-shorts/variant-insert-select.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
