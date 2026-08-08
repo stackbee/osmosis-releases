@@ -102,6 +102,11 @@
           "episode": "ep020",
           "title": "WITHとは（具体例で追う）",
           "file": "databricks/databricks-shorts/with-data-example.html"
+        },
+        {
+          "episode": "ep021",
+          "title": "OVERとは（具体例で追う）",
+          "file": "databricks/databricks-shorts/over-data-example.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
