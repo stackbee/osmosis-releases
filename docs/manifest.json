@@ -237,6 +237,11 @@
           "episode": "ep047",
           "title": "explode()とexplode_outer()",
           "file": "databricks/databricks-shorts/pyspark-explode.html"
+        },
+        {
+          "episode": "ep048",
+          "title": "PySparkでJSONを扱う",
+          "file": "databricks/databricks-shorts/pyspark-json.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
