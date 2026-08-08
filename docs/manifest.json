@@ -117,6 +117,11 @@
           "episode": "ep023",
           "title": "Delta Lakeのパーティション",
           "file": "databricks/databricks-shorts/delta-lake-partitioning.html"
+        },
+        {
+          "episode": "ep024",
+          "title": "PartitioningとZORDER BYの物理的な違い",
+          "file": "databricks/databricks-shorts/partition-vs-zorder-physical.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
