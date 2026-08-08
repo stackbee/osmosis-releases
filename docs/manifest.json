@@ -112,6 +112,11 @@
           "episode": "ep022",
           "title": "SIMDとは",
           "file": "databricks/databricks-shorts/simd.html"
+        },
+        {
+          "episode": "ep023",
+          "title": "Delta Lakeのパーティション",
+          "file": "databricks/databricks-shorts/delta-lake-partitioning.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
