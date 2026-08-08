@@ -127,6 +127,11 @@
           "episode": "ep025",
           "title": "PartitioningとZORDER BYの論理的な違い",
           "file": "databricks/databricks-shorts/partition-vs-zorder-logical.html"
+        },
+        {
+          "episode": "ep026",
+          "title": "OVERとは（計算するスコープ）",
+          "file": "databricks/databricks-shorts/over-scope.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
