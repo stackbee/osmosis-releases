@@ -227,6 +227,11 @@
           "episode": "ep045",
           "title": "broadcast join 小さい表を配る",
           "file": "databricks/databricks-shorts/pyspark-broadcast-join.html"
+        },
+        {
+          "episode": "ep046",
+          "title": "unionとunionByName",
+          "file": "databricks/databricks-shorts/pyspark-union.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
