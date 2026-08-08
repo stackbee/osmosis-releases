@@ -167,6 +167,11 @@
           "episode": "ep033",
           "title": "PySparkのwrite mode",
           "file": "databricks/databricks-shorts/pyspark-write-mode.html"
+        },
+        {
+          "episode": "ep034",
+          "title": "ParquetとORCの違い",
+          "file": "databricks/databricks-shorts/parquet-vs-orc.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
