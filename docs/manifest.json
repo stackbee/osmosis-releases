@@ -162,6 +162,11 @@
           "episode": "ep032",
           "title": "外部データ取り込みの選び方",
           "file": "databricks/databricks-shorts/ingestion-selection-rest-jdbc.html"
+        },
+        {
+          "episode": "ep033",
+          "title": "PySparkのwrite mode",
+          "file": "databricks/databricks-shorts/pyspark-write-mode.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",

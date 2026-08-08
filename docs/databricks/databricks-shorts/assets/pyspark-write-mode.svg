@@ -1,0 +1,52 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1200" height="760" viewBox="0 0 1200 760">
+<style>
+  text{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","Noto Sans JP",sans-serif;fill:#111827}
+  .title{font-size:32px;font-weight:700}.h{font-size:21px;font-weight:700}.body{font-size:18px}.small{font-size:16px}.mode{font-size:23px;font-weight:700;fill:#1d4ed8}
+  .box{fill:#fff;stroke:#cbd5e1;stroke-width:2}.old{fill:#eff6ff;stroke:#60a5fa}.new{fill:#f0fdf4;stroke:#86efac}.result{fill:#fff7ed;stroke:#fb923c}
+  .arrow{font-size:36px;font-weight:700;fill:#2563eb}.bad{fill:#dc2626;font-weight:700}
+</style>
+<rect width="1200" height="760" fill="#f8fafc"/>
+<text x="45" y="55" class="title">PySpark DataFrameWriter.mode() の4つの動作</text>
+<rect x="45" y="80" width="1110" height="90" rx="12" class="box"/>
+<text x="70" y="115" class="body">silver.write.mode("append").saveAsTable("prod.silver.orders")</text>
+<text x="70" y="148" class="small">mode は「保存先テーブルが既にあるとき、どう扱うか」を決める。</text>
+
+<!-- headers -->
+<text x="70" y="215" class="h">mode</text><text x="255" y="215" class="h">保存前</text><text x="470" y="215" class="h">新しいDataFrame</text><text x="755" y="215" class="h">保存後</text><text x="965" y="215" class="h">SQLのイメージ</text>
+
+<!-- append -->
+<rect x="45" y="235" width="1110" height="110" rx="10" class="box"/>
+<text x="70" y="280" class="mode">append</text><text x="70" y="310" class="small">追記</text>
+<rect x="245" y="255" width="140" height="70" class="old"/><text x="268" y="282" class="small">1  A</text><text x="268" y="310" class="small">2  B</text>
+<rect x="480" y="255" width="140" height="70" class="new"/><text x="503" y="282" class="small">3  C</text><text x="503" y="310" class="small">4  D</text>
+<text x="665" y="302" class="arrow">→</text>
+<rect x="745" y="248" width="145" height="85" class="result"/><text x="768" y="270" class="small">1  A</text><text x="768" y="290" class="small">2  B</text><text x="768" y="310" class="small">3  C</text><text x="768" y="330" class="small">4  D</text>
+<text x="970" y="295" class="body">INSERT INTO</text>
+
+<!-- overwrite -->
+<rect x="45" y="360" width="1110" height="110" rx="10" class="box"/>
+<text x="70" y="405" class="mode">overwrite</text><text x="70" y="435" class="small">置き換え</text>
+<rect x="245" y="380" width="140" height="70" class="old"/><text x="268" y="407" class="small">1  A</text><text x="268" y="435" class="small">2  B</text>
+<rect x="480" y="380" width="140" height="70" class="new"/><text x="503" y="407" class="small">3  C</text><text x="503" y="435" class="small">4  D</text>
+<text x="665" y="427" class="arrow">→</text>
+<rect x="745" y="380" width="145" height="70" class="result"/><text x="768" y="407" class="small">3  C</text><text x="768" y="435" class="small">4  D</text>
+<text x="970" y="420" class="body">INSERT OVERWRITE</text>
+
+<!-- error -->
+<rect x="45" y="485" width="1110" height="105" rx="10" class="box"/>
+<text x="70" y="525" class="mode">error</text><text x="70" y="552" class="small">既存なら失敗</text>
+<rect x="245" y="505" width="140" height="65" class="old"/><text x="268" y="532" class="small">1  A</text><text x="268" y="558" class="small">2  B</text>
+<rect x="480" y="505" width="140" height="65" class="new"/><text x="503" y="532" class="small">3  C</text><text x="503" y="558" class="small">4  D</text>
+<text x="665" y="552" class="arrow">→</text><text x="770" y="550" class="bad">✕ エラー</text><text x="970" y="545" class="small">対応する単純SQLなし</text>
+
+<!-- ignore -->
+<rect x="45" y="605" width="1110" height="105" rx="10" class="box"/>
+<text x="70" y="645" class="mode">ignore</text><text x="70" y="672" class="small">何もしない</text>
+<rect x="245" y="625" width="140" height="65" class="old"/><text x="268" y="652" class="small">1  A</text><text x="268" y="678" class="small">2  B</text>
+<rect x="480" y="625" width="140" height="65" class="new"/><text x="503" y="652" class="small">3  C</text><text x="503" y="678" class="small">4  D</text>
+<text x="665" y="672" class="arrow">→</text>
+<rect x="745" y="625" width="145" height="65" class="result"/><text x="768" y="652" class="small">1  A</text><text x="768" y="678" class="small">2  B</text>
+<text x="970" y="648" class="small">CREATE TABLE IF</text><text x="970" y="674" class="small">NOT EXISTS に近い発想</text>
+
+<text x="45" y="745" class="h">覚え方：append = 足す / overwrite = 入れ替える / error = 失敗 / ignore = スキップ</text>
+</svg>
