@@ -207,6 +207,11 @@
           "episode": "ep041",
           "title": "PySparkの列操作",
           "file": "databricks/databricks-shorts/pyspark-columns.html"
+        },
+        {
+          "episode": "ep042",
+          "title": "lit()とcol()の違い",
+          "file": "databricks/databricks-shorts/pyspark-lit-col.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
