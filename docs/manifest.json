@@ -77,6 +77,11 @@
           "episode": "ep015",
           "title": "MERGEが遅いとき",
           "file": "databricks/databricks-shorts/merge-slow-liquid-clustering.html"
+        },
+        {
+          "episode": "ep016",
+          "title": "Photonとは",
+          "file": "databricks/databricks-shorts/photon-execution-engine.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
