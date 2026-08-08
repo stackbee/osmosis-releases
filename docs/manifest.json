@@ -6,80 +6,81 @@
         {
           "episode": "ep001",
           "title": "メダリオンアーキテクチャは固定機能なのか",
-          "file": "databricks-shorts/medallion-architecture.html"
+          "file": "databricks/databricks-shorts/medallion-architecture.html"
         },
         {
           "episode": "ep002",
           "title": "データエンジニア・アナリスト・サイエンティストの違い",
-          "file": "databricks-shorts/data-roles.html"
+          "file": "databricks/databricks-shorts/data-roles.html"
         },
         {
           "episode": "ep003",
           "title": "データリネージュとは",
-          "file": "databricks-shorts/data-lineage.html"
+          "file": "databricks/databricks-shorts/data-lineage.html"
         },
         {
           "episode": "ep004",
           "title": "ビッグデータ分析基盤の進化",
-          "file": "databricks-shorts/analytics-platform-evolution.html"
+          "file": "databricks/databricks-shorts/analytics-platform-evolution.html"
         },
         {
           "episode": "ep005",
           "title": "ビッグデータ分析基盤の進化（3分版）",
-          "file": "databricks-shorts/analytics-platform-evolution-3min.html"
+          "file": "databricks/databricks-shorts/analytics-platform-evolution-3min.html"
         },
         {
           "episode": "ep006",
           "title": "ACIDとは",
-          "file": "databricks-shorts/acid-transactions.html"
+          "file": "databricks/databricks-shorts/acid-transactions.html"
         },
         {
           "episode": "ep007",
           "title": "Delta LakeとLakehouseの違い",
-          "file": "databricks-shorts/delta-lake-vs-lakehouse.html"
+          "file": "databricks/databricks-shorts/delta-lake-vs-lakehouse.html"
         },
         {
           "episode": "ep008",
           "title": "Lakehouseはコンピュートも含むのか",
-          "file": "databricks-shorts/lakehouse-includes-compute.html"
+          "file": "databricks/databricks-shorts/lakehouse-includes-compute.html"
         },
         {
           "episode": "ep009",
           "title": "RDBとDelta Lakeの「原本」の違い",
-          "file": "databricks-shorts/rdb-vs-delta-lake-source-of-truth.html"
+          "file": "databricks/databricks-shorts/rdb-vs-delta-lake-source-of-truth.html"
         },
         {
           "episode": "ep010",
           "title": "COPY INTOとは",
-          "file": "databricks-shorts/copy-into-is-not-sync.html"
+          "file": "databricks/databricks-shorts/copy-into-is-not-sync.html"
         },
         {
           "episode": "ep011",
           "title": "COPY INTOが大量ファイルに向かない理由",
-          "file": "databricks-shorts/copy-into-large-file-count.html"
+          "file": "databricks/databricks-shorts/copy-into-large-file-count.html"
         },
         {
           "episode": "ep012",
           "title": "Auto Loaderとクラウドストレージの相性",
-          "file": "databricks-shorts/auto-loader-cloud-storage.html"
+          "file": "databricks/databricks-shorts/auto-loader-cloud-storage.html"
         },
         {
           "episode": "ep013",
           "title": "CTEとは",
-          "file": "databricks-shorts/cte-common-table-expression.html"
+          "file": "databricks/databricks-shorts/cte-common-table-expression.html"
         },
         {
           "episode": "ep014",
           "title": "MERGEでWHENが必要な理由",
-          "file": "databricks-shorts/merge-why-when-is-needed.html"
+          "file": "databricks/databricks-shorts/merge-why-when-is-needed.html"
         },
         {
           "episode": "ep015",
           "title": "MERGEが遅いとき",
-          "file": "databricks-shorts/merge-slow-liquid-clustering.html"
+          "file": "databricks/databricks-shorts/merge-slow-liquid-clustering.html"
         }
       ],
-      "subtitle": "Databricks の1トピックを1回で完結させる回"
+      "subtitle": "Databricks の1トピックを1回で完結させる回",
+      "page": "databricks"
     },
     "databricks-review": {
       "title": "DatabricksReview",
@@ -87,51 +88,64 @@
         {
           "episode": "ep001",
           "title": "試験の全体像と学習設計",
-          "file": "databricks-review/index.html"
+          "file": "databricks/databricks-review/index.html"
         },
         {
           "episode": "ep002",
           "title": "2026年5月改訂で何が入れ替わったか",
-          "file": "databricks-review/00-exam-changes.html"
+          "file": "databricks/databricks-review/00-exam-changes.html"
         },
         {
           "episode": "ep003",
           "title": "プラットフォーム基盤",
-          "file": "databricks-review/01-platform.html"
+          "file": "databricks/databricks-review/01-platform.html"
         },
         {
           "episode": "ep004",
           "title": "データの取り込み",
-          "file": "databricks-review/02-ingestion.html"
-        },
-        {
-          "episode": "ep006",
-          "title": "Jobs と CI/CD",
-          "file": "databricks-review/04-jobs-cicd.html"
-        },
-        {
-          "episode": "ep007",
-          "title": "監視と最適化",
-          "file": "databricks-review/05-optimization.html"
-        },
-        {
-          "episode": "ep008",
-          "title": "ガバナンスとセキュリティ",
-          "file": "databricks-review/06-governance.html"
-        },
-        {
-          "episode": "ep009",
-          "title": "試験の解き方",
-          "file": "databricks-review/07-exam-tactics.html"
+          "file": "databricks/databricks-review/02-ingestion.html"
         },
         {
           "episode": "ep005",
           "title": "変換とモデリング",
-          "file": "databricks-review/03-transformation.html"
+          "file": "databricks/databricks-review/03-transformation.html"
+        },
+        {
+          "episode": "ep006",
+          "title": "Jobs と CI/CD",
+          "file": "databricks/databricks-review/04-jobs-cicd.html"
+        },
+        {
+          "episode": "ep007",
+          "title": "監視と最適化",
+          "file": "databricks/databricks-review/05-optimization.html"
+        },
+        {
+          "episode": "ep008",
+          "title": "ガバナンスとセキュリティ",
+          "file": "databricks/databricks-review/06-governance.html"
+        },
+        {
+          "episode": "ep009",
+          "title": "試験の解き方",
+          "file": "databricks/databricks-review/07-exam-tactics.html"
         }
       ],
-      "subtitle": "要件から機能を引く、Databricks DE Associate の総復習"
+      "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
+      "page": "databricks"
     }
   },
-  "updated_at": "2026-08-07"
+  "updated_at": "2026-08-08",
+  "pages": {
+    "databricks": {
+      "title": "Databricks",
+      "lede": "Databricks を扱ううえで押さえておきたい仕組みを整理した資料です。\n各回の台本の元になっています。\n",
+      "order": 1
+    },
+    "english": {
+      "title": "English",
+      "lede": "英語まわりの回の資料です。\n",
+      "order": 2
+    }
+  }
 }

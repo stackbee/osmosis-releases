@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>osmosis — 資料</title>
+<title>English — osmosis 資料</title>
 <style>
 :root{
   color-scheme: light dark;
@@ -90,28 +90,55 @@ a.page-card:hover .page-name{ color:var(--accent); text-decoration:underline;
 <body>
   <div class="wrap">
     <header>
+      <div class="crumb"><a href="../">← 資料</a></div>
       <div class="eyebrow"><span>osmosis</span></div>
-      <h1>資料</h1>
-      <p class="lede">各回の台本の元になったドキュメントです。1ファイルで完結しているので、
-        保存すればオフラインでも読めます。</p>
+      <h1>English</h1>
+      <p class="lede">英語まわりの回の資料です。</p>
       <div class="rule"></div>
     </header>
 
-    <div class="pages">
-      <a class="page-card" href="databricks/">
-        <span class="page-name">Databricks</span>
-        <span class="page-count num">24 件</span>
-        <p class="page-lede">Databricks を扱ううえで押さえておきたい仕組みを整理した資料です。
-各回の台本の元になっています。</p>
-      </a>
-      <a class="page-card empty" href="english/">
-        <span class="page-name">English</span>
-        <span class="page-count num">0 件</span>
-        <p class="page-lede">英語まわりの回の資料です。</p>
-      </a>
+    <p class="empty-note">このページの資料はまだありません。</p>
+
+    <div class="siblings">
+        <a href="../databricks/">Databricks</a>
+        <a href="./" aria-current="page">English</a>
     </div>
 
-    <footer>2 ページ / 24 件 / 更新 2026-08-08</footer>
+    <footer>0 件 / 更新 2026-08-08</footer>
   </div>
+<script>
+(function () {
+  "use strict";
+  // 開閉の状態は番組ごとに覚える。番組が増えるほど、毎回たたみ直す手間が効いてくる
+  var KEY = "osmosis-docs-closed";
+  var shows = Array.prototype.slice.call(document.querySelectorAll("details.show"));
+  var closed = {};
+  try { closed = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+
+  function save() {
+    var next = {};
+    shows.forEach(function (d) { if (!d.open) next[d.dataset.show] = 1; });
+    try { localStorage.setItem(KEY, JSON.stringify(next)); } catch (e) {}
+  }
+
+  var btn = document.getElementById("toggle-all");
+  function syncLabel() {
+    if (btn) btn.textContent = shows.some(function (d) { return d.open; }) ? "全部たたむ" : "全部開く";
+  }
+
+  shows.forEach(function (d) {
+    if (closed[d.dataset.show]) d.open = false;
+    d.addEventListener("toggle", function () { save(); syncLabel(); });
+  });
+  syncLabel();
+
+  if (btn) {
+    btn.addEventListener("click", function () {
+      var anyOpen = shows.some(function (d) { return d.open; });
+      shows.forEach(function (d) { d.open = !anyOpen; });
+    });
+  }
+})();
+</script>
 </body>
 </html>

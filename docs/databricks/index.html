@@ -1,0 +1,193 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Databricks — osmosis 資料</title>
+<style>
+:root{
+  color-scheme: light dark;
+  --paper:#F6F7F9; --surface:#FFF; --ink:#15181E; --muted:#5C6470;
+  --faint:#8A929E; --rule:#E2E5EA; --accent:#26418F;
+  --f-display:"Hiragino Mincho ProN","Yu Mincho","Noto Serif JP",Georgia,serif;
+  --f-body:-apple-system,BlinkMacSystemFont,"Hiragino Sans","Yu Gothic","Noto Sans JP",sans-serif;
+  --f-mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root{ --paper:#12141A; --surface:#181B22; --ink:#E6E8EC; --muted:#9AA2AF;
+         --faint:#6C7481; --rule:#262A33; --accent:#94A9F0; }
+}
+*,*::before,*::after{ box-sizing:border-box }
+body{ margin:0; background:var(--paper); color:var(--ink); font-family:var(--f-body);
+      font-size:15px; line-height:1.9; font-feature-settings:"palt" 1; }
+.wrap{ max-width:56rem; margin:0 auto; padding:3rem 1.5rem 4.5rem }
+.eyebrow{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.16em;
+          text-transform:uppercase; color:var(--faint); margin-bottom:.75rem }
+h1{ font-family:var(--f-display); font-size:2.25rem; font-weight:600; line-height:1.35;
+    margin:0 0 .75rem }
+.lede{ color:var(--muted); margin:0; max-width:60ch }
+.rule{ height:2px; background:var(--ink); width:3.5rem; margin:1.5rem 0 0 }
+.tools{ display:flex; gap:.5rem; margin:2.5rem 0 0 }
+.btn{ font:inherit; font-size:.75rem; background:transparent; color:var(--muted);
+      border:1px solid var(--rule); border-radius:3px; padding:.3rem .6rem; cursor:pointer }
+.btn:hover{ color:var(--ink); border-color:var(--faint) }
+
+/* 番組ごとに折りたたむ。数が増えても一覧の頭から目的の番組へ届くようにする */
+details.show{ border-top:1px solid var(--rule); margin-top:1.5rem }
+details.show > summary{ list-style:none; cursor:pointer;
+      display:flex; flex-wrap:wrap; align-items:baseline; gap:.25rem .75rem; padding:1rem .25rem }
+details.show > summary::-webkit-details-marker{ display:none }
+details.show > summary:hover .show-name{ color:var(--accent) }
+.show-name{ font-size:1.25rem; font-weight:650 }
+.show-sub{ font-size:.8125rem; color:var(--muted) }
+.num{ font-variant-numeric:tabular-nums }
+.show-count{ margin-left:auto; font-family:var(--f-mono); font-size:.75rem; color:var(--faint) }
+.show-mark{ font-family:var(--f-mono); font-size:.6875rem; letter-spacing:.1em;
+      color:var(--faint); white-space:nowrap }
+details.show[open] .show-mark::after{ content:"閉じる −" }
+details.show:not([open]) .show-mark::after{ content:"開く ＋" }
+ul{ list-style:none; margin:0 0 1rem; padding:0; border-top:1px solid var(--rule) }
+li{ border-bottom:1px solid var(--rule) }
+li a{ display:grid; grid-template-columns:5rem minmax(0,1fr); gap:1rem; align-items:baseline;
+      padding:.75rem .25rem; color:inherit; text-decoration:none }
+li a:hover{ background:var(--surface) }
+li a:hover .t{ color:var(--accent); text-decoration:underline; text-underline-offset:.2em }
+.ep{ font-family:var(--f-mono); font-size:.75rem; color:var(--faint) }
+.t{ font-weight:600 }
+footer{ margin-top:4rem; padding-top:1rem; border-top:1px solid var(--rule);
+        font-size:.75rem; color:var(--faint) }
+@media (max-width:34rem){ li a{ grid-template-columns:1fr; gap:.1rem } }
+
+/* ---- ハブ（ルート）。ページの入口だけを並べる ---- */
+.pages{ margin-top:2.5rem; border-top:1px solid var(--rule) }
+a.page-card{ display:grid; grid-template-columns:minmax(0,1fr) auto; gap:.25rem 1rem;
+      align-items:baseline; padding:1.25rem .25rem; border-bottom:1px solid var(--rule);
+      color:inherit; text-decoration:none }
+a.page-card:hover{ background:var(--surface) }
+a.page-card:hover .page-name{ color:var(--accent); text-decoration:underline;
+      text-underline-offset:.2em }
+.page-name{ font-size:1.25rem; font-weight:650 }
+.page-lede{ grid-column:1; font-size:.8125rem; color:var(--muted); margin:0; max-width:60ch }
+.page-count{ font-family:var(--f-mono); font-size:.75rem; color:var(--faint); white-space:nowrap }
+.page-card.empty .page-name{ color:var(--muted) }
+
+/* ---- ページ間の行き来 ---- */
+.crumb{ font-size:.75rem; color:var(--faint); margin-bottom:1rem }
+.crumb a{ color:var(--muted) }
+.crumb a:hover{ color:var(--accent) }
+.siblings{ display:flex; flex-wrap:wrap; gap:.5rem; margin-top:2.5rem }
+.siblings a{ font-size:.75rem; color:var(--muted); border:1px solid var(--rule);
+      border-radius:3px; padding:.3rem .6rem; text-decoration:none }
+.siblings a:hover{ color:var(--ink); border-color:var(--faint) }
+.siblings a[aria-current="page"]{ color:var(--ink); border-color:var(--faint);
+      background:var(--surface) }
+.empty-note{ margin-top:2.5rem; padding:1.5rem .25rem; border-top:1px solid var(--rule);
+      color:var(--muted); font-size:.875rem }
+</style>
+</head>
+<body>
+  <div class="wrap">
+    <header>
+      <div class="crumb"><a href="../">← 資料</a></div>
+      <div class="eyebrow"><span>osmosis</span></div>
+      <h1>Databricks</h1>
+      <p class="lede">Databricks を扱ううえで押さえておきたい仕組みを整理した資料です。
+各回の台本の元になっています。</p>
+      <div class="rule"></div>
+    </header>
+
+    <div class="tools">
+      <button class="btn" type="button" id="toggle-all">全部たたむ</button>
+    </div>
+
+      <details class="show" data-show="databricks-review" open>
+        <summary>
+          <span class="show-name">DatabricksReview</span>
+          <span class="show-sub">要件から機能を引く、Databricks DE Associate の総復習</span>
+          <span class="show-count num">9 件</span>
+          <span class="show-mark" aria-hidden="true"></span>
+        </summary>
+        <ul>
+        <li><a href="databricks-review/index.html"><span class="ep">ep001</span><span class="t">試験の全体像と学習設計</span></a></li>
+        <li><a href="databricks-review/00-exam-changes.html"><span class="ep">ep002</span><span class="t">2026年5月改訂で何が入れ替わったか</span></a></li>
+        <li><a href="databricks-review/01-platform.html"><span class="ep">ep003</span><span class="t">プラットフォーム基盤</span></a></li>
+        <li><a href="databricks-review/02-ingestion.html"><span class="ep">ep004</span><span class="t">データの取り込み</span></a></li>
+        <li><a href="databricks-review/03-transformation.html"><span class="ep">ep005</span><span class="t">変換とモデリング</span></a></li>
+        <li><a href="databricks-review/04-jobs-cicd.html"><span class="ep">ep006</span><span class="t">Jobs と CI/CD</span></a></li>
+        <li><a href="databricks-review/05-optimization.html"><span class="ep">ep007</span><span class="t">監視と最適化</span></a></li>
+        <li><a href="databricks-review/06-governance.html"><span class="ep">ep008</span><span class="t">ガバナンスとセキュリティ</span></a></li>
+        <li><a href="databricks-review/07-exam-tactics.html"><span class="ep">ep009</span><span class="t">試験の解き方</span></a></li>
+        </ul>
+      </details>
+
+      <details class="show" data-show="databricks-shorts" open>
+        <summary>
+          <span class="show-name">DatabricksShorts</span>
+          <span class="show-sub">Databricks の1トピックを1回で完結させる回</span>
+          <span class="show-count num">15 件</span>
+          <span class="show-mark" aria-hidden="true"></span>
+        </summary>
+        <ul>
+        <li><a href="databricks-shorts/medallion-architecture.html"><span class="ep">ep001</span><span class="t">メダリオンアーキテクチャは固定機能なのか</span></a></li>
+        <li><a href="databricks-shorts/data-roles.html"><span class="ep">ep002</span><span class="t">データエンジニア・アナリスト・サイエンティストの違い</span></a></li>
+        <li><a href="databricks-shorts/data-lineage.html"><span class="ep">ep003</span><span class="t">データリネージュとは</span></a></li>
+        <li><a href="databricks-shorts/analytics-platform-evolution.html"><span class="ep">ep004</span><span class="t">ビッグデータ分析基盤の進化</span></a></li>
+        <li><a href="databricks-shorts/analytics-platform-evolution-3min.html"><span class="ep">ep005</span><span class="t">ビッグデータ分析基盤の進化（3分版）</span></a></li>
+        <li><a href="databricks-shorts/acid-transactions.html"><span class="ep">ep006</span><span class="t">ACIDとは</span></a></li>
+        <li><a href="databricks-shorts/delta-lake-vs-lakehouse.html"><span class="ep">ep007</span><span class="t">Delta LakeとLakehouseの違い</span></a></li>
+        <li><a href="databricks-shorts/lakehouse-includes-compute.html"><span class="ep">ep008</span><span class="t">Lakehouseはコンピュートも含むのか</span></a></li>
+        <li><a href="databricks-shorts/rdb-vs-delta-lake-source-of-truth.html"><span class="ep">ep009</span><span class="t">RDBとDelta Lakeの「原本」の違い</span></a></li>
+        <li><a href="databricks-shorts/copy-into-is-not-sync.html"><span class="ep">ep010</span><span class="t">COPY INTOとは</span></a></li>
+        <li><a href="databricks-shorts/copy-into-large-file-count.html"><span class="ep">ep011</span><span class="t">COPY INTOが大量ファイルに向かない理由</span></a></li>
+        <li><a href="databricks-shorts/auto-loader-cloud-storage.html"><span class="ep">ep012</span><span class="t">Auto Loaderとクラウドストレージの相性</span></a></li>
+        <li><a href="databricks-shorts/cte-common-table-expression.html"><span class="ep">ep013</span><span class="t">CTEとは</span></a></li>
+        <li><a href="databricks-shorts/merge-why-when-is-needed.html"><span class="ep">ep014</span><span class="t">MERGEでWHENが必要な理由</span></a></li>
+        <li><a href="databricks-shorts/merge-slow-liquid-clustering.html"><span class="ep">ep015</span><span class="t">MERGEが遅いとき</span></a></li>
+        </ul>
+      </details>
+
+    <div class="siblings">
+        <a href="./" aria-current="page">Databricks</a>
+        <a href="../english/">English</a>
+    </div>
+
+    <footer>24 件 / 更新 2026-08-08</footer>
+  </div>
+<script>
+(function () {
+  "use strict";
+  // 開閉の状態は番組ごとに覚える。番組が増えるほど、毎回たたみ直す手間が効いてくる
+  var KEY = "osmosis-docs-closed";
+  var shows = Array.prototype.slice.call(document.querySelectorAll("details.show"));
+  var closed = {};
+  try { closed = JSON.parse(localStorage.getItem(KEY) || "{}"); } catch (e) {}
+
+  function save() {
+    var next = {};
+    shows.forEach(function (d) { if (!d.open) next[d.dataset.show] = 1; });
+    try { localStorage.setItem(KEY, JSON.stringify(next)); } catch (e) {}
+  }
+
+  var btn = document.getElementById("toggle-all");
+  function syncLabel() {
+    if (btn) btn.textContent = shows.some(function (d) { return d.open; }) ? "全部たたむ" : "全部開く";
+  }
+
+  shows.forEach(function (d) {
+    if (closed[d.dataset.show]) d.open = false;
+    d.addEventListener("toggle", function () { save(); syncLabel(); });
+  });
+  syncLabel();
+
+  if (btn) {
+    btn.addEventListener("click", function () {
+      var anyOpen = shows.some(function (d) { return d.open; });
+      shows.forEach(function (d) { d.open = !anyOpen; });
+    });
+  }
+})();
+</script>
+</body>
+</html>

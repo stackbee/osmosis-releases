@@ -1,0 +1,1485 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>プラットフォーム基盤 — Databricks DE Associate</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 7. 追記：コードブロック ------------------------------ */
+.scroll-x > pre{
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  font-family: var(--f-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.75;
+  letter-spacing: 0;
+}
+.scroll-x > pre code{ font-size: inherit; }
+@media print{ .scroll-x > pre{ white-space: pre-wrap; } }
+
+/* --- 8. 追記：確認問題（答えは畳んでおく） ----------------- */
+.qa{ margin: var(--sp-4) 0; }
+.qa > li{
+  border-top: 1px solid var(--rule);
+  padding: var(--sp-3) 0 var(--sp-2);
+  list-style: none;
+}
+.qa > li:last-child{ border-bottom: 1px solid var(--rule); }
+.qa .q{ margin: 0 0 var(--sp-2); }
+.qa .q b{
+  font-family: var(--f-mono); font-size: var(--fs-xs);
+  color: var(--faint); margin-right: .6em; letter-spacing: .06em;
+}
+.qa details{ font-size: var(--fs-sm); }
+.qa summary{
+  cursor: pointer; color: var(--accent-ink);
+  font-size: var(--fs-xs); letter-spacing: .04em;
+  list-style: none; display: inline-block;
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .1rem .55rem;
+}
+.qa summary::-webkit-details-marker{ display: none; }
+.qa details[open] summary{ margin-bottom: var(--sp-2); }
+.qa .a{ color: var(--muted); margin: 0; padding-left: var(--sp-3);
+        border-left: 2px solid var(--rule-bold); }
+@media print{ .qa details{ } .qa summary{ display: none; } }
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">Databricks DE Associate</div>
+    <p class="rail-title">プラットフォーム基盤<br>Delta Lake / UC / コンピュート</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-why"><span class="dot" data-status="new"></span><span>Lakehouse 以前の問題</span></a></li>
+        <li><a href="#sec-stack"><span class="dot" data-status="active"></span><span>4段の積み上がり</span></a></li>
+        <li><a href="#sec-delta"><span class="dot" data-status="active"></span><span>Delta Lake の中身</span></a></li>
+        <li><a href="#sec-parquet"><span class="dot" data-status="new"></span><span>Delta と素の Parquet</span></a></li>
+        <li><a href="#sec-uc"><span class="dot" data-status="active"></span><span>Unity Catalog の3階層</span></a></li>
+        <li><a href="#sec-compute"><span class="dot" data-status="ship"></span><span>コンピュートの選び方</span></a></li>
+        <li><a href="#sec-notebook"><span class="dot" data-status="idle"></span><span>Notebook と Connect</span></a></li>
+        <li><a href="#sec-myth"><span class="dot" data-status="crit"></span><span>よくある誤解</span></a></li>
+        <li><a href="#sec-lookup"><span class="dot" data-status="ship"></span><span>このドメインの逆引き</span></a></li>
+        <li><a href="#sec-quiz"><span class="dot" data-status="ship"></span><span>確認問題</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/RKgkWz5wnRs" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/RKgkWz5wnRs" rel="noopener">▶ 動画で見る</a></span>
+          <span>ドメイン 1 / Databricks Intelligence Platform</span>
+          <span class="num">2026-08-05 時点</span>
+        </div>
+        <h1>プラットフォーム基盤</h1>
+        <p class="lede">どのドメインの問題にも顔を出す土台です。Delta Lake が何をしているのか、Unity Catalog の住所がどういう形なのか、コンピュートをどう選ぶのか。この3つを押さえると、以降の機能が「どの層の話か」で切り分けられるようになります。</p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <dl class="kpis"><div class="kpi"><dt>プラットフォームの層</dt><dd class="num">4段</dd><p class="kpi-sub">置く / 信頼できる形にする / 統制する / 計算する</p></div><div class="kpi"><dt>UC の名前空間</dt><dd class="num">3階層</dd><p class="kpi-sub">catalog . schema . object</p></div><div class="kpi"><dt>Delta の既定保持</dt><dd class="num">7日 / 30日</dd><p class="kpi-sub">データファイル / ログ</p></div><div class="kpi"><dt>コンピュートの判別軸</dt><dd class="num">2つ</dd><p class="kpi-sub">誰が使うか / いつ止まるか</p></div></dl>
+      <details class="sec" id="sec-why" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Lakehouse 以前の何が問題だったのか<span class="tag">製品名としてではなく、困りごとへの回答として覚える</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>Lakehouse を「新しい製品の名前」として覚えると、試験でも実務でも効きません。
+          これは<strong>特定の困りごとに対する回答</strong>として出てきた構成です。
+          何に困っていたのかを先に押さえると、Delta Lake も Unity Catalog も
+          「その困りごとのどこを埋める部品なのか」で位置づけられます。</p>
+
+          <h3>2つの基盤を、両方持っていた</h3>
+          <p>データを扱う基盤には、長いあいだ大きく2種類ありました。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>観点</th><th>データウェアハウス（DWH）</th><th>データレイク</th></tr></thead><tbody><tr><td>得意なこと</td><td>構造化データ。トランザクションが効き、スキーマが決まっていて、BI から使いやすい</td><td>何でも安く置ける。非構造化データもそのまま。機械学習との相性がよい</td></tr><tr><td>苦手なこと</td><td>非構造化データ、機械学習ワークロード、そして<strong>コスト</strong></td><td><strong>信頼性</strong>。スキーマ管理が甘くなり、更新が難しく、同時書き込みで壊れる</td></tr><tr><td>データの持ち方</td><td>専用フォーマットに取り込む（外に出しにくい）</td><td>オブジェクトストレージ上のファイルのまま</td></tr><tr><td>主な利用者</td><td>アナリスト / BI</td><td>データエンジニア / データサイエンティスト</td></tr></tbody></table></div>
+
+          <h3>二重管理が何を壊すか</h3>
+          <p>どちらも一長一短なので、現場は<strong>両方持ちました</strong>。
+          生データはデータレイクへ置き、加工したものをデータウェアハウスにも入れる。
+          同じデータが2か所に存在する状態です。ここから弊害が連鎖します。</p>
+
+          <ul>
+            <li><strong>コストが二重にかかる</strong> —
+            保存料金だけでなく、2つを同期し続けるパイプラインの開発費と運用費が乗る</li>
+            <li><strong>どちらが正しいのか分からなくなる</strong> —
+            数字が合わないとき、レイク側の加工が悪いのか、ウェアハウス側の取り込みが悪いのかを毎回調べることになる</li>
+            <li><strong>鮮度がずれる</strong> —
+            同期はたいてい日次バッチ。BI が見ている数字は常に「昨日まで」になる</li>
+            <li><strong>ガバナンスが二重になる</strong> —
+            権限設定を2か所に書く。片方だけ直して穴が空く、が典型的な事故</li>
+            <li><strong>機械学習が DWH のデータを使えない</strong> —
+            取り出すのにまたコピーが要り、3つ目の置き場が生まれる</li>
+          </ul>
+
+          <p>Lakehouse の主張は単純です。<strong>安いオブジェクトストレージを唯一の置き場のままにして、
+          その上にデータウェアハウスの信頼性を後から載せる。</strong>
+          そうすればコピーそのものが要らなくなる、という発想です。</p>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">この節が試験でどう効くか</p>
+            <p>「なぜ Delta Lake が要るのか」を問う問題は、ほぼこの二重管理の話に還元できます。
+            データレイクに足りなかったのは<strong>信頼性</strong>で、それを埋める部品が Delta Lake。
+            さらに足りなかったのが<strong>統制</strong>で、それを埋める部品が Unity Catalog。
+            この対応関係を持っていれば、機能名を丸暗記する必要がありません。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-stack" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>4段の積み上がり<span class="tag">問題を読んだら、まずどの層の話かを決める</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>Lakehouse は「安いストレージの上に、データウェアハウスの信頼性を載せる」という発想です。
+          実現の仕方は、下から4段の積み上がりとして理解できます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>層</th><th>構成要素</th><th>やっていること</th></tr></thead><tbody><tr><td>4. 計算する</td><td>Compute</td><td>SQL Warehouse / Job / All-Purpose / Serverless</td></tr><tr><td>3. 統制する</td><td>Unity Catalog</td><td>誰が何を見られるか、どこから来たか</td></tr><tr><td>2. 信頼できる形にする</td><td>Delta Lake</td><td>ACID・スキーマ・Time Travel</td></tr><tr><td>1. 置く</td><td>クラウドオブジェクトストレージ</td><td>S3 / ADLS / GCS。安く、いくらでも置ける</td></tr></tbody></table></div>
+
+          <p>この4段は並列ではなく、<strong>下に依存しています</strong>。
+          Delta Lake は下のストレージが無ければ何も置けません。
+          Unity Catalog は、統制する対象が「テーブル」という形になっていて初めて権限を付けられます。
+          Compute は、その両方が揃って初めて「安全に読み書きする」ことができます。
+          だから順番に意味があります。<strong>置く、信頼できる形にする、統制する、計算する。</strong></p>
+
+          <h3>層の見分け方</h3>
+          <p>問題文に出てくる言葉から、逆に層をたどれます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>この言葉が出てきたら</th><th>層</th><th>理由</th></tr></thead><tbody><tr><td>ACID / MERGE / Time Travel / VACUUM / OPTIMIZE</td><td>2. 信頼性（Delta Lake）</td><td>ファイルの集合を「テーブル」として成立させる話</td></tr><tr><td>GRANT / リネージ / 監査ログ / Volume / 3階層の名前</td><td>3. 統制（Unity Catalog）</td><td>誰が何をできるか、どこから来たかの話</td></tr><tr><td>クラスタ / Warehouse / DBU / 自動停止 / オートスケール</td><td>4. 計算（Compute）</td><td>いくら払って、どれだけ回すかの話</td></tr><tr><td>S3 / ADLS / GCS / 外部ロケーションのパス</td><td>1. 置く（オブジェクトストレージ）</td><td>物理的にどこにバイトがあるかの話</td></tr></tbody></table></div>
+
+          <p>4段の外側に、作業と実行の場所として<strong>ワークスペースと Lakeflow</strong> があります。
+          ノートブックで書き、Jobs で回し、Connect で取り込む部分です。
+          これはデータの階層ではなく「人と処理が触る面」なので、4段には数えません。</p>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 200" role="img" aria-label="ストレージ・Delta Lake・Unity Catalog・ワークスペースの4段の積み上がりと、症状が上の層で現れ原因が下の層にあることを示す図">
+              <defs>
+                <marker id="p1-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="p1-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="p1-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="150" y="6"   width="420" height="40" rx="2" class="d-box"/>
+              <text x="360" y="24"  class="d-t"    text-anchor="middle">ワークスペース / Notebook / SQL</text>
+              <text x="360" y="40"  class="d-t-sm" text-anchor="middle">人が触る面</text>
+
+              <rect x="150" y="54"  width="420" height="40" rx="2" class="d-box-acc"/>
+              <text x="360" y="72"  class="d-t"    text-anchor="middle">Unity Catalog</text>
+              <text x="360" y="88"  class="d-t-sm" text-anchor="middle">誰が何を見られるか。カタログ／スキーマ／テーブル</text>
+
+              <rect x="150" y="102" width="420" height="40" rx="2" class="d-box-acc"/>
+              <text x="360" y="120" class="d-t"    text-anchor="middle">Delta Lake</text>
+              <text x="360" y="136" class="d-t-sm" text-anchor="middle">トランザクションログ。更新は上書きせず追記</text>
+
+              <rect x="150" y="150" width="420" height="40" rx="2" class="d-box"/>
+              <text x="360" y="168" class="d-t"    text-anchor="middle">クラウドストレージ（Parquet ファイル）</text>
+              <text x="360" y="184" class="d-t-sm" text-anchor="middle">実体はただのオブジェクトストレージ</text>
+
+              <path d="M144,26 H120 V174 H144" class="d-line"/>
+              <text x="112" y="100" class="d-t-sm" text-anchor="end">上ほど</text>
+              <text x="112" y="116" class="d-t-sm" text-anchor="end">人に近い</text>
+
+              <path d="M576,174 V26" class="d-line-acc" marker-end="url(#p1-ar-acc)"/>
+              <text x="596" y="96"  class="d-t-key">問題文は</text>
+              <text x="596" y="112" class="d-t-key">上から降りてくる</text>
+              <text x="596" y="132" class="d-t-sm">「BI が遅い」</text>
+              <text x="596" y="148" class="d-t-sm">→ 原因は下の層</text>
+            </svg>
+            <figcaption><strong>症状は上の層で現れ、原因は下の層にあります。</strong>BI から参照するクエリが遅い、という問題文が来たとき、答えはワークスペースの設定ではなく、Delta のファイル配置やコンピュートの選択にあることがほとんどです。どの層の話かを決めてから選択肢を読むと、上下を取り違えなくなります。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">この4段が効く場面</p>
+            <p>問題文を読んで機能名を思い出そうとするのではなく、<strong>まず「これは4段のどの層の話か」を決めます</strong>。
+            「同時書き込みで中途半端な状態を見せない」なら信頼性の層＝Delta Lake。
+            「部署ごとに見えるテーブルを変える」なら統制の層＝Unity Catalog。
+            「終わったら止めたい」なら計算の層＝Compute。層が決まれば、選択肢はほぼ1つに絞れます。</p>
+            <p>迷ったときの確かめ方は<strong>「その部品が無かったら何が困るか」</strong>です。
+            Delta が無ければ壊れたデータを読むことになる。UC が無ければ全員が全部見えてしまう。
+            困りごとが言えれば、層は当たっています。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-delta" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Delta Lake の中身<span class="tag">なぜファイル置き場の上でトランザクションが効くのか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <h3>実体は Parquet ＋ ログ</h3>
+          <p>Delta テーブルの実体はディレクトリです。中には2種類のものが入っています。</p>
+          <ul>
+            <li><strong>Parquet ファイル</strong> — データそのもの。特別なものではない、普通の Parquet</li>
+            <li><strong><code>_delta_log</code></strong> — 連番の JSON。
+            <strong>「今この瞬間、どのファイルの集合がテーブルなのか」</strong>を記録している</li>
+          </ul>
+
+          <div class="scroll-x"><pre><code>s3://lake/prod/sales/
+  part-00000-a1b2....snappy.parquet
+  part-00001-c3d4....snappy.parquet
+  part-00002-e5f6....snappy.parquet
+  _delta_log/
+    00000000000000000000.json      &lt;- コミット 0
+    00000000000000000001.json      &lt;- コミット 1
+    ...
+    00000000000000000010.checkpoint.parquet
+    _last_checkpoint</code></pre></div>
+
+          <p>特別なのはログのほうです。ファイルの集合に対して「これが今のテーブルです」という定義を与えています。</p>
+
+          <h3>ログには何が書かれているのか</h3>
+          <p>各 JSON は「このコミットで何が変わったか」を並べたものです。
+          中身のアクションを知っておくと、以降の機能がどこから出てきているのかが一気に見えます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>アクション</th><th>記録している内容</th><th>これがあると何ができるか</th></tr></thead><tbody><tr><td><code>metaData</code></td><td>スキーマ、パーティション列、テーブルプロパティ</td><td>スキーマ強制。形の合わない書き込みを弾ける</td></tr><tr><td><code>add</code></td><td>追加されたファイルのパス・サイズ・パーティション値・<strong>列ごとの統計（min / max / null 件数 / 行数）</strong></td><td>データスキップ。<code>WHERE</code> に合わないファイルを開かずに飛ばせる</td></tr><tr><td><code>remove</code></td><td>もう使わなくなったファイルのパスと、外した時刻</td><td><code>VACUUM</code> の判断材料。Time Travel の復元元でもある</td></tr><tr><td><code>commitInfo</code></td><td>操作の種類（<code>WRITE</code> / <code>MERGE</code> / <code>DELETE</code> …）、実行時刻、実行者、影響行数</td><td><code>DESCRIBE HISTORY</code> に出てくるのはこれ</td></tr><tr><td><code>protocol</code></td><td>読み書きに必要な最低バージョン</td><td>新機能を使ったテーブルを、古いクライアントが壊さない</td></tr><tr><td><code>txn</code></td><td>ストリーム書き込みのアプリ ID と処理済みバッチ番号</td><td>再実行しても二重に書かない（冪等な書き込み）</td></tr></tbody></table></div>
+
+          <p>ここで大事なのは、ログが<strong>「変更の記録」であって「テーブルの全体像」ではない</strong>ことです。
+          テーブルの現在の姿を知るには、0 番から順にすべてのコミットを積み上げる必要があります。
+          コミットが数千になると、それだけで重くなります。
+          そこで Delta は一定数のコミットごとに<strong>チェックポイント</strong>
+          （そこまでの状態をまとめた Parquet）を書きます。
+          読み手は直近のチェックポイントと、その後の JSON だけを読めば済みます。</p>
+
+          <h3>更新は上書きではなく追記</h3>
+          <p><code>UPDATE</code> / <code>DELETE</code> / <code>MERGE</code> を実行しても、
+          <strong>既存のファイルを書き換えることはありません</strong>。新しいファイルを書き、ログで参照を切り替えます。
+          古いファイルは、ログ上は「もう使わない」扱いになりますが、物理的には残ります。</p>
+
+          <div class="scroll-x"><pre><code>-- 1行だけ直しても、ファイルは書き換わらない
+UPDATE sales SET amount = 1200 WHERE order_id = 'A-0007';
+
+-- 何が起きたかはログに出る
+DESCRIBE HISTORY sales;
+
+-- version | operation | operationMetrics
+--      11 | UPDATE    | {numRemovedFiles: 1, numAddedFiles: 1, numUpdatedRows: 1}</code></pre></div>
+
+          <p><code>numRemovedFiles</code> と <code>numAddedFiles</code> が両方 1 になっています。
+          1行の修正でも、その行を含むファイルを丸ごと読み、直して、新しいファイルとして書き直しているからです。
+          この方式を <strong>copy-on-write</strong> と呼びます。
+          だから小さな更新を大量に打つと、小さなファイルが増えていきます。
+          この副作用が <a href="05-optimization.html">最適化</a> の <code>OPTIMIZE</code> の話につながります。</p>
+
+          <p>なぜこの方式か。<strong>読んでいる人を壊さないため</strong>です。
+          読み手は読み始めた時点のログを見続けるので、一貫した状態のまま最後まで読めます。
+          これが Delta における ACID の実現方法です。難しい仕組みで守っているのではなく、書き換えないことで守っています。</p>
+
+          <h3>楽観的並行制御 — なぜロックを取らないのか</h3>
+          <p>同時に2つの書き込みが来たらどうなるか。Delta は<strong>先にロックを取りません</strong>。
+          楽観的並行制御（optimistic concurrency control）という方式で、手順は3つです。</p>
+
+          <ol>
+            <li><strong>読む</strong> — 開始時点の最新バージョン（たとえば 10）を記録し、その状態を前提に処理する</li>
+            <li><strong>書く</strong> — 新しい Parquet ファイルを書く。この時点ではまだテーブルは変わっていない</li>
+            <li><strong>コミットを試みる</strong> — 「11 番のログを作る」ことを試す。
+            誰かが先に 11 を作っていたら、そこで失敗する</li>
+          </ol>
+
+          <p>失敗したとき、Delta はすぐ諦めずに、相手のコミットを読み直して
+          <strong>本当にぶつかっているかを確かめます</strong>。判定は<strong>ファイル単位</strong>です。
+          相手が触ったファイルと、自分が読んだ・消そうとしたファイルが重なっていなければ、
+          番号を 12 に振り直して自動で通ります。重なっていれば例外になり、処理からやり直します。</p>
+
+          <p class="note">ここから実務上の性質が出ます。<strong>追記どうしはほとんどぶつかりません。</strong>
+          <strong>触るパーティションが違えばぶつかりません。</strong>
+          ぶつかるのは、同じ範囲を同時に更新・削除したときです。
+          「同時書き込みで衝突する」という問題を見たら、
+          まず<strong>2つの書き込みが同じファイル群を触っているか</strong>を考えます。
+          解き方は、書き込みを時間でずらすか、パーティションで分けるか、どちらかになります。</p>
+
+          <h3>Time Travel</h3>
+          <p>ログには全バージョンが残っています。過去のログを読めば、その時点のテーブルが再現できます。
+          特別な機能を後付けしたのではなく、この構造から自然に出てくるものです。</p>
+
+          <div class="scroll-x"><pre><code>SELECT * FROM sales VERSION AS OF 10;
+SELECT * FROM sales TIMESTAMP AS OF '2026-07-01';
+DESCRIBE HISTORY sales;
+
+-- 巻き戻しは SELECT ではなく RESTORE
+RESTORE TABLE sales TO VERSION AS OF 10;</code></pre></div>
+
+          <p><code>RESTORE</code> は過去を上書きで戻すのではなく、
+          <strong>過去の状態を新しいバージョンとして追記</strong>します。
+          つまり「バージョン 12 で、10 の内容に戻した」という履歴が残ります。だから復元そのものも巻き戻せます。</p>
+
+          <h3>どこまで遡れるのか — 2つの保持期間</h3>
+          <p>Time Travel は無条件ではありません。遡れる範囲は、性格の違う2つの設定で決まります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>プロパティ</th><th>既定</th><th>何を保持するか</th><th>切れると何が起きるか</th></tr></thead><tbody><tr><td><code>delta.logRetentionDuration</code></td><td>30日</td><td><code>_delta_log</code> のコミット記録</td><td>そのバージョンが履歴に出てこなくなる</td></tr><tr><td><code>delta.deletedFileRetentionDuration</code></td><td>7日</td><td>参照されなくなった Parquet ファイルの実体</td><td><code>VACUUM</code> の削除対象になり、消えれば復元できない</td></tr></tbody></table></div>
+
+          <div class="scroll-x"><pre><code>ALTER TABLE sales SET TBLPROPERTIES (
+  'delta.logRetentionDuration'         = 'interval 90 days',
+  'delta.deletedFileRetentionDuration' = 'interval 30 days'
+);
+
+VACUUM sales;                   -- 既定は 7 日より古い不要ファイルを削除
+VACUUM sales RETAIN 720 HOURS;  -- 30 日ぶんは残す
+VACUUM sales DRY RUN;           -- 何が消えるかを確認するだけ（削除しない）</code></pre></div>
+
+          <p>実務でも試験でも効くのは、<strong>短いほうが先に効く</strong>という点です。
+          ログを90日に伸ばしても、データファイルが7日で消えていれば、8日前のバージョンは
+          「履歴には見えるのに <code>SELECT</code> するとエラー」という状態になります。
+          Time Travel を長く使いたいなら、<strong>両方</strong>を伸ばす必要があります。</p>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">ここが試験で効く</p>
+            <p>ログが残っていても、<strong>ログが指すファイルが消えれば復元できません</strong>。
+            <code>VACUUM</code> は、参照されなくなったファイルを物理削除します。
+            「ストレージ使用量を削減したい。ただし Time Travel は今後も利用したい」という条件が付いているときに、
+            素の <code>VACUUM</code> を選ぶと誤答になります。</p>
+            <p>そして <strong><code>DELETE</code> してもストレージは減りません</strong>。
+            新しいファイルを書いてログを切り替えるだけだからです。減らすのは <code>VACUUM</code>。
+            この2段構えを理解していないと、<a href="05-optimization.html">最適化</a>の章で必ず詰まります。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-parquet" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Delta と素の Parquet の違い<span class="tag">データは同じ。違うのは、その周りに何があるか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>「Delta って結局 Parquet でしょう」と言われることがあります。半分正しく、半分違います。
+          データファイルは本当にただの Parquet です。違いは<strong>その周りに何があるか</strong>だけ。
+          ただ、その差でできることが大きく変わります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>やりたいこと</th><th>素の Parquet（ディレクトリを直接読む）</th><th>Delta</th></tr></thead><tbody><tr><td>特定行の <code>UPDATE</code> / <code>DELETE</code></td><td>不可。自分で読み直して全体を書き直す</td><td><code>UPDATE</code> / <code>DELETE</code> / <code>MERGE</code> が使える</td></tr><tr><td>書き込み中の読み取り</td><td>書きかけのファイルが見える。壊れた結果になりうる</td><td>コミット済みのバージョンだけが見える</td></tr><tr><td>スキーマの強制</td><td>無い。列が増減したファイルが混ざっても気づけない</td><td>スキーマ強制。<code>mergeSchema</code> で明示的に進化させる</td></tr><tr><td>過去に戻る</td><td>不可。自分でコピーを取っていた場合のみ</td><td><code>VERSION AS OF</code> / <code>RESTORE</code></td></tr><tr><td>どのファイルがテーブルか</td><td>ディレクトリ一覧を取る。ファイルが多いほど遅い</td><td>ログに書いてある。一覧を取らなくてよい</td></tr><tr><td>要らないファイルを飛ばす</td><td>パーティションのディレクトリ名まで</td><td>列統計によるデータスキップ、Liquid Clustering</td></tr><tr><td>ストリーミングの取り込み先</td><td>追記のみ。重複排除は自分で作る</td><td>テーブルをそのままソースにもシンクにもできる</td></tr><tr><td>誰がいつ何をしたか</td><td>残らない</td><td><code>DESCRIBE HISTORY</code></td></tr></tbody></table></div>
+
+          <p>逆に、<strong>Delta にしても変わらないこと</strong>も押さえておきます。
+          列指向であることも、圧縮方式も、Parquet のままです。
+          だから読み取り性能そのものが魔法のように上がるわけではありません。
+          速くなるのは<strong>「読まなくていいファイルを開かずに済む」</strong>からで、
+          1ファイルを読む速さが変わるからではありません。</p>
+
+          <p>既存の Parquet を Delta にするのは、データを書き直さずにできます。ログを作るだけだからです。</p>
+
+          <div class="scroll-x"><pre><code>CONVERT TO DELTA parquet.`s3://lake/raw/sales`;
+
+-- ディレクトリでパーティション分けされているなら、列と型を伝える
+CONVERT TO DELTA parquet.`s3://lake/raw/sales`
+  PARTITIONED BY (dt DATE);
+
+-- 逆方向（Delta を素の Parquet として読ませたい）は変換ではなく書き出しになる
+CREATE TABLE archive_sales USING PARQUET AS SELECT * FROM sales;</code></pre></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 228" role="img" aria-label="Delta の更新が上書きではなく新しいファイルの追加であることを時間軸で示した図。古いファイルが残るから Time Travel ができ、VACUUM で消すと戻れなくなる">
+              <defs>
+                <marker id="p2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="p2-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="p2-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <line x1="8" y1="150" x2="712" y2="150" class="d-rule"/>
+              <text x="8" y="168" class="d-t-mono">時間 →</text>
+
+              <text x="60"  y="26" class="d-t-sm" text-anchor="middle">v1 作成</text>
+              <rect x="20"  y="34" width="80" height="30" rx="2" class="d-box"/>
+              <text x="60"  y="54" class="d-t-sm" text-anchor="middle">file A</text>
+              <line x1="60" y1="64" x2="60" y2="146" class="d-line"/>
+
+              <text x="230" y="26" class="d-t-sm" text-anchor="middle">v2 UPDATE</text>
+              <rect x="150" y="34" width="80" height="30" rx="2" class="d-box-idle"/>
+              <text x="190" y="54" class="d-t-sm" text-anchor="middle">file A</text>
+              <rect x="240" y="34" width="80" height="30" rx="2" class="d-box-acc"/>
+              <text x="280" y="54" class="d-t-sm" text-anchor="middle">file B</text>
+              <line x1="235" y1="64" x2="235" y2="146" class="d-line"/>
+
+              <text x="450" y="26" class="d-t-sm" text-anchor="middle">v3 DELETE</text>
+              <rect x="370" y="34" width="80" height="30" rx="2" class="d-box-idle"/>
+              <text x="410" y="54" class="d-t-sm" text-anchor="middle">file A</text>
+              <rect x="460" y="34" width="80" height="30" rx="2" class="d-box-idle"/>
+              <text x="500" y="54" class="d-t-sm" text-anchor="middle">file B</text>
+              <line x1="455" y1="64" x2="455" y2="146" class="d-line"/>
+
+              <text x="640" y="26" class="d-t-crit" text-anchor="middle">VACUUM</text>
+              <rect x="600" y="34" width="80" height="30" rx="2" class="d-box-crit"/>
+              <text x="640" y="54" class="d-t-sm" text-anchor="middle">削除</text>
+              <line x1="640" y1="64" x2="640" y2="146" class="d-line-crit"/>
+
+              <path d="M20,100 H580" class="d-line-acc"/>
+              <text x="300" y="94" class="d-t-key">この間はどのバージョンにも戻れる（Time Travel）</text>
+
+              <text x="20"  y="196" class="d-t-sm">実線の枠が現行、破線が参照されなくなったファイル。</text>
+              <text x="20"  y="214" class="d-t-sm">UPDATE も DELETE も、古いファイルをその場で消しません。新しいファイルを足してログを切り替えるだけです。</text>
+            </svg>
+            <figcaption><strong>Time Travel と VACUUM は、同じ仕組みの表と裏です。</strong>更新が上書きではなく追記だから過去に戻れる。戻れるということは古いファイルが残っているということで、だからストレージが増え続ける。DELETE したのに容量が減らないのはこのためで、減らすには VACUUM が要る——ただし消した先には戻れなくなります。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="wait">
+            <p class="callout-title">「Delta にしたらストレージが増えた」の正体</p>
+            <p>変換した直後は増えません。増えるのは<strong>更新を始めてから</strong>です。
+            copy-on-write なので、更新のたびに新しいファイルが増え、古いファイルは保持期間のあいだ残ります。
+            これは不具合ではなく仕様で、その代わりに Time Travel とロールバックが手に入っています。
+            <strong>「保持している期間ぶんの容量」と「戻せる安心」を交換している</strong>、と理解してください。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-uc" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Unity Catalog の3階層<span class="tag">住所の形が、そのまま権限の形になる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>テーブルは <code>prod.sales.orders</code> の形で指定します。
+          <strong>カタログ・スキーマ・テーブル</strong>の3階層です。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>階層</th><th>例</th><th>備考</th></tr></thead><tbody><tr><td>Metastore</td><td>—</td><td>リージョンに1つが基本。<strong>3階層の外側</strong>で、名前空間には書かない</td></tr><tr><td>Catalog</td><td><code>prod</code></td><td>環境で分けることが多い（dev / staging / prod）</td></tr><tr><td>Schema</td><td><code>sales</code></td><td>業務領域で分けることが多い</td></tr><tr><td>Table 他</td><td><code>orders</code></td><td>table / view / <strong>volume</strong> / function / model</td></tr></tbody></table></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 228" role="img" aria-label="Unity Catalog のカタログ・スキーマ・テーブルの3階層と、SELECT するには USE CATALOG と USE SCHEMA も必要であることを示す図">
+              <defs>
+                <marker id="p3-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="p3-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="p3-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="8"  y="20" width="330" height="192" rx="2" class="d-box"/>
+              <text x="24" y="42" class="d-t">catalog（prod）</text>
+
+              <rect x="28" y="56" width="290" height="140" rx="2" class="d-box"/>
+              <text x="44" y="78" class="d-t">schema（silver）</text>
+
+              <rect x="48" y="92"  width="250" height="40" rx="2" class="d-box-acc"/>
+              <text x="173" y="117" class="d-t" text-anchor="middle">table（orders）</text>
+              <rect x="48" y="140" width="250" height="40" rx="2" class="d-box"/>
+              <text x="173" y="165" class="d-t" text-anchor="middle">table（customers）</text>
+
+              <text x="404" y="42" class="d-t-mono">SELECT するには3つ全部が要る</text>
+
+              <rect x="404" y="56"  width="308" height="40" rx="2" class="d-box-crit"/>
+              <text x="558" y="81"  class="d-t" text-anchor="middle">USE CATALOG prod</text>
+              <rect x="404" y="104" width="308" height="40" rx="2" class="d-box-crit"/>
+              <text x="558" y="129" class="d-t" text-anchor="middle">USE SCHEMA silver</text>
+              <rect x="404" y="152" width="308" height="40" rx="2" class="d-box-acc"/>
+              <text x="558" y="177" class="d-t" text-anchor="middle">SELECT ON orders</text>
+
+              <path d="M344,116 H380 V76  H398" class="d-line-crit" marker-end="url(#p3-ar-crit)"/>
+              <path d="M344,116 H380 V124 H398" class="d-line-crit" marker-end="url(#p3-ar-crit)"/>
+              <path d="M344,116 H380 V172 H398" class="d-line-acc"  marker-end="url(#p3-ar-acc)"/>
+
+              <text x="404" y="212" class="d-t-crit">SELECT だけ与えても読めません。上2つが通り道になります。</text>
+            </svg>
+            <figcaption><strong>権限は階層を通り抜ける形で効きます。</strong>テーブルに <code>SELECT</code> を与えただけでは読めません。カタログとスキーマに <code>USE</code> が無いと、そこで止まります。「権限を与えたのに読めない」という問題文が来たら、まず上2つが抜けていないかを疑ってください。3階層は名前空間であると同時に、権限の通り道でもあります。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">よくある取り違え</p>
+            <p>「3階層」を metastore → catalog → schema と数えてしまうパターンです。
+            <strong>正しくは catalog / schema / object。</strong>名前空間として実際に書くのがこの3つだからです。
+            metastore は数えません。</p>
+          </div>
+
+          <h3>ワークスペースは階層ではない</h3>
+          <p>ワークスペースはデータの階層ではなく、作業する場所です。
+          1つの metastore を複数ワークスペースが共有していれば、
+          どこからでも同じ <code>prod.sales.orders</code> を参照できます。
+          「ワークスペースが違えばデータも別」ではありません。画面が別なので別物に見えるだけです。</p>
+          <p class="note">裏を返すと、metastore が<strong>リージョンに1つ</strong>という性質から、
+          「別リージョンのワークスペースから同じテーブルを使いたい」は単純な共有では解けない、
+          という含みも出ます。ここは <a href="06-governance.html">ガバナンス</a> で扱います。</p>
+
+          <h3>スキーマの下に置けるもの</h3>
+          <p>スキーマの下はテーブルだけではありません。
+          Unity Catalog が「データの入れ物」ではなく<strong>資産の名簿</strong>である、という性格がここに出ます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>オブジェクト</th><th>何か</th><th>使いどころ・押さえどころ</th></tr></thead><tbody><tr><td><strong>Table</strong>（managed）</td><td>UC が実体の置き場まで管理するテーブル</td><td>基本はこちら。<code>DROP</code> するとデータも消える</td></tr><tr><td><strong>Table</strong>（external）</td><td>実体は指定した外部パス。UC は登録だけを持つ</td><td>既存のデータ資産をそのまま登録したいとき。<code>DROP</code> してもファイルは残る</td></tr><tr><td><strong>View</strong></td><td>クエリに名前を付けたもの。実体を持たない</td><td>列や行を絞って見せる。権限の境界としても使える</td></tr><tr><td><strong>Materialized View</strong></td><td>クエリ結果を実体として保持し、更新できるもの</td><td>重い集計を何度も見るとき。鮮度と引き換えに速さを取る</td></tr><tr><td><strong>Volume</strong></td><td>テーブルにならないファイルの置き場</td><td>PDF・画像・生ログ・取り込み前の CSV。managed / external の別がある</td></tr><tr><td><strong>Function</strong></td><td>ユーザー定義関数（UDF）</td><td>共通の計算ロジックを1か所に置く。関数にも <code>EXECUTE</code> 権限が付く</td></tr><tr><td><strong>Model</strong></td><td>登録された機械学習モデル</td><td>学習済みモデルもテーブルと同じ住所と権限の仕組みで扱える</td></tr></tbody></table></div>
+
+          <p>この一覧が意味しているのは、<strong>「UC の外に置かれるものを減らす」</strong>という方針です。
+          モデルだけ別のレジストリ、ファイルだけ生の <code>s3://</code> パス、という状態だと、
+          権限もリネージもそこで途切れます。同じ名簿に載せることで、統制が1か所で完結します。</p>
+
+          <h3>Volume — テーブルにならないものの置き場</h3>
+          <p>PDF・画像・生ログのように表の形にならないデータを、Unity Catalog の管理下に置くための場所です。
+          「非構造化ファイルを UC 配下に置きたい」→ <strong>Volume</strong>、と引けるようにしておきます。</p>
+
+          <div class="scroll-x"><pre><code>CREATE VOLUME prod.sales.raw_files;
+
+-- 参照するパスは /Volumes/&lt;catalog&gt;/&lt;schema&gt;/&lt;volume&gt;/... の形になる
+LIST '/Volumes/prod/sales/raw_files/2026/07/';
+
+COPY INTO prod.sales.orders_bronze
+FROM '/Volumes/prod/sales/raw_files/2026/07/'
+FILEFORMAT = CSV
+FORMAT_OPTIONS ('header' = 'true');</code></pre></div>
+
+          <p>覚えておくと得なのは<strong>パスの形</strong>です。
+          <code>/Volumes/</code> で始まる3階層のパスは、それだけで「UC の管理下にあるファイル」を意味します。
+          問題文に生の <code>s3://</code> が出ていたら UC の外、
+          <code>/Volumes/</code> なら中、と読み分けられます。</p>
+
+          <h3>住所の形が権限の形になる</h3>
+          <p>テーブルを読むには、テーブルの <code>SELECT</code> だけでは足りません。
+          上の階層を通り抜ける権限も要ります。</p>
+
+          <div class="scroll-x"><pre><code>GRANT USE CATALOG ON CATALOG prod            TO `analysts`;
+GRANT USE SCHEMA  ON SCHEMA  prod.sales      TO `analysts`;
+GRANT SELECT      ON TABLE   prod.sales.orders TO `analysts`;
+
+-- 付いている権限を確かめる
+SHOW GRANTS ON TABLE prod.sales.orders;</code></pre></div>
+
+          <p class="note"><code>USE CATALOG</code> → <code>USE SCHEMA</code> → <code>SELECT</code>。
+          部屋の鍵をもらっても、エントランスと廊下を通れなければ部屋にたどり着けません。
+          「SELECT を付与したのに読めない」は、ほぼこれです。
+          公式のサンプル問題にも「アナリストグループはすでに <code>USE CATALOG</code> と
+          <code>USE SCHEMA</code> を持っているものとする」という但し書きが出てきます。
+          わざわざ書いてあるということは、この階層構造を分かっているかを試している、ということです。
+          詳細は <a href="06-governance.html">ガバナンス</a>で扱います。</p>
+
+          <h3>棚卸しは information_schema から</h3>
+          <p>各カタログには <code>information_schema</code> が自動で用意されます。
+          何がどこにあるかを、SQL でそのまま問い合わせられます。</p>
+
+          <div class="scroll-x"><pre><code>SELECT table_schema, table_name, table_type
+FROM   prod.information_schema.tables
+WHERE  table_schema = 'sales'
+ORDER  BY table_name;
+
+SELECT grantee, privilege_type, table_name
+FROM   prod.information_schema.table_privileges
+WHERE  table_schema = 'sales';</code></pre></div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-compute" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>コンピュートの選び方<span class="tag">判別の軸は「誰が使うか」と「いつ止まるか」の2つだけ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>試験ガイドは <em>select the most suitable option for each workload use case</em> と書いています。
+          種類を知っているかではなく、<strong>選べるか</strong>が問われます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>種類</th><th>誰が使うか</th><th>いつ止まるか</th><th>典型的な用途</th></tr></thead><tbody><tr><td><strong>All-Purpose</strong></td><td>人が対話的に</td><td>明示的に止めるまで</td><td>ノートブックでの開発・探索</td></tr><tr><td><strong>Job</strong></td><td>機械が自動で</td><td>ジョブ終了とともに</td><td>本番バッチ・定期実行</td></tr><tr><td><strong>SQL Warehouse</strong></td><td>SQL / BI から</td><td>自動停止の設定あり</td><td>ダッシュボード・SQL 分析</td></tr><tr><td><strong>Serverless</strong></td><td>（提供形態）</td><td>Databricks が管理</td><td>運用を手放したいとき</td></tr></tbody></table></div>
+
+          <h3>アクセスモード — 「誰として実行されるか」</h3>
+          <p>クラスタを作るときに、もう1つ決めるものがあります。アクセスモードです。
+          これは性能の設定ではなく、<strong>そのクラスタが誰の権限で動き、Unity Catalog の統制が効くか</strong>の設定です。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>アクセスモード</th><th>誰が使えるか</th><th>性格</th></tr></thead><tbody><tr><td><strong>標準（Standard / 旧 Shared）</strong></td><td>複数ユーザーで共有</td><td>ユーザーごとに実行が分離され、UC の権限がそのまま効く。既定はこちら</td></tr><tr><td><strong>専用（Dedicated / 旧 Single user）</strong></td><td>1人（または1グループ）</td><td>指定した主体の権限で動く。共有クラスタでは制限される一部の機能を使いたいときに</td></tr><tr><td><strong>分離なし共有（No Isolation Shared）</strong></td><td>複数ユーザーだが分離されない</td><td>旧来の形。UC 非対応。新規に選ぶ理由はない</td></tr></tbody></table></div>
+
+          <p>問題文に「複数のアナリストが同じクラスタを使うが、見られるテーブルは人によって違う」とあれば、
+          答えの方向は <strong>Unity Catalog ＋ 標準アクセスモード</strong>です。
+          分離されないモードでは全員が同じ資格情報で動いてしまうため、この要件は満たせません。</p>
+
+          <h3>台数の決め方 — オートスケールとインスタンスプール</h3>
+          <ul>
+            <li><strong>オートスケール</strong> —
+            ワーカー数に下限と上限を決めておくと、待っているタスクの量に応じて Databricks が増減させます。
+            効くのは<strong>負荷が波打つワークロード</strong>です。
+            一定量を流し続けるジョブでは、増減の判断そのものが無駄になることもあります。</li>
+            <li><strong>自動停止（auto termination）</strong> —
+            一定時間アイドルなら落とす設定。All-Purpose の請求を止める最大の手段がこれです。
+            SQL Warehouse も同じ考え方の設定を持ちます。</li>
+            <li><strong>インスタンスプール</strong> —
+            起動済みの VM をあらかじめ待機させておく仕組みです。クラスタはプールから VM を取るので
+            <strong>起動が速い</strong>。待機中の VM にはクラウドの VM 料金がかかりますが、
+            <strong>Databricks の DBU はかかりません</strong>（仕事をしていないため）。
+            「起動時間を短縮したい」＝プール、と引けるようにしておきます。</li>
+          </ul>
+
+          <div class="scroll-x"><pre><code>{
+  "job_clusters": [{
+    "job_cluster_key": "nightly",
+    "new_cluster": {
+      "spark_version": "15.4.x-scala2.12",
+      "data_security_mode": "USER_ISOLATION",
+      "autoscale": { "min_workers": 2, "max_workers": 8 },
+      "instance_pool_id": "0715-1234-pool-abcd",
+      "autotermination_minutes": 20
+    }
+  }]
+}</code></pre></div>
+
+          <h3>コストの構造 — DBU とは何か</h3>
+          <p>試験は金額を聞きません。<strong>「なぜ安くなるのか」の理屈</strong>を聞きます。
+          そのために、請求が2本立てであることだけ押さえます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>請求の相手</th><th>何に対して払うか</th><th>効く操作</th></tr></thead><tbody><tr><td>クラウド事業者</td><td>実際に動いている VM・ディスク・通信</td><td>台数を減らす、止める、適したインスタンスを選ぶ</td></tr><tr><td>Databricks</td><td><strong>DBU</strong>（処理能力 × 時間を表す単位）</td><td>止める、単価の安いコンピュート種別で動かす</td></tr></tbody></table></div>
+
+          <p>DBU は「1時間いくら」という金額そのものではなく、
+          <strong>使った処理能力の量を表す単位</strong>です。
+          同じ 1 DBU でも、All-Purpose・Job・SQL Warehouse で単価が違います。
+          つまり<strong>同じ仕事をしても、どの入れ物で動かすかで請求が変わる</strong>。ここが本質です。</p>
+
+          <p>典型的な高コストパターンは、本番の定期ジョブを All-Purpose で回すことです。
+          単価が高く、処理が終わっても動き続け、誰も使っていない時間も課金されます。
+          夜中に5分だけ動く処理のために、24時間ぶんを払っている形です。
+          Job Compute なら、動いている時間がそのまま仕事をしている時間になります。</p>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 254" role="img" aria-label="用途からコンピュートの種類を選ぶ分岐図。対話的か、ジョブか、BI からの SQL か、起動待ちを避けたいかで分かれる">
+              <defs>
+                <marker id="p4-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="p4-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="p4-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="8" y="86" width="128" height="48" rx="2" class="d-box-acc"/>
+              <text x="72" y="106" class="d-t"    text-anchor="middle">何をする？</text>
+              <text x="72" y="124" class="d-t-sm" text-anchor="middle">まず用途で切る</text>
+
+              <path d="M142,110 H180 V30  H218" class="d-line" marker-end="url(#p4-ar)"/>
+              <path d="M142,110 H180 V96  H218" class="d-line" marker-end="url(#p4-ar)"/>
+              <path d="M142,110 H180 V162 H218" class="d-line" marker-end="url(#p4-ar)"/>
+              <path d="M142,110 H180 V222 H218" class="d-line" marker-end="url(#p4-ar)"/>
+
+              <rect x="224" y="10"  width="200" height="40" rx="2" class="d-box"/>
+              <text x="324" y="28"  class="d-t"    text-anchor="middle">対話的に書く・試す</text>
+              <text x="324" y="44"  class="d-t-sm" text-anchor="middle">人が待っている</text>
+
+              <rect x="224" y="76"  width="200" height="40" rx="2" class="d-box"/>
+              <text x="324" y="94"  class="d-t"    text-anchor="middle">決まった時刻に回す</text>
+              <text x="324" y="110" class="d-t-sm" text-anchor="middle">人は見ていない</text>
+
+              <rect x="224" y="142" width="200" height="40" rx="2" class="d-box"/>
+              <text x="324" y="160" class="d-t"    text-anchor="middle">BI から SQL を投げる</text>
+              <text x="324" y="176" class="d-t-sm" text-anchor="middle">短いクエリが多数</text>
+
+              <rect x="224" y="202" width="200" height="40" rx="2" class="d-box"/>
+              <text x="324" y="220" class="d-t"    text-anchor="middle">起動を待ちたくない</text>
+              <text x="324" y="236" class="d-t-sm" text-anchor="middle">使う時間が読めない</text>
+
+              <line x1="430" y1="30"  x2="466" y2="30"  class="d-line" marker-end="url(#p4-ar)"/>
+              <line x1="430" y1="96"  x2="466" y2="96"  class="d-line" marker-end="url(#p4-ar)"/>
+              <line x1="430" y1="162" x2="466" y2="162" class="d-line" marker-end="url(#p4-ar)"/>
+              <line x1="430" y1="222" x2="466" y2="222" class="d-line-acc" marker-end="url(#p4-ar-acc)"/>
+
+              <rect x="472" y="10"  width="240" height="40" rx="2" class="d-box-ship"/>
+              <text x="592" y="35"  class="d-t" text-anchor="middle">All-Purpose Compute</text>
+
+              <rect x="472" y="76"  width="240" height="40" rx="2" class="d-box-ship"/>
+              <text x="592" y="101" class="d-t" text-anchor="middle">Job Compute</text>
+
+              <rect x="472" y="142" width="240" height="40" rx="2" class="d-box-ship"/>
+              <text x="592" y="167" class="d-t" text-anchor="middle">SQL Warehouse</text>
+
+              <rect x="472" y="202" width="240" height="40" rx="2" class="d-box-acc"/>
+              <text x="592" y="220" class="d-t" text-anchor="middle">Serverless</text>
+              <text x="592" y="236" class="d-t-sm" text-anchor="middle">上の3つに重ねて選ぶ選択肢</text>
+            </svg>
+            <figcaption><strong>最初の分岐は「人が待っているか」です。</strong>待っているなら対話的、待っていないならジョブ用。ここを外すと、あとの比較がすべてずれます。4つ目のサーバーレスだけは並列の選択肢ではなく、上の3つそれぞれに重ねて選ぶ軸である点に注意してください。「起動待ちを無くしたい」という要件で出てきます。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">覚え方</p>
+            <p><strong>All-Purpose は「人間用」、Job は「機械用」。</strong>
+            そして「コストを抑えたい」＋「自動実行」の組み合わせを見たら、まず Job Compute を疑う。</p>
+          </div>
+
+          <h3>Serverless の位置づけ</h3>
+          <p>ガイドの objective は <em>Use serverless for a <strong>hands-off</strong>, auto-optimized compute
+          managed by Databricks</em>。問題文に <strong>hands-off・自動最適化・運用負荷を下げたい</strong>とあれば合図です。
+          「インスタンス種別を選ぶ手間をなくしたい」「起動待ちを減らしたい」も同じ合図になります。</p>
+          <p class="note">Serverless は Job や SQL Warehouse の置き換えではなく、それぞれに Serverless という提供形態があります。
+          対立軸は「Job か Serverless か」ではなく、<strong>「自分で管理するか、任せるか」</strong>です。
+          VM の管理が Databricks 側に移るため、さきほどの2本立ての請求が利用者から見て実質1本になります。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-notebook" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Notebook と Databricks Connect<span class="tag">新ガイドでは明示されていない。深追いしない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ノートブックはセルごとに言語を切り替えられます。押さえておくのは次の程度で十分です。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>コマンド</th><th>何をするか</th></tr></thead><tbody><tr><td><code>%sql</code></td><td>SQL を実行。結果はテーブル表示</td></tr><tr><td><code>%md</code></td><td>Markdown</td></tr><tr><td><code>%run ./path</code></td><td><strong>別ノートブックをこの場で実行</strong>し、定義を取り込む</td></tr><tr><td><code>%sh</code></td><td>ドライバノード上でシェルコマンドを実行</td></tr><tr><td><code>%pip</code></td><td>ノートブックスコープでライブラリを入れる</td></tr><tr><td><code>dbutils.fs</code></td><td>ファイル操作</td></tr><tr><td><code>dbutils.widgets</code></td><td><strong>ジョブから値を受け取る口</strong></td></tr><tr><td><code>dbutils.secrets</code></td><td>認証情報。コードに直書きしないための仕組み</td></tr></tbody></table></div>
+
+          <div class="scroll-x"><pre><code># ジョブから値を受け取る（widgets が受け口になる）
+dbutils.widgets.text("run_date", "2026-07-01")
+run_date = dbutils.widgets.get("run_date")
+
+# 認証情報は直書きしない
+token = dbutils.secrets.get(scope="prod", key="api_token")
+
+df = (spark.read.table("prod.sales.orders")
+           .filter("order_date = '{}'".format(run_date)))
+df.write.mode("overwrite").saveAsTable("prod.sales.orders_daily")</code></pre></div>
+
+          <p><code>%run</code> は1つのノートブックの中で別ファイルを読み込むだけで、
+          <strong>失敗の単位にも並列の単位にもなりません</strong>。
+          途中で落ちれば呼び出し元ごと落ちますし、リトライも個別にはできません。
+          <a href="04-jobs-cicd.html">Jobs</a> のタスク分割とは、似ているようでレイヤーが違います。</p>
+
+          <p><strong>Databricks Connect</strong> は、手元の IDE でコードを書き、
+          実行だけクラスタ側で行う仕組みです。使い慣れたエディタとローカルのデバッガ・テストが使え、
+          Git 連携も手元で完結します。
+          ただし<strong>計算しているのは手元のマシンではありません</strong>。
+          手元のメモリが小さくても大きなデータを扱える一方、
+          接続先のコンピュートが止まっていれば何も動きません。</p>
+
+          <div class="callout" data-kind="wait">
+            <p class="callout-title">優先度について正直に</p>
+            <p>Databricks Connect と「Notebook の機能一覧」は、<strong>旧ガイドでは objective として明記</strong>されていましたが、
+            <strong>新ガイドの outline には記載がありません</strong>。
+            近い位置にあるのは S2 の <em>Use JDBC/ODBC or REST clients in notebooks…</em> です。
+            つまりノートブックは「使えて当たり前の道具」に格下げされました。ここに時間をかけすぎないでください。
+            マジックコマンドと <code>dbutils</code> が読めて、Connect が何をするものか説明できれば十分です。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-myth" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>このドメインでよくある誤解<span class="tag">落とすのは知識不足ではなく、もっともらしい思い込み</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>この土台の領域で問題を落とす原因は、たいてい知識不足ではありません。
+          <strong>もっともらしく聞こえる思い込み</strong>です。よく見る形を並べます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>よくある思い込み</th><th>実際はどうか</th><th>なぜそう思ってしまうか</th></tr></thead><tbody><tr><td>Delta Lake は Databricks 独自のファイル形式</td><td>データは普通の Parquet。Delta はその上に載るログの取り決め</td><td>「独自形式」という語感で決めてしまう</td></tr><tr><td><code>DELETE</code> すればストレージが減る</td><td>減らない。減らすのは <code>VACUUM</code></td><td>他のデータベースの感覚をそのまま持ち込む</td></tr><tr><td><code>VACUUM</code> はいつ実行しても安全</td><td>Time Travel で遡れる範囲を削る操作</td><td>「掃除」という言葉が安全そうに聞こえる</td></tr><tr><td>Time Travel は永久に遡れる</td><td>既定でデータファイルは7日、ログは30日</td><td>「履歴が残る」を「全部残る」と読んでしまう</td></tr><tr><td>3階層は metastore / catalog / schema</td><td>catalog / schema / object。metastore は3階層の外側</td><td>上から順に数えたくなる</td></tr><tr><td>ワークスペースが違えばデータも別</td><td>同じ metastore を共有していれば同じテーブルを参照できる</td><td>画面が分かれているので別物に見える</td></tr><tr><td>Serverless は Job Compute の代わりの選択肢</td><td>提供形態。Job にも SQL Warehouse にも Serverless がある</td><td>選択肢として横並びに書かれることが多い</td></tr><tr><td><code>%run</code> はジョブのタスク分割</td><td>ノートブック内で別ノートブックを読み込むだけ。失敗の単位にならない</td><td>「分けて実行する」ところだけが似ている</td></tr><tr><td><code>SELECT</code> を付ければ読める</td><td>上位階層の <code>USE CATALOG</code> / <code>USE SCHEMA</code> が要る</td><td>権限＝対象そのものに付けるもの、と考えてしまう</td></tr><tr><td>Delta にすればクエリが速くなる</td><td>1ファイルを読む速さは変わらない。読まずに済むファイルが増えるから速い</td><td>「最適化された形式」という説明を性能そのものと取る</td></tr></tbody></table></div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">誤解が残っているかの確かめ方</p>
+            <p>用語を言えるかではなく、<strong>「1つ上の理由まで言えるか」</strong>で確かめます。
+            <code>VACUUM</code> は物理削除である、まで言えても足りません。
+            <strong>なぜ物理削除が Time Travel を壊すのか</strong>——
+            ログは残るがログが指すファイルが消えるから——まで言えて、はじめて問題文の条件に反応できます。
+            理屈が言えていれば、選択肢の言い換えにも引っかかりません。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-lookup" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>このドメインの逆引き<span class="tag">問題文のキーワードから引く</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答え</th></tr></thead><tbody><tr><td>データサイエンティストがノートブックで探索的に分析</td><td><strong>All-Purpose Compute</strong></td></tr><tr><td>毎晩の本番 ETL。終わったら止めたい／コストを抑えたい</td><td><strong>Job Compute</strong></td></tr><tr><td>BI ツールからダッシュボードを見る</td><td><strong>SQL Warehouse</strong></td></tr><tr><td>クラスタの管理をしたくない／起動を速くしたい／hands-off</td><td><strong>Serverless</strong></td></tr><tr><td>クラスタは自分で持つが、起動時間だけ短縮したい</td><td><strong>インスタンスプール</strong></td></tr><tr><td>複数ユーザーで1つのクラスタを共有し、権限は個別に効かせたい</td><td>UC ＋ <strong>標準アクセスモード</strong></td></tr><tr><td>負荷が時間帯で大きく変わる</td><td><strong>オートスケール</strong>（下限・上限を設定）</td></tr><tr><td>同時書き込みで中途半端な状態を見せたくない</td><td>Delta Lake の ACID（楽観的並行制御）</td></tr><tr><td>誤った更新を巻き戻したい（読むだけ）</td><td><strong>Time Travel</strong>（<code>VERSION AS OF</code>）</td></tr><tr><td>誤った更新を実際に元に戻したい</td><td><code>RESTORE TABLE … TO VERSION AS OF</code></td></tr><tr><td>DELETE したのにストレージが減らない</td><td>Delta の仕様。<strong><code>VACUUM</code> が別に要る</strong></td></tr><tr><td>ストレージを減らしたいが Time Travel も残したい</td><td><code>VACUUM … RETAIN</code> ＋ 保持期間プロパティの見直し</td></tr><tr><td>履歴には出るのに、そのバージョンを SELECT できない</td><td><code>VACUUM</code> でデータファイルが消えている</td></tr><tr><td>既存の Parquet を書き直さずに Delta にしたい</td><td><code>CONVERT TO DELTA</code></td></tr><tr><td>ストリームを再実行しても二重に書きたくない</td><td>ログの <code>txn</code>（冪等な書き込み）</td></tr><tr><td>PDF や画像を UC 配下に置きたい</td><td><strong>Volume</strong>（<code>/Volumes/…</code>）</td></tr><tr><td>重い集計を何度も見るので結果を持っておきたい</td><td><strong>Materialized View</strong></td></tr><tr><td>複数ワークスペースで同じテーブルを使いたい</td><td>同一 metastore を共有</td></tr><tr><td>SELECT を与えたのに読めない</td><td><code>USE CATALOG</code> / <code>USE SCHEMA</code> 不足</td></tr><tr><td>どのテーブルに誰が何の権限を持つか棚卸ししたい</td><td><code>information_schema</code></td></tr></tbody></table></div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-quiz" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>確認問題<span class="tag">答えより、答えの理由が言えるかを確かめる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>ここまでの内容を、問題文の形で確かめます。
+          選択肢を当てるのではなく、<strong>なぜそうなるのかを声に出して言えるか</strong>で判定してください。</p>
+
+          <ul class="qa"><li><p class="q"><b>Q1</b>Delta テーブルの <code>_delta_log</code> に<strong>記録されていない</strong>ものはどれか。(a) 追加ファイルの列ごとの統計 / (b) 操作の種類と実行時刻 / (c) テーブルのスキーマ / (d) 実際の行データ</p><details><summary>答えを見る</summary><p class="a"><strong>(d)</strong>。行データは Parquet 側にあります。ログが持つのは「どのファイルの集合がテーブルか」と、その付随情報（<code>metaData</code> のスキーマ、<code>add</code> の統計、<code>commitInfo</code> の操作履歴）だけです。この分担が分かっていると、Time Travel も VACUUM も同じ話の続きとして読めます。</p></details></li><li><p class="q"><b>Q2</b><code>DELETE FROM sales WHERE order_date &lt; '2025-01-01'</code> を実行したが、ストレージ使用量が変わらない。理由と対処は。</p><details><summary>答えを見る</summary><p class="a">Delta は既存ファイルを書き換えず、<strong>新しいファイルを書いてログを切り替える</strong>ことで削除を表現します。旧ファイルは物理的に残るので容量は減りません。減らすには <code>VACUUM</code> が別に必要です。ただし <code>VACUUM</code> は Time Travel で遡れる範囲を削ります。</p></details></li><li><p class="q"><b>Q3</b>「ストレージを削減したい。ただし直近30日ぶんの Time Travel は維持したい」。単に <code>VACUUM sales;</code> を実行してよいか。</p><details><summary>答えを見る</summary><p class="a">いけません。既定の保持は<strong>7日</strong>なので、8〜30日前のバージョンが復元できなくなります。<code>VACUUM sales RETAIN 720 HOURS;</code> のように保持を明示し、あわせて <code>delta.deletedFileRetentionDuration</code> を 30 日に設定します。<code>delta.logRetentionDuration</code> も 30 日以上である必要があります（<strong>短いほうが先に効く</strong>）。</p></details></li><li><p class="q"><b>Q4</b>2つのジョブが同じ Delta テーブルに同時に書き込む。どんなときに片方が失敗し、どんなときは失敗しないか。</p><details><summary>答えを見る</summary><p class="a">Delta は<strong>楽観的並行制御</strong>です。ロックは取らず、コミットしようとした時点で衝突を検出します。判定は<strong>ファイル単位</strong>で、相手が触ったファイルと自分が読んだ・消そうとしたファイルが重ならなければ、コミット番号を振り直して自動的に通ります。追記どうし、あるいは別パーティションへの書き込みはほぼ衝突しません。衝突するのは、同じ範囲を同時に更新・削除したときです。</p></details></li><li><p class="q"><b>Q5</b>PDF の請求書を Unity Catalog の管理下に置き、部署ごとに閲覧を制御したい。何を使うか。</p><details><summary>答えを見る</summary><p class="a"><strong>Volume</strong>。テーブルにならないファイルの置き場で、<code>/Volumes/&lt;catalog&gt;/&lt;schema&gt;/&lt;volume&gt;/…</code> のパスで参照します。テーブルではありませんが、権限は他の UC オブジェクトと同じ仕組みで付けられます。生の <code>s3://</code> パスに置くと、そこで統制が途切れます。</p></details></li><li><p class="q"><b>Q6</b><code>GRANT SELECT ON TABLE prod.sales.orders TO `analysts`</code> を実行したのに、analysts のメンバーが読めない。何が足りないか。</p><details><summary>答えを見る</summary><p class="a">上位階層を通り抜ける権限です。<code>GRANT USE CATALOG ON CATALOG prod</code> と <code>GRANT USE SCHEMA ON SCHEMA prod.sales</code> が要ります。住所の形（catalog / schema / object）が、そのまま権限の形になっています。</p></details></li><li><p class="q"><b>Q7</b>毎晩2時に起動し、約20分で終わる本番 ETL。コストを最小にしたい。どのコンピュートか。</p><details><summary>答えを見る</summary><p class="a"><strong>Job Compute</strong>（運用も手放したいなら Serverless の Job）。All-Purpose は単価が高いうえ明示的に止めるまで動き続けるため、20分の仕事のために24時間ぶんを払うことになります。Job Compute はジョブの終了とともに停止するので、動いている時間＝仕事をしている時間になります。</p></details></li><li><p class="q"><b>Q8</b>複数のアナリストが1つのクラスタを共有するが、見えるテーブルは人によって変えたい。</p><details><summary>答えを見る</summary><p class="a">Unity Catalog ＋ <strong>標準（Standard／旧 Shared）アクセスモード</strong>。このモードはユーザーごとに実行が分離され、UC の権限がそのまま効きます。分離なし共有（No Isolation Shared）は全員が同じ資格情報で動くため、この要件を満たせません。</p></details></li></ul>
+
+          <p class="note">全部答えられたら、この土台は十分です。
+          詰まったものがあれば、そのセクションだけ読み直してください。
+          とくに <a href="#sec-delta">Delta Lake の中身</a> と
+          <a href="#sec-uc">Unity Catalog の3階層</a> は、
+          <a href="05-optimization.html">最適化</a>と<a href="06-governance.html">ガバナンス</a>で
+          そのまま前提として使われます。</p>
+
+        </div>
+      </details>
+      <hr>
+      <h3>このシリーズの他のドキュメント</h3>
+      <ul class="links"><li><span class="star">★</span> <a href="index.html">総合インデックス</a></li><li><a href="00-exam-changes.html">2026年5月改訂で何が変わったか</a></li><li><a href="02-ingestion.html">データの取り込み</a></li><li><a href="03-transformation.html">変換とモデリング</a></li><li><a href="04-jobs-cicd.html">Jobs と CI/CD</a></li><li><a href="05-optimization.html">監視と最適化</a></li><li><a href="06-governance.html">ガバナンスとセキュリティ</a></li><li><a href="07-exam-tactics.html">試験の解き方</a></li></ul>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-05</span></span>
+        <span>出典: Databricks 公式 Exam Guide（2026-05-04 版）</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>

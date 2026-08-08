@@ -1,0 +1,1606 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ガバナンスとセキュリティ — Databricks DE Associate</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 7. 追記：コードブロック ------------------------------ */
+.scroll-x > pre{
+  margin: 0;
+  padding: var(--sp-3) var(--sp-4);
+  background: var(--surface);
+  font-family: var(--f-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.75;
+  letter-spacing: 0;
+}
+.scroll-x > pre code{ font-size: inherit; }
+@media print{ .scroll-x > pre{ white-space: pre-wrap; } }
+
+/* --- 8. 追記：確認問題（答えは畳んでおく） ----------------- */
+.qa{ margin: var(--sp-4) 0; }
+.qa > li{
+  border-top: 1px solid var(--rule);
+  padding: var(--sp-3) 0 var(--sp-2);
+  list-style: none;
+}
+.qa > li:last-child{ border-bottom: 1px solid var(--rule); }
+.qa .q{ margin: 0 0 var(--sp-2); }
+.qa .q b{
+  font-family: var(--f-mono); font-size: var(--fs-xs);
+  color: var(--faint); margin-right: .6em; letter-spacing: .06em;
+}
+.qa details{ font-size: var(--fs-sm); }
+.qa summary{
+  cursor: pointer; color: var(--accent-ink);
+  font-size: var(--fs-xs); letter-spacing: .04em;
+  list-style: none; display: inline-block;
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .1rem .55rem;
+}
+.qa summary::-webkit-details-marker{ display: none; }
+.qa details[open] summary{ margin-bottom: var(--sp-2); }
+.qa .a{ color: var(--muted); margin: 0; padding-left: var(--sp-3);
+        border-left: 2px solid var(--rule-bold); }
+@media print{ .qa details{ } .qa summary{ display: none; } }
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">Databricks DE Associate</div>
+    <p class="rail-title">ガバナンスと<br>セキュリティ</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-scope"><span class="dot" data-status="block"></span><span>このドメインの範囲</span></a></li>
+        <li><a href="#sec-layers"><span class="dot" data-status="new"></span><span>アクセス制御の3段階</span></a></li>
+        <li><a href="#sec-managed"><span class="dot" data-status="active"></span><span>managed と external</span></a></li>
+        <li><a href="#sec-grant"><span class="dot" data-status="crit"></span><span>GRANT / REVOKE / DENY</span></a></li>
+        <li><a href="#sec-roles"><span class="dot" data-status="active"></span><span>UC の主要ロール</span></a></li>
+        <li><a href="#sec-rls"><span class="dot" data-status="new"></span><span>行フィルタと列マスク</span></a></li>
+        <li><a href="#sec-abac"><span class="dot" data-status="new"></span><span>ABAC ポリシー</span></a></li>
+        <li><a href="#sec-trouble"><span class="dot" data-status="crit"></span><span>権限が効かないときの切り分け</span></a></li>
+        <li><a href="#sec-lineage"><span class="dot" data-status="active"></span><span>lineage と audit log</span></a></li>
+        <li><a href="#sec-myth"><span class="dot" data-status="idle"></span><span>よくある誤解</span></a></li>
+        <li><a href="#sec-lookup"><span class="dot" data-status="ship"></span><span>このドメインの逆引き</span></a></li>
+        <li><a href="#sec-quiz"><span class="dot" data-status="ship"></span><span>確認問題</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/ArSb6q0ei_0" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/ArSb6q0ei_0" rel="noopener">▶ 動画で見る</a></span>
+          <span>ドメイン 7 / Governance and Security</span>
+          <span class="num">2026-08-05 時点</span>
+        </div>
+        <h1>ガバナンスとセキュリティ</h1>
+        <p class="lede">誰に何を見せるか。この改訂で最も入れ替わったドメインです。Delta Sharing と Lakehouse Federation が消え、代わりに行レベルセキュリティ・列マスキング・ABAC が入りました。旧教材の該当章は、ほぼ使えません。</p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-scope" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>このドメインの範囲<span class="tag">旧版から最も入れ替わった領域</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <div class="scroll-x"><table><thead><tr><th>旧版で厚かったもの</th><th>新版で入ったもの</th></tr></thead><tbody><tr><td>Delta Sharing（<strong>範囲外</strong>）</td><td>行レベルセキュリティ / 列マスキング</td></tr><tr><td>Lakehouse Federation（<strong>範囲外</strong>）</td><td>ABAC ポリシー</td></tr><tr><td>—</td><td>managed / external の<strong>相互変換</strong></td></tr></tbody></table></div>
+
+          <p>旧版のガバナンス領域は、体感でかなりの分量が Delta Sharing に割かれていました。
+          <strong>そこは丸ごと空振りになります。</strong>実務では使う機能なので知識として無駄ではありませんが、
+          この試験の対策としては優先度を大きく下げて構いません。
+          Lakehouse Federation も同様で、<strong>新しいガイドには記載自体がありません</strong>。
+          古い問題集をそのまま回すと、この2つに時間を吸われます。</p>
+
+          <h3>ガイドが名指ししている項目</h3>
+          <div class="scroll-x"><table><thead><tr><th>ガイドの記述（要点）</th><th>対応する節</th></tr></thead><tbody><tr><td>managed と external を区別し、作成・変更・削除・<strong>相互変換</strong>を行う</td><td><a href="#sec-managed">managed と external</a></td></tr><tr><td><strong>UI と SQL</strong> で GRANT / REVOKE / DENY を principal に、<strong>適切な階層</strong>で適用する</td><td><a href="#sec-grant">GRANT / REVOKE / DENY</a></td></tr><tr><td>ユーザーグループに基づいて可視性を制限する<strong>列マスキングと行レベルセキュリティ</strong>を理解する</td><td><a href="#sec-rls">行フィルタと列マスク</a></td></tr><tr><td><strong>centrally control</strong> するための ABAC ポリシーを理解する</td><td><a href="#sec-abac">ABAC ポリシー</a></td></tr><tr><td>データの来歴と操作の記録（lineage / audit log）</td><td><a href="#sec-lineage">lineage と audit log</a></td></tr></tbody></table></div>
+
+          <p class="note">動詞に注目してください。managed / external と GRANT は
+          <strong>「実行する（perform / configure）」</strong>＝手を動かすレベル。
+          行フィルタ・列マスク・ABAC は<strong>「理解する（understand）」</strong>＝
+          何がどう効くかを説明できるレベル。ABAC の細かい DDL を暗記する必要はありません。
+          <strong>使いどころと効き方</strong>が問われます。</p>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">このドメインは3段階で理解する</p>
+            <p><strong>GRANT（読める / 読めないの二択）→ 行フィルタ・列マスク（1テーブル内）→ ABAC（横断）。</strong>
+            適用範囲がだんだん広がっていきます。問題文の<strong>範囲の広さ</strong>で、どの段を答えるかが決まります。
+            次の節で、この3段を1本の流れとして通します。</p>
+          </div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-layers" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>アクセス制御の3段階<span class="tag">このドメイン全体を貫く1本の軸</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>このドメインに出てくる機能は、バラバラに並んでいるように見えて、
+          実際には<strong>「1つの要件を、どこまで細かく・どこまで広く効かせたいか」</strong>という
+          一本の軸の上に並んでいます。順番に見ると、全部が同じ話の続きだと分かります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>段</th><th>仕組み</th><th>効く単位</th><th>答えられる要件</th><th>限界</th></tr></thead><tbody><tr><td><strong>1段目</strong></td><td><code>GRANT</code> / <code>REVOKE</code> / <code>DENY</code></td><td>オブジェクト（カタログ / スキーマ / テーブル）</td><td>「このグループはこのテーブルを読んでよい」</td><td><strong>読める / 読めないの二択</strong>しか作れない</td></tr><tr><td><strong>2段目</strong></td><td>row filter / column mask</td><td>1テーブルの中の<strong>行と列</strong></td><td>「営業は自分の地域の行だけ」「メールは伏せて」</td><td><strong>テーブルごとに設定する</strong>＝増えると設定漏れが出る</td></tr><tr><td><strong>3段目</strong></td><td>ABAC ポリシー</td><td>タグ（＝属性）を通じて<strong>カタログ / スキーマ配下すべて</strong></td><td>「PII タグの列は、全社どこでもマスク」</td><td>個別の細かい例外は結局2段目で書く</td></tr></tbody></table></div>
+
+          <p>段が上がるほど<strong>設定の場所が「対象そのもの」から遠ざかり、適用範囲が広がります</strong>。
+          1段目はテーブルを名指しします。2段目もテーブルを名指ししますが、中身の見え方を変えます。
+          3段目はテーブルを名指ししません。<strong>タグという属性を名指しする</strong>ので、
+          まだ存在しないテーブルにも先回りして効きます。</p>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">問題文から段を決める2つの問い</p>
+            <p><strong>① 全部見せるか、全部隠すかで足りるか。</strong>
+            足りるなら1段目（GRANT）。足りないなら2段目以降。<br>
+            <strong>② 話は1テーブルで閉じているか。</strong>
+            閉じているなら2段目（row filter / column mask）。
+            「複数テーブル」「全社」「新しく作られるテーブルにも」なら3段目（ABAC）。</p>
+          </div>
+
+          <p class="note">この3段は<strong>置き換えではなく積み重ね</strong>です。
+          ABAC を入れても GRANT は要ります。そもそもテーブルに <code>SELECT</code> が無い人には、
+          行フィルタも列マスクも出番がありません。<strong>1段目を通過した人に対して、2段目・3段目が効きます。</strong>
+          「ABAC を設定したのに、あの人はまだテーブル全体が読めてしまう」といった状況が問題文に出たら、
+          段の取り違えではなく<strong>タグの付け忘れ</strong>を疑うのが筋です。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-managed" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>managed table と external table<span class="tag">判別は一文で済む</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">判別の一文</p>
+            <p><strong>「DROP TABLE したら、実データはどうなるか」</strong>
+            managed は消える。external は残る。ここだけで大半の問題が切れます。</p>
+          </div>
+
+          <p>なぜそうなるのかを押さえておくと、応用問題にも効きます。
+          <strong>managed table は、Unity Catalog が保存場所を決めています。</strong>
+          UC が実体を持っているので、テーブルを消せば実体も消します。
+          <strong>external table は、<code>LOCATION</code> で指定した場所にあるデータを「登録している」だけ</strong>です。
+          登録を解除しても、データはそこに残ります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>managed</th><th>external</th></tr></thead><tbody><tr><td>作り方</td><td><code>LOCATION</code> を<strong>書かない</strong></td><td><code>LOCATION</code> を<strong>書く</strong></td></tr><tr><td>場所を決めるのは</td><td>Unity Catalog</td><td>自分</td></tr><tr><td>DROP したら</td><td><strong>データも消える</strong></td><td><strong>定義だけ消える</strong></td></tr><tr><td>Predictive Optimization</td><td><strong>対象</strong></td><td>対象外</td></tr><tr><td>他システムからの直接読み書き</td><td>想定しない</td><td><strong>できる（それが選ぶ理由）</strong></td></tr><tr><td>確認方法</td><td><code>DESCRIBE EXTENDED</code> の Type 欄に MANAGED と出る</td><td>同じく Type 欄に EXTERNAL と出る</td></tr></tbody></table></div>
+
+          <h3>作る</h3>
+          <div class="scroll-x"><pre><code>-- managed（LOCATION を書かない）
+CREATE TABLE prod.silver.orders (
+  order_id BIGINT,
+  amount   DOUBLE,
+  region   STRING
+);
+
+-- external（LOCATION を書く）
+CREATE TABLE prod.bronze.raw_orders (
+  order_id BIGINT,
+  amount   DOUBLE
+)
+LOCATION 's3://existing-bucket/raw/orders/';
+
+-- CTAS でも同じ。LOCATION の有無だけが分かれ目
+CREATE TABLE prod.gold.daily_sales AS SELECT ... ;                    -- managed
+CREATE TABLE prod.gold.daily_sales LOCATION 's3://.../gold/daily/'
+AS SELECT ... ;                                                       -- external</code></pre></div>
+
+          <p class="note"><strong>分かれ目は <code>LOCATION</code> の一行だけ</strong>です。
+          スキーマ定義でも CTAS でも、判定のしかたは変わりません。
+          なお external を作るには、その保存先に対応する
+          <strong>external location / storage credential</strong> が用意され、
+          そこへの権限が必要です。「パスを書いたのに作れない」はこの不足です。</p>
+
+          <h3>変更する・削除する</h3>
+          <div class="scroll-x"><pre><code>-- 名前を変える／コメントを付ける（managed でも external でも同じ）
+ALTER TABLE prod.silver.orders RENAME TO prod.silver.orders_v2;
+ALTER TABLE prod.silver.orders SET TBLPROPERTIES ('owner_team' = 'de');
+
+-- 列を足す
+ALTER TABLE prod.silver.orders ADD COLUMN channel STRING;
+
+-- 削除。ここだけ結果が決定的に違う
+DROP TABLE prod.silver.orders;      -- managed: 定義もデータも消える
+DROP TABLE prod.bronze.raw_orders;  -- external: 定義だけ消える。ファイルは残る</code></pre></div>
+
+          <p class="note">Unity Catalog の managed table は、DROP した後も
+          <strong>一定期間は <code>UNDROP TABLE</code> で復元できます</strong>。
+          ただし「消えない」わけではありません。試験で問われるのはあくまで
+          <strong>「DROP でデータが消えるのはどちらか」</strong>という区別です。</p>
+
+          <h3>相互変換する</h3>
+          <p>ガイドは <em>convert between managed and external tables</em> とも書いており、
+          <strong>相互に変換できる</strong>ことまで範囲に入っています。一度決めたら変えられない、ではありません。</p>
+
+          <div class="scroll-x"><pre><code>-- external → managed（実体を UC の管理領域へ移す）
+ALTER TABLE prod.bronze.raw_orders SET MANAGED;
+
+-- managed → external は「置きたい場所へ作り直す」のが確実
+CREATE TABLE prod.bronze.raw_orders_ext
+LOCATION 's3://my-bucket/bronze/raw_orders/'
+AS SELECT * FROM prod.bronze.raw_orders;</code></pre></div>
+
+          <div class="scroll-x"><table><thead><tr><th>変換の向き</th><th>主な動機</th></tr></thead><tbody><tr><td><strong>external → managed</strong></td><td>既存データを UC の管理下に取り込む／<a href="05-optimization.html">Predictive Optimization</a> の<strong>対象にしたい</strong></td></tr><tr><td><strong>managed → external</strong></td><td>実体を自分の決めた場所に置きたい／<strong>他システムから直接読ませたい</strong></td></tr></tbody></table></div>
+
+          <p class="note">構文の細部よりも、<strong>「どちらの向きに、なぜ変換するのか」</strong>が問われる作りです。
+          「自動最適化を効かせたい」と書いてあれば managed 方向、
+          「外部システムからも同じ実体を読みたい」と書いてあれば external 方向です。
+          これは <a href="05-optimization.html">Liquid Clustering</a> が
+          <code>ALTER</code> で変えられるのと同じ流れで、
+          Databricks は全体として<strong>「後から変えられる」方向</strong>に進んでいます。</p>
+
+          <h3>DESCRIBE EXTENDED の見方</h3>
+          <div class="scroll-x"><pre><code>DESCRIBE EXTENDED prod.silver.orders;</code></pre></div>
+
+          <div class="scroll-x"><table><thead><tr><th>見る欄</th><th>読み取れること</th></tr></thead><tbody><tr><td><strong>Type</strong></td><td><strong>MANAGED / EXTERNAL</strong>。この節の主役</td></tr><tr><td><strong>Location</strong></td><td>実体のパス。external なら自分が指定した場所、managed なら UC の管理領域</td></tr><tr><td>Provider</td><td><code>delta</code> かどうか（Delta 前提の機能が効くか）</td></tr><tr><td><strong>Owner</strong></td><td>所有者。<strong>個人名になっていたら要注意</strong>（後述の移譲へ）</td></tr><tr><td>Table Properties</td><td><code>delta.*</code> の設定値。Liquid Clustering 等の状態</td></tr><tr><td>Comment / Table Constraints</td><td>説明・制約の有無</td></tr></tbody></table></div>
+
+          <p class="note">Delta 固有の物理情報（ファイル数、サイズ、クラスタリング列など）を見たいときは
+          <code>DESCRIBE DETAIL</code> のほうが向いています。
+          <strong><code>DESCRIBE EXTENDED</code> は「どういうテーブルか」、
+          <code>DESCRIBE DETAIL</code> は「いま物理的にどうなっているか」。</strong>
+          このドメインで使うのは前者です。</p>
+
+          <p class="note">新規作成は<strong>迷ったら managed</strong>。
+          「既にストレージにあるデータを登録したい」「他システムが同じ実体を直接読む」など、
+          <strong>外部に理由があるときだけ</strong> external を選びます。
+          なんとなく external を選ぶと、実体の管理を自分で背負い込むことになります。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-grant" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>GRANT / REVOKE / DENY<span class="tag">公式サンプル問題あり。粒度と階層で殺しにくる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p><em>…applying GRANT, REVOKE, and DENY privileges to
+          <strong>principals (users, groups, and service principals)</strong>
+          at <strong>appropriate levels of the security hierarchy</strong>.</em></p>
+
+          <p>この一文に、問われる要素が3つ全部入っています。
+          <strong>3つの操作</strong>（GRANT / REVOKE / DENY）、
+          <strong>3種類の principal</strong>（user / group / service principal）、
+          そして<strong>適切な階層</strong>。順に潰します。</p>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">公式サンプル問題：analyst グループに読み取り専用アクセスを与える</p>
+            <p class="num">（USE CATALOG / USE SCHEMA は付与済みという但し書きがある）</p>
+            <ul>
+              <li>A <code>GRANT ALL PRIVILEGES ON SCHEMA sales_data TO analysts</code>
+                — <strong>権限が広すぎる</strong></li>
+              <li><strong>B（正解）</strong> <code>GRANT SELECT ON SCHEMA sales_data TO analysts</code></li>
+              <li>C <code>GRANT INSERT ON SCHEMA sales_data TO analysts</code>
+                — <strong>権限の種類が違う</strong>（書き込み）</li>
+              <li>D <code>GRANT SELECT ON ALL TABLES IN SCHEMA …</code>
+                — スキーマに対する標準形ではない</li>
+            </ul>
+            <p>誤答の型は<strong>広すぎる／種類が違う／対象の書き方が違う</strong>。
+            そして但し書きの存在自体が、<strong>階層を理解しているかの確認</strong>になっています。</p>
+          </div>
+
+          <p>D をもう少し丁寧に見ておきます。Unity Catalog では
+          <strong>スキーマに付与した権限は、その配下のテーブルに継承されます</strong>。
+          しかも<strong>あとから作られたテーブルにも効きます</strong>。
+          だから「全テーブルに1つずつ配る」という発想の書き方は、そもそも不要なのです。
+          <strong>継承を知っていれば B を選べる</strong>——という設計になっています。</p>
+
+          <h3>権限の種類と、付与できる相手</h3>
+          <div class="scroll-x"><table><thead><tr><th>権限</th><th>できること</th><th>主に付与する対象</th></tr></thead><tbody><tr><td><code>USE CATALOG</code></td><td>カタログを<strong>通り抜ける</strong>（中身が読めるわけではない）</td><td>カタログ</td></tr><tr><td><code>USE SCHEMA</code></td><td>スキーマを<strong>通り抜ける</strong></td><td>カタログ / スキーマ</td></tr><tr><td><code>SELECT</code></td><td><strong>読む</strong></td><td>カタログ / スキーマ / テーブル / ビュー</td></tr><tr><td><code>MODIFY</code></td><td><strong>書き換える</strong>（INSERT / UPDATE / DELETE / MERGE）</td><td>カタログ / スキーマ / テーブル</td></tr><tr><td><code>CREATE TABLE</code></td><td>テーブルを作る</td><td>カタログ / スキーマ</td></tr><tr><td><code>CREATE SCHEMA</code></td><td>スキーマを作る</td><td>カタログ</td></tr><tr><td><code>CREATE FUNCTION</code></td><td>関数を作る（<strong>行フィルタ・列マスクの関数はこれ</strong>）</td><td>カタログ / スキーマ</td></tr><tr><td><code>READ VOLUME</code> / <code>WRITE VOLUME</code></td><td>ボリューム上のファイルを読む / 書く</td><td>カタログ / スキーマ / ボリューム</td></tr><tr><td><code>EXECUTE</code></td><td>関数を実行する</td><td>カタログ / スキーマ / 関数</td></tr><tr><td><code>BROWSE</code></td><td><strong>存在とメタデータだけ見える</strong>。中身は読めない</td><td>カタログ / スキーマ / テーブル</td></tr><tr><td><code>APPLY TAG</code></td><td><strong>タグを付ける</strong>（<a href="#sec-abac">ABAC</a> の前提）</td><td>カタログ / スキーマ / テーブル</td></tr><tr><td><code>ALL PRIVILEGES</code></td><td>上記すべて。<strong>「広すぎる」誤答の定番</strong></td><td>各オブジェクト</td></tr></tbody></table></div>
+
+          <p class="note"><strong>読む系は <code>SELECT</code>、書く系は <code>MODIFY</code>、
+          通り抜けは <code>USE</code>。</strong>この3つの区別が付けば、
+          「読み取り専用にしたい」「書き込みも許したい」といった問題文から、
+          選ぶべき権限は一意に決まります。
+          <code>INSERT</code> のような単発の動詞を選ばせる選択肢は、
+          たいてい「種類が違う」型の誤答です。</p>
+
+          <h3>書き方</h3>
+          <div class="scroll-x"><pre><code>-- 対象の種類を明示して付与する
+GRANT USE CATALOG ON CATALOG prod TO `analysts`;
+GRANT USE SCHEMA  ON SCHEMA  prod.sales TO `analysts`;
+GRANT SELECT      ON SCHEMA  prod.sales TO `analysts`;   -- 配下のテーブルに継承される
+GRANT SELECT      ON TABLE   prod.sales.orders TO `analysts`;
+GRANT MODIFY      ON TABLE   prod.sales.orders TO `etl_sp`;
+
+-- 取り消す / 禁止する
+REVOKE SELECT ON TABLE prod.sales.orders FROM `analysts`;
+DENY   SELECT ON TABLE prod.sales.salary FROM `tanaka@example.com`;
+
+-- いま誰に何が付いているかを見る
+SHOW GRANTS ON SCHEMA prod.sales;
+SHOW GRANTS `tanaka@example.com` ON TABLE prod.sales.orders;</code></pre></div>
+
+          <h3>階層を通り抜ける権限が要る</h3>
+          <p><code>USE CATALOG</code> → <code>USE SCHEMA</code> → <code>SELECT</code>。
+          部屋の鍵をもらっても、エントランスと廊下を通れなければ部屋にたどり着けません。
+          <a href="01-platform.html">Unity Catalog の3階層</a>で扱った
+          <strong>「住所の形が、そのまま権限の形になる」</strong>が、ここで回収されます。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>階層</th><th>必要な権限</th><th>建物のたとえ</th></tr></thead><tbody><tr><td>カタログ <code>prod</code></td><td><code>USE CATALOG</code></td><td>エントランスを通る</td></tr><tr><td>スキーマ <code>prod.sales</code></td><td><code>USE SCHEMA</code></td><td>廊下を通る</td></tr><tr><td>テーブル <code>prod.sales.orders</code></td><td><code>SELECT</code></td><td>部屋の鍵</td></tr></tbody></table></div>
+
+          <p class="note"><strong>「SELECT を付与したのに読めない」は、ほぼ USE 権限の不足です。</strong>
+          実務でもよく起きます。逆に <code>USE</code> だけあって <code>SELECT</code> が無いと、
+          <strong>テーブルの存在は見えるのに中身が読めない</strong>という状態になります。
+          この2つの症状の違いは、<a href="#sec-trouble">切り分けの節</a>で使います。</p>
+
+          <h3>REVOKE と DENY の違い</h3>
+          <p><strong>REVOKE は「取り消す」、DENY は「禁止する」。</strong>
+          グループ経由で権限が来ている人には REVOKE が効きません（個人に直接与えていないため）。
+          グループから取り消せば、他のメンバーまで読めなくなります。
+          <strong>その人だけ見せたくないときに DENY を使います。</strong></p>
+
+          <div class="scroll-x"><table><thead><tr><th>状況</th><th>打つ手</th><th>理由</th></tr></thead><tbody><tr><td>個人に直接与えた権限を外したい</td><td><code>REVOKE</code></td><td>与えたものを無かったことにするだけで済む</td></tr><tr><td><strong>グループ経由の権限を、1人だけ打ち消したい</strong></td><td><strong><code>DENY</code></strong></td><td>REVOKE では対象がない。グループから外すと他の人が巻き込まれる</td></tr><tr><td>特定テーブルだけ、全員に見せたくない</td><td><code>REVOKE</code> で整理し直す</td><td>DENY を積むと、あとで理由が追えなくなる</td></tr></tbody></table></div>
+
+          <p class="note"><strong>DENY は GRANT より強い</strong>と考えてください。
+          「GRANT したはずなのに読めない」の原因として、USE 不足の次に疑うのが DENY です。
+          常用するものではなく、<strong>例外を1人だけ切るための道具</strong>です。</p>
+
+          <h3>principal は3種類</h3>
+          <div class="scroll-x"><table><thead><tr><th>principal</th><th>実体</th><th>典型的な使い所</th></tr></thead><tbody><tr><td><strong>user</strong></td><td>個人アカウント</td><td>一時的な例外。原則ここには付与しない</td></tr><tr><td><strong>group</strong></td><td>グループ</td><td><strong>定石。人事異動があってもメンバーを入れ替えるだけで済む</strong></td></tr><tr><td><strong>service principal</strong></td><td>システム用の識別子</td><td><a href="04-jobs-cicd.html">CI/CD やジョブからの自動実行</a></td></tr></tbody></table></div>
+
+          <p>付与は<strong>個人ではなくグループに</strong>するのが定石です。
+          問題文に<strong>「個人ごとに権限を付与している」</strong>という状況が書かれていたら、
+          それは改善対象として提示されています。
+          同じ理由で、CI/CD からの実行に個人のトークンを使うのも避けます。
+          その人が異動した瞬間にパイプラインが止まります。</p>
+
+          <h3>UI でも同じことができる</h3>
+          <p>ガイドは <em>using the UI and SQL</em> と、わざわざ両方を挙げています。
+          Catalog Explorer でテーブルやスキーマを開くと <strong>Permissions タブ</strong>があり、
+          principal ごとの権限一覧、付与できる権限の種類、
+          そして<strong>カタログ→スキーマ→テーブルという階層と継承の状況</strong>が表示されます。
+          試験では SQL の形で出ることが多いですが、
+          <strong>「UI ではできない」と書いてある選択肢は誤り</strong>だと判断できます。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-roles" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Unity Catalog の主要ロール<span class="tag">権限を配れるのはオーナーか上位管理者だけ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>前節は「どう与えるか」でした。ここは<strong>「そもそも誰が与えられるのか」</strong>です。</p>
+
+          <div class="scroll-x"><table><thead><tr><th>ロール</th><th>できること</th><th>守備範囲</th></tr></thead><tbody><tr><td>アカウント管理者</td><td>アカウント全体の設定、メタストアの作成、ユーザー・グループの管理</td><td>アカウント全体</td></tr><tr><td>メタストア管理者</td><td>そのメタストア配下の<strong>全オブジェクトを管理</strong>、カタログ作成、所有権の移譲</td><td><strong>データ側</strong>（カタログ / スキーマ / テーブル）</td></tr><tr><td>ワークスペース管理者</td><td>そのワークスペースの設定、クラスタ・ジョブの管理</td><td><strong>環境側</strong>（コンピュート / ジョブ）</td></tr><tr><td><strong>オーナー</strong></td><td><strong>自分が所有するオブジェクト</strong>の権限付与・変更・削除</td><td>そのオブジェクトとその配下</td></tr></tbody></table></div>
+
+          <p><strong>権限を与えられるのは、オーナーか上位の管理者だけ</strong>です。
+          SELECT を持っているだけの人が、他人に SELECT を与えることはできません。
+          <strong>「自分が読めるから、他の人にも読ませてあげよう」は成立しない</strong>——
+          権限を配る権限は、読む権限とは別物です。ここは素直に出題できるポイントです。</p>
+
+          <h3>オーナーは既定で「作った人」になる</h3>
+          <p>テーブルを作った人が、既定でそのテーブルのオーナーになります。
+          自分でテーブルを作れば、自分がオーナーです。
+          オーナーはそのオブジェクトにフルコントロールを持ち、権限を配ることも削除することもできます。
+          便利ですが、そのまま運用すると次の事故が起きます。</p>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 272" role="img" aria-label="DROP TABLE したときに、managed table は実データも消えるのに対し、external table はメタデータだけ消えて実データが残ることを示す図">
+              <defs>
+                <marker id="v1-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="v1-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="v1-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <text x="8" y="18" class="d-t-mono">DROP TABLE したとき</text>
+
+              <text x="8" y="48" class="d-t">managed table</text>
+              <rect x="8"   y="58"  width="200" height="56" rx="2" class="d-box-crit"/>
+              <text x="108" y="80"  class="d-t-sm" text-anchor="middle">メタデータ</text>
+              <text x="108" y="100" class="d-t-crit" text-anchor="middle">消える</text>
+
+              <line x1="214" y1="86" x2="256" y2="86" class="d-line-crit" marker-end="url(#v1-ar-crit)"/>
+
+              <rect x="262" y="58"  width="200" height="56" rx="2" class="d-box-crit"/>
+              <text x="362" y="80"  class="d-t-sm" text-anchor="middle">実データ</text>
+              <text x="362" y="100" class="d-t-crit" text-anchor="middle">消える</text>
+
+              <text x="486" y="80"  class="d-t-crit">両方まとめて消える</text>
+              <text x="486" y="100" class="d-t-sm">UC が置き場所も管理している</text>
+
+              <text x="8" y="158" class="d-t">external table</text>
+              <rect x="8"   y="168" width="200" height="56" rx="2" class="d-box-crit"/>
+              <text x="108" y="190" class="d-t-sm" text-anchor="middle">メタデータ</text>
+              <text x="108" y="210" class="d-t-crit" text-anchor="middle">消える</text>
+
+              <line x1="214" y1="196" x2="256" y2="196" class="d-line-crit" marker-end="url(#v1-ar-crit)"/>
+
+              <rect x="262" y="168" width="200" height="56" rx="2" class="d-box-ship"/>
+              <text x="362" y="190" class="d-t-sm" text-anchor="middle">実データ</text>
+              <text x="362" y="210" class="d-t"    text-anchor="middle">残る</text>
+
+              <text x="486" y="190" class="d-t-key">ファイルはそのまま</text>
+              <text x="486" y="210" class="d-t-sm">置き場所は自分で決めている</text>
+
+              <text x="8" y="256" class="d-t-sm">この違いは「どちらが優れているか」ではなく、置き場所を誰が管理しているかから来ています。</text>
+            </svg>
+            <figcaption><strong>問われるのは、消したときに何が残るかです。</strong>managed は置き場所ごと Unity Catalog が持っているので、テーブルを消せばファイルも消えます。external は場所を自分で指定しているので、登録を解いてもファイルには手を出しません。「他のツールからも同じファイルを読む」なら external、「まとめて面倒を見てほしい」なら managed です。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">個人所有のままにすると詰む</p>
+            <p>田中さんがテーブルを作り、田中さんがオーナーのまま運用が続きます。
+            そして田中さんが異動・退職すると、<strong>誰も権限を変えられなくなります</strong>。
+            メタストア管理者が介入すれば解決しますが、
+            <strong>そういうテーブルが何百個もあれば手に負えません</strong>。</p>
+            <div class="scroll-x"><pre><code>-- オーナーをグループへ移譲する
+ALTER TABLE  prod.silver.orders OWNER TO `data_engineering_team`;
+ALTER SCHEMA prod.silver        OWNER TO `data_engineering_team`;</code></pre></div>
+            <p>定石は<strong>オーナーをグループへ移譲</strong>すること。権限を個人ではなくグループに付与するのと同じ発想です。
+            <strong>人に紐づけると、人がいなくなったときに壊れます。</strong></p>
+          </div>
+
+          <h3>逆引き</h3>
+          <div class="scroll-x"><table><thead><tr><th>やりたいこと</th><th>必要な立場</th></tr></thead><tbody><tr><td>メタストアを作成したい</td><td>アカウント管理者</td></tr><tr><td>カタログを作成したい</td><td>メタストア管理者</td></tr><tr><td>自分が作ったテーブルの権限を他人に与えたい</td><td>オーナー（＝自分）が <code>GRANT</code></td></tr><tr><td><strong>SELECT だけ持つ人が権限を配ろうとしている</strong></td><td><strong>できない。</strong>オーナーではないため</td></tr><tr><td>担当者の異動で権限変更ができなくなった</td><td>オーナーを<strong>グループへ移譲</strong></td></tr><tr><td>クラスタの設定を変えたい</td><td>ワークスペース管理者</td></tr></tbody></table></div>
+
+          <p class="note">切り分けの軸は<strong>「データの話（メタストア側）か、環境の話（ワークスペース側）か」</strong>。
+          カタログ・スキーマ・テーブルの話ならメタストア側、
+          クラスタ・ジョブの話ならワークスペース側で、<strong>管理する人が違います</strong>。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-rls" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>行レベルセキュリティと列マスキング<span class="tag">GRANT では作れない制御</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p><code>GRANT</code> は<strong>「読める / 読めない」の二択</strong>しか作れません。
+          「営業は自分の担当地域の行だけ」「分析チームにはメールアドレスを伏せて」には応えられず、
+          従来はテーブルやビューを分けるしかありませんでした。
+          その結果、<strong>同じデータが複数箇所にコピーされ</strong>、
+          元テーブルを直すたびに全部を直して回ることになります。</p>
+
+          <p>行フィルタと列マスクを使うと、<strong>1つのテーブルのまま、見る人によって中身が変わります。</strong>
+          行を絞るのが row filter、値を隠すのが column mask です。</p>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 222" role="img" aria-label="row filter は条件に合わない行がそもそも返らないのに対し、column mask は行は返るが特定の列の値が伏せられることを示す比較図">
+              <defs>
+                <marker id="v2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="v2-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="v2-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <text x="8" y="18" class="d-t-mono">同じテーブルを、見る人によって違う形で見せる</text>
+
+              <rect x="8"   y="32" width="330" height="120" rx="2" class="d-box"/>
+              <text x="24"  y="52" class="d-t">row filter — 行を絞る</text>
+              <line x1="24" y1="62" x2="322" y2="62" class="d-rule"/>
+              <rect x="24"  y="70" width="298" height="24" class="d-box-ship"/>
+              <text x="173" y="87" class="d-t-sm" text-anchor="middle">東京支店の行（見える）</text>
+              <rect x="24"  y="98" width="298" height="24" class="d-box-idle"/>
+              <text x="173" y="115" class="d-t-sm" text-anchor="middle">大阪支店の行（そもそも返らない）</text>
+              <text x="24"  y="142" class="d-t-sm">テーブルに適用する</text>
+
+              <rect x="382" y="32" width="330" height="120" rx="2" class="d-box"/>
+              <text x="398" y="52" class="d-t">column mask — 値を隠す</text>
+              <line x1="398" y1="62" x2="696" y2="62" class="d-rule"/>
+              <rect x="398" y="70" width="140" height="52" class="d-box-ship"/>
+              <text x="468" y="90"  class="d-t-sm" text-anchor="middle">氏名</text>
+              <text x="468" y="110" class="d-t-sm" text-anchor="middle">（見える）</text>
+              <rect x="548" y="70" width="148" height="52" class="d-box-crit"/>
+              <text x="622" y="90"  class="d-t-sm"   text-anchor="middle">メールアドレス</text>
+              <text x="622" y="110" class="d-t-crit" text-anchor="middle">***（伏せられる）</text>
+              <text x="398" y="142" class="d-t-sm">列に適用する</text>
+
+              <text x="8" y="184" class="d-t-key">行が消えるのか、値が伏せられるのか。</text>
+              <text x="8" y="206" class="d-t-sm">「担当外のデータは見せない」なら行フィルタ。「行は見えてよいが個人情報だけ隠す」なら列マスク。</text>
+            </svg>
+            <figcaption><strong>どちらも作り方は同じで、適用先だけが違います。</strong>関数を作って、適用する。この2ステップは共通です。違うのは、row filter がテーブルに、column mask が列に付くこと。問題文を読むときは「行が減るのか、値が変わるのか」で切ってください。件数が合わなくなるのが行フィルタ、件数は同じで中身が伏せられるのが列マスクです。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">どちらも「関数を作る → 適用する」の2ステップ</p>
+            <p>構文の細部を忘れても、この形さえ覚えていれば思い出せます。
+            <strong>row filter はテーブルに適用、column mask は列に適用。</strong>
+            関数はテーブルと同じく Unity Catalog のスキーマの下に置き、
+            <code>catalog.schema.function</code> の3階層で修飾します。</p>
+          </div>
+
+          <h3>row filter — 行を絞る</h3>
+          <div class="scroll-x"><pre><code>-- ① 判定する関数を作る（true を返した行だけが見える）
+CREATE FUNCTION prod.sec.region_filter(region STRING)
+RETURN is_account_group_member('admin') OR region = 'JP';
+
+-- ② テーブルに適用する
+ALTER TABLE prod.silver.orders
+SET ROW FILTER prod.sec.region_filter ON (region);
+
+-- 外す
+ALTER TABLE prod.silver.orders DROP ROW FILTER;</code></pre></div>
+
+          <p>admin グループの人には全行が見え、それ以外には <code>region = 'JP'</code> の行だけが見えます。
+          <code>ON (…)</code> には<strong>関数に渡す列</strong>を並べます。
+          複数列を渡せば、条件を組み合わせられます。</p>
+
+          <div class="scroll-x"><pre><code>-- 複数条件：担当者本人 or 管理職 or 監査グループ
+CREATE FUNCTION prod.sec.order_visibility(region STRING, owner_email STRING)
+RETURN is_account_group_member('admin')
+    OR is_account_group_member('auditor')
+    OR owner_email = current_user()
+    OR (is_account_group_member('sales_jp') AND region = 'JP');
+
+ALTER TABLE prod.silver.orders
+SET ROW FILTER prod.sec.order_visibility ON (region, owner_email);</code></pre></div>
+
+          <h3>column mask — 値を隠す</h3>
+          <div class="scroll-x"><pre><code>-- ① マスクする関数を作る（列の値を受け取り、置き換えた値を返す）
+CREATE FUNCTION prod.sec.mask_email(email STRING)
+RETURN CASE WHEN is_account_group_member('pii_reader') THEN email
+            ELSE '***@masked' END;
+
+-- ② 列に適用する
+ALTER TABLE prod.silver.customers
+ALTER COLUMN email SET MASK prod.sec.mask_email;
+
+-- 外す
+ALTER TABLE prod.silver.customers ALTER COLUMN email DROP MASK;</code></pre></div>
+
+          <p>マスクは<strong>「全部隠す」だけではありません</strong>。
+          部分的に残す、粒度を落とす、といった作り方もできます。
+          「完全に見せない」か「そのまま見せる」かの二択でない点が、GRANT との決定的な違いです。</p>
+
+          <div class="scroll-x"><pre><code>-- 部分マスク：ドメインだけ残す
+CREATE FUNCTION prod.sec.mask_email_domain(email STRING)
+RETURN CASE
+  WHEN is_account_group_member('pii_reader') THEN email
+  WHEN email IS NULL THEN NULL
+  ELSE '***@' || split_part(email, '@', 2)
+END;
+
+-- 粒度を落とす：生年月日を「年」だけにする
+CREATE FUNCTION prod.sec.mask_birth(d DATE)
+RETURN CASE WHEN is_account_group_member('pii_reader') THEN d
+            ELSE date_trunc('YEAR', d) END;</code></pre></div>
+
+          <h3>判定に使う関数</h3>
+          <div class="scroll-x"><table><thead><tr><th>関数</th><th>返すもの</th><th>使い方</th></tr></thead><tbody><tr><td><code>is_account_group_member('グループ名')</code></td><td>そのユーザーが指定グループのメンバーか（true / false）</td><td><strong>いちばんよく使う。</strong>グループ単位で見せ方を分ける</td></tr><tr><td><code>current_user()</code></td><td>実行中のユーザー名</td><td><strong>「担当者列が自分と一致する行だけ」</strong>のような本人限定</td></tr></tbody></table></div>
+
+          <p class="note"><strong>グループで分けるなら <code>is_account_group_member</code>、
+          本人だけに絞るなら <code>current_user()</code>。</strong>
+          ガイドの記述が <em>based on user groups</em> となっているとおり、
+          出題の中心はグループ判定のほうです。</p>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">判別の一文</p>
+            <p><strong>「件数は見せてよいか」。</strong></p>
+            <p>row filter は<strong>行が消える</strong>ので件数も変わります。取引の存在自体を隠したいときはこちら。<br>
+            column mask は<strong>行が残り、値だけ変わる</strong>ので件数は分かります。
+            顧客数は知ってよいがメールアドレスは見せたくない、ならこちら。</p>
+          </div>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>row filter</th><th>column mask</th></tr></thead><tbody><tr><td>適用先</td><td><strong>テーブル</strong></td><td><strong>列</strong></td></tr><tr><td>効果</td><td>条件に合わない<strong>行が消える</strong></td><td>行は残り、<strong>値が置き換わる</strong></td></tr><tr><td><code>COUNT(*)</code></td><td><strong>変わる</strong></td><td>変わらない</td></tr><tr><td>隠せるもの</td><td><strong>レコードの存在そのもの</strong></td><td>その列の値だけ</td></tr><tr><td>数の制限</td><td>1テーブルに<strong>1つ</strong></td><td>1列に<strong>1つ</strong></td></tr><tr><td>適用</td><td><code>SET ROW FILTER … ON (列)</code></td><td><code>ALTER COLUMN … SET MASK 関数</code></td></tr></tbody></table></div>
+
+          <p class="note">運用上の注意を2つ。
+          ①<strong>関数を参照するユーザーに <code>EXECUTE</code> を配る必要はありません</strong>。
+          呼び出すのは Unity Catalog 側です。関数を<strong>作る</strong>側に
+          <code>CREATE FUNCTION</code> が要ります。
+          ②<strong>フィルタやマスクが効いているとき、エラーにはなりません。</strong>
+          結果が静かに減る・変わるだけです。
+          「0件で返ってくるが権限エラーは出ない」は、権限不足ではなく row filter を疑う場面です。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-abac" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>ABAC ポリシー<span class="tag">テーブルごとに設定するのをやめる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p><em>Understand Unity Catalog ABAC policies to <strong>centrally control</strong>
+          row-level filtering and column masking for sensitive data.</em></p>
+
+          <p>ABAC は <strong>Attribute-Based Access Control</strong>（属性ベースのアクセス制御）の略です。
+          キーワードは <strong>centrally control</strong>——一元的に制御する、です。</p>
+
+          <p>前節のやり方には限界があります。<code>customers.email</code>、<code>orders.email</code>、
+          <code>support.email</code>… と1つずつ設定していくと、
+          <strong>新しいテーブルができたときに必ず設定を忘れます</strong>。そして忘れたことに気づく仕組みもありません。
+          気づくのは、たいてい漏れたあとです。</p>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 270" role="img" aria-label="列ごとにマスクを設定する方式では新しい列で設定漏れが起きるのに対し、ABAC ではタグに対して1回書けば新しい列にも自動的に効くことを比較した図">
+              <defs>
+                <marker id="v3-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="v3-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="v3-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <text x="8" y="18" class="d-t-mono">列が増えたとき、何が起きるか</text>
+
+              <text x="8" y="46" class="d-t">列ごとに設定する</text>
+              <rect x="8"   y="56"  width="96" height="34" rx="2" class="d-box-ship"/>
+              <text x="56"  y="78"  class="d-t-sm" text-anchor="middle">email ✓</text>
+              <rect x="112" y="56"  width="96" height="34" rx="2" class="d-box-ship"/>
+              <text x="160" y="78"  class="d-t-sm" text-anchor="middle">phone ✓</text>
+              <rect x="216" y="56"  width="96" height="34" rx="2" class="d-box-ship"/>
+              <text x="264" y="78"  class="d-t-sm" text-anchor="middle">addr ✓</text>
+              <rect x="320" y="56"  width="112" height="34" rx="2" class="d-box-crit"/>
+              <text x="376" y="78"  class="d-t-crit" text-anchor="middle">新しい列 ✗</text>
+
+              <text x="452" y="70" class="d-t-crit">設定を忘れる</text>
+              <text x="452" y="88" class="d-t-sm">忘れたことに気づく仕組みも無い</text>
+
+              <text x="8" y="140" class="d-t">タグに対して1回だけ書く</text>
+
+              <rect x="8"   y="152" width="290" height="44" rx="2" class="d-box-acc"/>
+              <text x="153" y="172" class="d-t"    text-anchor="middle">PII タグの付いた列は</text>
+              <text x="153" y="188" class="d-t-sm" text-anchor="middle">pii_reader 以外にはマスクする</text>
+
+              <path d="M304,174 H346" class="d-line-acc" marker-end="url(#v3-ar-acc)"/>
+
+              <rect x="352" y="146" width="86" height="26" rx="2" class="d-box-ship"/>
+              <text x="395" y="164" class="d-t-sm" text-anchor="middle">email</text>
+              <rect x="446" y="146" width="86" height="26" rx="2" class="d-box-ship"/>
+              <text x="489" y="164" class="d-t-sm" text-anchor="middle">phone</text>
+              <rect x="540" y="146" width="86" height="26" rx="2" class="d-box-ship"/>
+              <text x="583" y="164" class="d-t-sm" text-anchor="middle">addr</text>
+              <rect x="352" y="178" width="180" height="26" rx="2" class="d-box-ship"/>
+              <text x="442" y="196" class="d-t-sm" text-anchor="middle">新しい列（タグを付けるだけ）</text>
+
+              <text x="8" y="232" class="d-t-key">効かせ方が逆になっています。</text>
+              <text x="8" y="254" class="d-t-sm">列を見て設定するのではなく、属性を見て効く。だから列が増えても、設定を足す作業は発生しません。</text>
+            </svg>
+            <figcaption><strong>「どの列に設定するか」ではなく「どんな属性の列に効かせるか」。</strong>個別に付ける方式の弱点は、機能ではなく運用にあります。新しいテーブルや列ができたときに設定を忘れ、忘れたことに気づく手段もありません。気づくのはたいてい漏れたあとです。ABAC は効かせ方の向きを逆にして、この抜けをなくします。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">発想の転換</p>
+            <p><strong>「どの列に設定するか」ではなく「どんな属性の列に効かせるか」。</strong>
+            「PII タグの付いた列は、pii_reader 以外にはマスクする」と1つ書いておけば、
+            新しい列にタグを付けるだけで自動的に効きます。</p>
+          </div>
+
+          <h3>仕組みは2つの要素だけ</h3>
+          <div class="scroll-x"><table><thead><tr><th>要素</th><th>中身</th><th>誰が用意するか</th></tr></thead><tbody><tr><td><strong>タグ（属性）</strong></td><td>列・テーブル・スキーマに付ける目印。<code>pii</code>、<code>confidential</code> など</td><td>データを持つチーム。<strong><code>APPLY TAG</code> 権限が要る</strong></td></tr><tr><td><strong>ポリシー</strong></td><td>「このタグには、この制御（マスク関数 / フィルタ関数）」というルール</td><td>ガバナンス側。<strong>カタログ / スキーマ単位で定義</strong></td></tr></tbody></table></div>
+
+          <h3>タグの付け方</h3>
+          <div class="scroll-x"><pre><code>-- 列にタグを付ける
+ALTER TABLE prod.silver.customers
+ALTER COLUMN email SET TAGS ('pii' = 'email');
+
+ALTER TABLE prod.silver.customers
+ALTER COLUMN phone SET TAGS ('pii' = 'phone');
+
+-- テーブル単位・スキーマ単位でも付けられる
+ALTER TABLE  prod.silver.customers SET TAGS ('confidential' = 'high');
+ALTER SCHEMA prod.silver           SET TAGS ('domain' = 'sales');
+
+-- 外す
+ALTER TABLE prod.silver.customers ALTER COLUMN phone UNSET TAGS ('pii');</code></pre></div>
+
+          <p>タグは Catalog Explorer の UI からも付けられます。
+          <strong>付けるだけなら SQL でも UI でもよく、
+          効かせる仕組み（ポリシー）と分離されている</strong>のがこの方式の要点です。
+          データに詳しい人がタグを付け、ガバナンスの人がポリシーを1本書く、と<strong>担当を分けられます</strong>。</p>
+
+          <h3>適用範囲と継承</h3>
+          <div class="scroll-x"><table><thead><tr><th>ポリシーを定義した場所</th><th>効く範囲</th></tr></thead><tbody><tr><td>カタログ</td><td>そのカタログ配下の<strong>全スキーマ・全テーブル・全列</strong></td></tr><tr><td>スキーマ</td><td>そのスキーマ配下の全テーブル・全列</td></tr><tr><td><strong>あとから作られたオブジェクト</strong></td><td><strong>タグが付いていれば自動的に対象になる</strong>（設定作業は不要）</td></tr></tbody></table></div>
+
+          <p>ここが<strong>継承</strong>です。上位に定義したものが下位に降りてきます。
+          この構造は <a href="05-optimization.html">Predictive Optimization</a> とまったく同じで、
+          <strong>Unity Catalog の3階層が、権限・自動最適化・ABAC に共通の土台</strong>になっています。
+          <a href="01-platform.html">L1.3 で構造を丁寧にやった理由</a>が、ここで全部つながります。</p>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>個別に適用</th><th><strong>ABAC</strong></th></tr></thead><tbody><tr><td>設定の単位</td><td>テーブル・列ごと</td><td><strong>タグごと</strong></td></tr><tr><td>新しいテーブル</td><td><strong>設定し忘れる</strong></td><td>タグを付ければ自動</td></tr><tr><td>ルールの変更</td><td>全テーブルを回る</td><td><strong>ポリシーを1つ直す</strong></td></tr><tr><td>棚卸し</td><td>全テーブルを確認</td><td>タグの一覧を見る</td></tr><tr><td>適用範囲</td><td>そのテーブルだけ</td><td>カタログ / スキーマ配下</td></tr><tr><td>例外対応</td><td>書きやすい</td><td>ポリシーの条件かタグ運用で吸収する</td></tr></tbody></table></div>
+
+          <p class="note">棚卸し（「どこに個人情報があるか」）は、
+          タグを引けば済みます。<code>system.information_schema</code> のタグ関連ビューを
+          <strong>SQL でクエリできる</strong>ので、
+          「PII タグの付いた列を全カタログから列挙する」といった確認が一発です。
+          全テーブルを人力で見て回る運用とは、根本的に手間が違います。</p>
+
+          <p class="note">ガイドの動詞は <em>understand</em> です。
+          <strong>ポリシー DDL の暗記より、「なぜ個別設定では回らないのか」「タグとポリシーで何が変わるのか」</strong>
+          を説明できるようにしてください。出題は、そこを突いてきます。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-trouble" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>権限が効かないときの切り分け<span class="tag">症状から辿ると、原因は3方向しかない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>「権限をあげたのに使えない」という問題文は、このドメインの定番の出し方です。
+          <strong>症状を3つに分けると、疑う場所が一意に決まります。</strong></p>
+
+          <div class="scroll-x"><table><thead><tr><th>症状</th><th>真っ先に疑う</th><th>次に疑う</th><th>確認するもの</th></tr></thead><tbody><tr><td><strong>見えない</strong><br>（一覧にテーブルが出てこない）</td><td><strong><code>USE CATALOG</code> / <code>USE SCHEMA</code> の不足</strong></td><td><code>BROWSE</code> しか無い / そもそも別のカタログを見ている</td><td><code>SHOW GRANTS ON CATALOG …</code></td></tr><tr><td><strong>見えるが読めない</strong><br>（権限エラーになる）</td><td><strong><code>SELECT</code> の不足</strong></td><td><strong><code>DENY</code> が効いている</strong></td><td><code>SHOW GRANTS &lt;principal&gt; ON TABLE …</code></td></tr><tr><td><strong>読めるが行が少ない / 0件</strong></td><td><strong>row filter が効いている</strong>（エラーは出ない）</td><td>そもそも該当データが無い</td><td><code>DESCRIBE EXTENDED</code> と関数の定義</td></tr><tr><td><strong>読めるが値が <code>***</code></strong></td><td><strong>column mask が効いている</strong></td><td>ABAC ポリシー経由でタグに反応している</td><td>列のタグとポリシー</td></tr><tr><td><strong>書けない</strong>（INSERT / MERGE が失敗）</td><td><strong><code>MODIFY</code> の不足</strong></td><td>external table の保存先への権限不足</td><td><code>SHOW GRANTS</code> / external location の権限</td></tr><tr><td><strong>GRANT 自体が失敗する</strong></td><td><strong>自分がオーナーでない</strong></td><td>上位管理者でもない</td><td><code>DESCRIBE EXTENDED</code> の Owner 欄</td></tr></tbody></table></div>
+
+          <h3>切り分けの順序</h3>
+          <p class="num">① 誰として実行しているか → ② 通り抜けられるか → ③ 対象の権限があるか →
+          ④ 打ち消されていないか → ⑤ 内容が絞られていないか</p>
+
+          <div class="scroll-x"><pre><code>-- ① 誰として実行しているか（ジョブなら SP かもしれない）
+SELECT current_user();
+SELECT is_account_group_member('analysts');
+
+-- ②③ 何が付いているか、階層ごとに確認する
+SHOW GRANTS `alice@example.com` ON CATALOG prod;
+SHOW GRANTS `alice@example.com` ON SCHEMA  prod.sales;
+SHOW GRANTS `alice@example.com` ON TABLE   prod.sales.orders;
+
+-- ⑤ フィルタ / マスクが付いていないか
+DESCRIBE EXTENDED prod.sales.orders;</code></pre></div>
+
+
+          
+          <figure>
+            <svg viewBox="0 0 720 372" role="img" aria-label="権限が効かないときに上から順に確かめる4段階の切り分けフロー。USE の有無、DENY、行フィルタと列マスク、所有者の順に見る">
+              <defs>
+                <marker id="v4-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="v4-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+                <marker id="v4-ar-crit" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="252" y="8" width="216" height="44" rx="2" class="d-box-crit"/>
+              <text x="360" y="28" class="d-t"     text-anchor="middle">読めない / 見えない</text>
+              <text x="360" y="46" class="d-t-crit" text-anchor="middle">上から順に確かめる</text>
+
+              <path d="M360,58 V80" class="d-line" marker-end="url(#v4-ar)"/>
+
+              <rect x="130" y="86"  width="460" height="40" rx="2" class="d-box-acc"/>
+              <text x="360" y="103" class="d-t"    text-anchor="middle">1. USE CATALOG / USE SCHEMA はあるか</text>
+              <text x="360" y="119" class="d-t-sm" text-anchor="middle">SELECT だけでは通り道が無い。いちばん多い原因</text>
+
+              <path d="M360,132 V150" class="d-line" marker-end="url(#v4-ar)"/>
+
+              <rect x="130" y="156" width="460" height="40" rx="2" class="d-box"/>
+              <text x="360" y="173" class="d-t"    text-anchor="middle">2. DENY が効いていないか</text>
+              <text x="360" y="189" class="d-t-sm" text-anchor="middle">GRANT より DENY が強い。上位で拒否されていないか</text>
+
+              <path d="M360,202 V220" class="d-line" marker-end="url(#v4-ar)"/>
+
+              <rect x="130" y="226" width="460" height="40" rx="2" class="d-box"/>
+              <text x="360" y="243" class="d-t"    text-anchor="middle">3. 行フィルタ / 列マスクが効いていないか</text>
+              <text x="360" y="259" class="d-t-sm" text-anchor="middle">権限はあるが、行が絞られ値が伏せられている</text>
+
+              <path d="M360,272 V290" class="d-line" marker-end="url(#v4-ar)"/>
+
+              <rect x="130" y="296" width="460" height="40" rx="2" class="d-box"/>
+              <text x="360" y="313" class="d-t"    text-anchor="middle">4. オブジェクトの所有者は誰か</text>
+              <text x="360" y="329" class="d-t-sm" text-anchor="middle">個人所有だと、その人が抜けたときに詰む</text>
+
+              <text x="8" y="358" class="d-t-crit">「権限を与えたのに読めない」の大半は、1番で止まっています。</text>
+            </svg>
+            <figcaption><strong>順番に意味があります。</strong>上から確かめると、いちばん多い原因に最初に当たります。<code>SELECT</code> を与えたのに読めない、という問題文が来たら、まず <code>USE</code> を疑ってください。3番は少し性質が違って、権限は正しく効いています。「読めるが件数が合わない」「値が伏せられている」は、権限の問題ではなく行フィルタと列マスクの仕業です。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">見落としやすい3つ</p>
+            <p><strong>① 実行者が本人ではない。</strong>
+            ジョブやパイプラインは<a href="04-jobs-cicd.html">サービスプリンシパル</a>として動きます。
+            「自分では読めるのにジョブが失敗する」はこれです。権限は SP に付けます。<br>
+            <strong>② エラーが出ないケースがある。</strong>
+            row filter と column mask は<strong>権限エラーを出さずに結果を変えます</strong>。
+            「エラーが出ていない＝権限は足りている」とは限りません。<br>
+            <strong>③ 個人に付けたつもりがグループ側で打ち消されている。</strong>
+            DENY は GRANT より強く効きます。</p>
+          </div>
+
+          <p class="note">試験の言い回しに直すと——
+          <strong>「テーブルが一覧に出ない」＝ USE 不足、
+          「アクセスが拒否される」＝ SELECT 不足か DENY、
+          「結果が想定と違う」＝ row filter / column mask。</strong>
+          この3行がそのまま選択肢の切り分けになります。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-lineage" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>lineage と audit log<span class="tag">モノを追うか、ヒトを追うか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">判別の一文</p>
+            <p><strong>lineage は「モノ」を追う（データの流れ）。audit log は「ヒト」を追う（操作の記録）。</strong></p>
+          </div>
+
+          <p>この2つは名前が並んで出てくるので混ざりがちですが、
+          <strong>追いかけている対象がまったく違います</strong>。
+          問題文が「どこから来たか」を聞いていれば lineage、
+          「誰がやったか」を聞いていれば audit log です。</p>
+
+          <div class="scroll-x"><table><thead><tr><th></th><th>lineage</th><th>audit log</th></tr></thead><tbody><tr><td>記録するもの</td><td>データの流れ（どのテーブルから作られたか）</td><td>人の操作（誰がいつ何をしたか）</td></tr><tr><td>使い方①</td><td><strong>上流</strong>をたどる：数字がおかしい、どこから来た？</td><td>個人情報へのアクセス監査</td></tr><tr><td>使い方②</td><td><strong>下流</strong>をたどる：この列を消したら何が壊れる？</td><td>権限が変わった経緯の追跡</td></tr><tr><td>粒度</td><td><strong>列レベル</strong>まで追える</td><td>読み取り・権限変更・削除・ログイン</td></tr><tr><td>登録の手間</td><td><strong>自動で記録される</strong>（宣言不要）</td><td>自動で記録される</td></tr><tr><td>提供形態</td><td>UI で可視化。システムテーブルからも取得可</td><td><strong>システムテーブルとして SQL で分析できる</strong></td></tr></tbody></table></div>
+
+          <h3>lineage は下流方向がいちばん効く</h3>
+          <p>記録されるのは、たとえば
+          <code>bronze.raw_orders</code> → <code>silver.orders</code> →
+          <code>gold.daily_sales</code> → ダッシュボード、といった繋がりです。
+          ノートブック・ジョブ・ダッシュボードまで含めて<strong>自動的に</strong>記録され、
+          <strong>「この列は、どの列から作られたか」まで列レベルで追えます</strong>。</p>
+
+          <p>実務でとくに効くのは<strong>下流方向</strong>です。
+          Silver の列を1つ削除したいとき、それを使う Gold やダッシュボードがあるかもしれません。
+          <strong>削除する前に影響範囲が分かる</strong>——これが、あって当たり前になると手放せない機能です。
+          上流方向は「ダッシュボードの数字が変だ。どこで狂ったのか」を遡るときに使います。</p>
+
+          <h3>audit log は SQL で読める</h3>
+          <p>audit log は<strong>システムテーブルとして提供されます</strong>。
+          ログファイルを探しに行く必要はなく、
+          <strong>普通のテーブルと同じように <code>SELECT</code> でき、集計も結合もできます。</strong></p>
+
+          <div class="scroll-x"><pre><code>-- 先月、特定テーブルに誰が何回アクセスしたか
+SELECT user_identity.email AS who,
+       COUNT(*)            AS accesses
+FROM   system.access.audit
+WHERE  event_date &gt;= current_date() - INTERVAL 30 DAYS
+   AND request_params.full_name_arg = 'prod.silver.customers'
+GROUP  BY 1
+ORDER  BY accesses DESC;</code></pre></div>
+
+          <div class="scroll-x"><table><thead><tr><th>audit log で答えられる問い</th><th>典型的な用途</th></tr></thead><tbody><tr><td>誰がこのテーブルを読んだか</td><td><strong>個人情報へのアクセス監査</strong></td></tr><tr><td>誰が権限を変更したか</td><td>「いつの間にか見られるようになっていた」の経緯追跡</td></tr><tr><td>誰がテーブルを削除したか</td><td>事故の原因究明</td></tr><tr><td>誰がいつログインしたか</td><td>不審なアクセスの検知</td></tr></tbody></table></div>
+
+          <p class="note">マスクをかけていても、<strong>「誰が見ようとしたか」の記録は別に必要</strong>です。
+          行フィルタ・列マスク・ABAC が<strong>予防</strong>だとすれば、
+          audit log は<strong>事後の説明責任</strong>を担います。役割が違うので、どちらも要ります。</p>
+
+          <p class="note">どちらも Unity Catalog の機能で、
+          <a href="01-platform.html">4段構造</a>で言えば「統制」の層にあります。
+          <strong>「UC を使うと何が得られるか」を問う形なら、
+          権限・リネージ・監査ログの3つが答えの候補</strong>です。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-myth" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>このドメインでよくある誤解<span class="tag">選択肢はここを突いてくる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <div class="scroll-x"><table><thead><tr><th>よくある誤解</th><th>実際</th></tr></thead><tbody><tr><td>Delta Sharing と Lakehouse Federation を仕上げておく</td><td><strong>新ガイドには記載が無い＝範囲外</strong>。古い問題集ほど厚く扱っているので、時間を吸われやすい</td></tr><tr><td>3階層とは metastore / catalog / schema のこと</td><td>3階層は <strong>catalog / schema / table</strong>。metastore はその<strong>外側</strong>の入れ物で、数えない</td></tr><tr><td>ワークスペースが違えばデータも別</td><td>同じメタストアを共有していれば、<strong>どのワークスペースからでも同じ <code>prod.sales.orders</code></strong> を参照できる</td></tr><tr><td>SELECT を持っていれば、他人にも SELECT を配れる</td><td><strong>配れるのはオーナーか上位管理者だけ。</strong>読む権限と配る権限は別物</td></tr><tr><td>テーブルに SELECT を付ければ読める</td><td><strong><code>USE CATALOG</code> / <code>USE SCHEMA</code> が要る。</strong>階層を通り抜けられなければ、鍵だけあっても届かない</td></tr><tr><td>スキーマに GRANT しても、あとから作るテーブルには効かない</td><td><strong>継承される。</strong>だから <code>ON ALL TABLES IN SCHEMA</code> と列挙する形は標準ではない</td></tr><tr><td>見せたくない人はグループから外せばよい</td><td>それでは他のメンバーも巻き添えになる。<strong>1人だけ止めるのは <code>DENY</code></strong></td></tr><tr><td>column mask をかければ、その行の存在も隠せる</td><td><strong>行は残る。件数は分かる。</strong>存在ごと隠すのは row filter</td></tr><tr><td>row filter をかければ、値が伏せ字になる</td><td><strong>逆。行そのものが結果から消える</strong>（伏せ字は column mask）</td></tr><tr><td>フィルタやマスクが効くと権限エラーになる</td><td><strong>エラーは出ない。</strong>静かに結果が変わるだけ</td></tr><tr><td>ABAC は行フィルタ・列マスクの代わりになる</td><td><strong>代わりではなく、それらを一元的に配る仕組み。</strong>実際に効いているのは同じフィルタ／マスク</td></tr><tr><td>external にしておけばデータが安全</td><td>DROP で消えないだけ。<strong>実体の管理責任は自分側に来る</strong>し、Predictive Optimization の<strong>対象外</strong>になる</td></tr><tr><td>managed を選ぶと、あとから変えられない</td><td><strong>相互変換できる</strong>とガイドに明記されている</td></tr><tr><td>数字の出どころは audit log で追える</td><td>出どころは <strong>lineage</strong>。audit log が答えるのは<strong>「誰が」</strong>であって「どこから」ではない</td></tr></tbody></table></div>
+
+          <p class="note">誤解の多くは<strong>「対（つい）になっている2つの取り違え」</strong>です。
+          managed / external、REVOKE / DENY、row filter / column mask、lineage / audit log。
+          <strong>それぞれに判別の一文</strong>——
+          DROP で消えるか、グループ経由か、件数は見せてよいか、モノかヒトか——
+          を持っておけば、選択肢の言い換えに引っかかりません。</p>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-lookup" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>このドメインの逆引き</h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <div class="scroll-x"><table><thead><tr><th>問題文にこう書いてあったら</th><th>答え</th></tr></thead><tbody><tr><td>DROP してもストレージ上のデータを残したい</td><td><strong>external table</strong></td></tr><tr><td>自動最適化の対象にしたい</td><td><strong>managed へ変換</strong></td></tr><tr><td>テーブルの実体の場所を確認したい</td><td><code>DESCRIBE EXTENDED</code></td></tr><tr><td>グループに読み取り専用を与えたい</td><td><code>GRANT SELECT ON SCHEMA … TO &lt;group&gt;</code></td></tr><tr><td>書き込みも許したい</td><td><code>MODIFY</code></td></tr><tr><td>SELECT を与えたのに読めない</td><td><strong><code>USE CATALOG</code> / <code>USE SCHEMA</code> 不足</strong></td></tr><tr><td>一覧にテーブルが出てこない</td><td><strong><code>USE</code> 権限の不足</strong></td></tr><tr><td>グループ経由の権限を打ち消したい</td><td><strong><code>DENY</code></strong></td></tr><tr><td>いま誰に何が付いているか調べたい</td><td><code>SHOW GRANTS</code></td></tr><tr><td>担当者の異動で権限変更ができなくなった</td><td>オーナーを<strong>グループへ移譲</strong></td></tr><tr><td>部署ごとに見える<strong>行</strong>を変えたい</td><td><strong>row filter</strong></td></tr><tr><td>本人が担当する行だけ見せたい</td><td><code>current_user()</code> で判定する row filter</td></tr><tr><td>個人情報の<strong>値</strong>を伏せたい（件数は見せてよい）</td><td><strong>column mask</strong></td></tr><tr><td>特定のグループにだけ生の値を見せたい</td><td><code>is_account_group_member()</code> で分岐</td></tr><tr><td>機密データの制御を一元管理したい</td><td><strong>ABAC ポリシー</strong></td></tr><tr><td>テーブルが増えるたびに設定を忘れる</td><td><strong>ABAC ポリシー</strong>（タグ＋ポリシー）</td></tr><tr><td>個人情報がどこにあるか棚卸ししたい</td><td><strong>タグの一覧</strong>を引く</td></tr><tr><td>この列を消したときの影響範囲</td><td><strong>lineage</strong>（下流）</td></tr><tr><td>数字がおかしい、どこ由来か</td><td><strong>lineage</strong>（上流）</td></tr><tr><td>誰がいつ何をしたか</td><td><strong>audit log</strong></td></tr><tr><td>CI/CD から自動実行したい</td><td><strong>service principal</strong> に付与</td></tr></tbody></table></div>
+
+        </div>
+      </details>
+      <details class="sec" id="sec-quiz" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>確認問題<span class="tag">答えを見る前に、口に出して言えるか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+
+          <p>スライドも表も見ずに答えてください。
+          <strong>言葉に詰まったところが、そのまま本番で落とす場所</strong>です。</p>
+
+          <ul class="qa"><li><p class="q"><b>Q1</b>managed table と external table の違いを、<strong>一文</strong>で言うと？</p><details><summary>答えを見る</summary><p class="a"><strong>「DROP TABLE したら実データはどうなるか」</strong>。managed は消える、external は残る。理由は、managed は Unity Catalog が保存場所を決めて実体を管理しているのに対し、external は <code>LOCATION</code> にあるデータを登録しているだけだから。作るときの分かれ目は <code>LOCATION</code> を書いたかどうか、確認は <code>DESCRIBE EXTENDED</code> の Type 欄。</p></details></li><li><p class="q"><b>Q2</b>external table を managed に変換したくなる、代表的な動機は？</p><details><summary>答えを見る</summary><p class="a"><strong>Predictive Optimization の対象にしたいから</strong>。自動最適化の対象は managed table。ガイドにも <em>convert between managed and external tables</em> と書かれており、<strong>一度決めたら変えられない、ではない</strong>。</p></details></li><li><p class="q"><b>Q3</b>公式サンプル問題：analyst グループに <code>sales_data</code> スキーマの読み取り専用アクセスを与える。正解の SQL と、他が誤りである理由は？</p><details><summary>答えを見る</summary><p class="a">正解は <code>GRANT SELECT ON SCHEMA sales_data TO analysts</code>。<code>ALL PRIVILEGES</code> は<strong>広すぎる</strong>、<code>INSERT</code> は<strong>種類が違う</strong>（書き込み）、<code>ON ALL TABLES IN SCHEMA</code> は<strong>対象の書き方が違う</strong>。スキーマへの付与は配下に継承され、あとから作られたテーブルにも効くので列挙は不要。</p></details></li><li><p class="q"><b>Q4</b>テーブルに <code>SELECT</code> を付与したのに読めない。まず疑うのは何か。また「一覧にすら出てこない」場合はどうか？</p><details><summary>答えを見る</summary><p class="a">どちらも <strong><code>USE CATALOG</code> / <code>USE SCHEMA</code> の不足</strong>。階層を通り抜ける権限が必要で、<code>USE CATALOG</code> → <code>USE SCHEMA</code> → <code>SELECT</code> が揃って初めて読める。<code>SELECT</code> だけ足りないなら「見えるが読めない（権限エラー）」、<code>USE</code> が足りないなら「そもそも見えない」。次に疑うのは <code>DENY</code>。</p></details></li><li><p class="q"><b>Q5</b><code>REVOKE</code> ではなく <code>DENY</code> を使うのはどんなときか？</p><details><summary>答えを見る</summary><p class="a"><strong>グループ経由で来ている権限を、特定の1人だけ打ち消したいとき</strong>。個人に直接与えていないので REVOKE は効かず、グループから取り消すと他のメンバーまで巻き添えになる。DENY は GRANT より強く効くので、常用ではなく例外を切る道具として使う。</p></details></li><li><p class="q"><b>Q6</b>row filter と column mask、<strong>件数が変わる</strong>のはどちらか。判別の一文は？</p><details><summary>答えを見る</summary><p class="a"><strong>row filter</strong>。行そのものが結果から消えるので <code>COUNT(*)</code> も変わる。column mask は行が残り値だけ置き換わるので件数は変わらない。判別の一文は<strong>「件数は見せてよいか」</strong>。見せてよいなら column mask、レコードの存在ごと隠すなら row filter。どちらも<strong>関数を作る → 適用する</strong>の2ステップで、row filter はテーブルに、column mask は列に適用する。</p></details></li><li><p class="q"><b>Q7</b>行フィルタ・列マスクの判定に使う関数を2つ挙げ、使い分けを言うと？</p><details><summary>答えを見る</summary><p class="a"><code>is_account_group_member('グループ名')</code> と <code>current_user()</code>。<strong>グループ単位で見せ方を分けるなら前者、本人が担当する行だけに絞るなら後者</strong>。ガイドの記述が <em>based on user groups</em> なので、出題の中心はグループ判定のほう。</p></details></li><li><p class="q"><b>Q8</b>ABAC が個別の行フィルタ・列マスクより優れている点は？</p><details><summary>答えを見る</summary><p class="a"><strong>「どの列に設定するか」ではなく「どんな属性（タグ）の列に効かせるか」</strong>で書けること。結果として、① 新しいテーブルはタグを付けるだけで自動的に効く（設定漏れが起きない）、② ルール変更はポリシーを1つ直すだけ、③ 棚卸しはタグ一覧を見ればよい、④ カタログ / スキーマ単位で定義し配下に継承される。ABAC は行フィルタ・列マスクの<strong>代わりではなく、一元的に配る仕組み</strong>。</p></details></li><li><p class="q"><b>Q9</b>lineage と audit log、追う対象の違いは？　また「この列を消したら何が壊れるか」を知りたいときはどちらか。</p><details><summary>答えを見る</summary><p class="a"><strong>lineage は「モノ」（データの流れ）、audit log は「ヒト」（操作の記録）。</strong>影響範囲を知りたいときは <strong>lineage の下流方向</strong>。上流方向は「数字がおかしい、どこ由来か」に使う。lineage は自動記録で列レベルまで追え、audit log はシステムテーブルとして SQL で集計できる。</p></details></li><li><p class="q"><b>Q10</b>このドメインで<strong>範囲外</strong>になったのは何と何か？</p><details><summary>答えを見る</summary><p class="a"><strong>Delta Sharing と Lakehouse Federation</strong>。新しいガイドに記載自体がない。代わりに<strong>行レベルセキュリティ・列マスキング・ABAC</strong>、そして managed / external の<strong>相互変換</strong>が入った。</p></details></li></ul>
+
+          <p class="note">3つ以上詰まったら、順番に戻ってください。
+          <a href="#sec-managed">managed と external</a> →
+          <a href="#sec-grant">GRANT</a> →
+          <a href="#sec-rls">行フィルタと列マスク</a> →
+          <a href="#sec-abac">ABAC</a> →
+          <a href="#sec-lineage">lineage と audit log</a>。
+          <strong>このドメインは判別の一文が全部で4つ</strong>あります。
+          そこだけは、暗記ではなく言えるようにしておいてください。</p>
+
+        </div>
+      </details>
+      <hr>
+      <h3>このシリーズの他のドキュメント</h3>
+      <ul class="links"><li><span class="star">★</span> <a href="index.html">総合インデックス</a></li><li><a href="00-exam-changes.html">2026年5月改訂で何が変わったか</a></li><li><a href="01-platform.html">プラットフォーム基盤</a></li><li><a href="02-ingestion.html">データの取り込み</a></li><li><a href="03-transformation.html">変換とモデリング</a></li><li><a href="04-jobs-cicd.html">Jobs と CI/CD</a></li><li><a href="05-optimization.html">監視と最適化</a></li><li><a href="07-exam-tactics.html">試験の解き方</a></li></ul>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-05</span></span>
+        <span>出典: Databricks 公式 Exam Guide（2026-05-04 版）</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>
