@@ -744,18 +744,18 @@ result.show()</code></pre></div>
           </div>
         </summary>
         <div class="sec-body">
-          <div class="scroll-x">
-          <table>
-            <thead><tr><th>語</th><th>意味</th></tr></thead>
-            <tbody>
-              <tr><td><code>Exchange</code></td><td>Shuffle が発生する可能性</td></tr>
-              <tr><td><code>BroadcastHashJoin</code></td><td>小さい表を配る Broadcast Join</td></tr>
-              <tr><td><code>FileScan</code></td><td>どのファイル・列・条件を読みに行くか</td></tr>
-            </tbody>
-          </table>
-          </div>
+          <div class="scroll-x"><pre><code>== Physical Plan ==
+* HashAggregate (keys=[customer_id], functions=[sum(amount)])
++- Exchange hashpartitioning(customer_id, 200)          ← ここで Shuffle
+   +- * HashAggregate (partial_sum(amount))
+      +- * BroadcastHashJoin [region_code], Inner        ← 小さい表を配った
+         :- * Filter (isnotnull(amount) AND (amount &gt; 1000))
+         :  +- * FileScan parquet orders[customer_id,region_code,amount]
+         +- BroadcastExchange HashedRelationBroadcastMode
+            +- * FileScan parquet regions[region_code,region_name]</code></pre></div>
 
-          <p class="note"><code>BroadcastHashJoin</code> の中身は
+          <p class="note">上は形を示すための例です。実際の出力は Spark のバージョンや
+          テーブルの状態で変わります。<code>BroadcastHashJoin</code> の中身は
           → <a href="pyspark-broadcast-join.html">broadcast join 小さい表を配る</a></p>
         </div>
       </details>

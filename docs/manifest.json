@@ -244,11 +244,6 @@
           "file": "databricks/databricks-shorts/pyspark-daily-aggregation.html"
         },
         {
-          "episode": "ep050",
-          "title": "いきなり全量実行しないための確認",
-          "file": "databricks/databricks-shorts/pyspark-dry-run-explain.html"
-        },
-        {
           "episode": "ep044",
           "title": "cross join 全組み合わせを作る結合",
           "file": "databricks/databricks-shorts/pyspark-cross-join.html"
@@ -262,6 +257,11 @@
           "episode": "ep052",
           "title": "broadcast joinを具体例で追う",
           "file": "databricks/databricks-shorts/pyspark-broadcast-join-concrete.html"
+        },
+        {
+          "episode": "ep050",
+          "title": "いきなり全量実行しないための確認",
+          "file": "databricks/databricks-shorts/pyspark-dry-run-explain.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
