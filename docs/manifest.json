@@ -247,6 +247,11 @@
           "episode": "ep049",
           "title": "日ごとの合計とユニーク件数を集計する",
           "file": "databricks/databricks-shorts/pyspark-daily-aggregation.html"
+        },
+        {
+          "episode": "ep050",
+          "title": "いきなり全量実行しないための確認",
+          "file": "databricks/databricks-shorts/pyspark-dry-run-explain.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
