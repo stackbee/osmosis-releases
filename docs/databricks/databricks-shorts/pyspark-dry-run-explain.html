@@ -607,6 +607,7 @@ figcaption{
         <li><a href="#sec-small"><span class="dot" data-status="new"></span><span>小さいデータで試す</span></a></li>
         <li><a href="#sec-partition"><span class="dot" data-status="idle"></span><span>一部期間で試す</span></a></li>
         <li><a href="#sec-keywords"><span class="dot" data-status="block"></span><span>実行計画で注目する3つの語</span></a></li>
+        <li><a href="#sec-plan"><span class="dot" data-status="block"></span><span>実行計画の例</span></a></li>
         <li><a href="#sec-summary"><span class="dot" data-status="ship"></span><span>計画を見て、小さく試す</span></a></li>
       </ul>
     </nav>
@@ -739,7 +740,41 @@ result.show()</code></pre></div>
         <summary>
           <div class="sec-head">
             <span class="sec-mark" aria-hidden="true"></span>
-            <h2>実行計画で注目する3つの語<span class="tag">読めると何が起きるか分かる</span></h2>
+            <h2>実行計画で注目する3つの語<span class="tag">それぞれ何を示しているか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>語</th><th>何を示しているか</th><th>見どころ</th></tr></thead>
+            <tbody>
+              <tr>
+                <td><code>Exchange</code></td>
+                <td><strong>データを配り直している場所。ここで Shuffle が起きる</strong></td>
+                <td><code>hashpartitioning(key, 200)</code> なら、そのキーのハッシュで200個に配り直す。200 は <code>spark.sql.shuffle.partitions</code> の既定値</td>
+              </tr>
+              <tr>
+                <td><code>BroadcastHashJoin</code></td>
+                <td><strong>小さい表を各 Worker へ配って、その場で結合している</strong></td>
+                <td>これが出ていれば大きい表の Shuffle は避けられている。代わりに <code>SortMergeJoin</code> が出ていたら、両側を Shuffle している</td>
+              </tr>
+              <tr>
+                <td><code>FileScan</code></td>
+                <td><strong>ソースを読む場所。どこから何を読むか</strong></td>
+                <td>角括弧の中が<strong>実際に読む列</strong>。<code>PushedFilters</code> があれば、条件がファイル読み取り側まで下りていて読む量が減っている</td>
+              </tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-plan" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>実行計画の例<span class="tag">3つとも1つの計画に出る</span></h2>
             <span class="sec-toggle" aria-hidden="true"></span>
           </div>
         </summary>
@@ -754,8 +789,11 @@ result.show()</code></pre></div>
          +- BroadcastExchange HashedRelationBroadcastMode
             +- * FileScan parquet regions[region_code,region_name]</code></pre></div>
 
-          <p class="note">上は形を示すための例です。実際の出力は Spark のバージョンや
-          テーブルの状態で変わります。<code>BroadcastHashJoin</code> の中身は
+          <p class="note"><strong>計画は下から上へ読みます。</strong>
+          2つの <code>FileScan</code> で読み、<code>BroadcastHashJoin</code> で結合し、各 Worker で部分集計してから
+          <code>Exchange</code> で <code>customer_id</code> ごとに集め、最後に合計を出す、という順です。
+          上は形を示すための例で、実際に採取した出力ではありません（Spark のバージョンやテーブルの状態で変わります）。
+          <code>BroadcastHashJoin</code> の中身は
           → <a href="pyspark-broadcast-join.html">broadcast join 小さい表を配る</a></p>
         </div>
       </details>
