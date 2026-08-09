@@ -267,6 +267,11 @@
           "episode": "ep053",
           "title": "broadcast joinは自動か手動か",
           "file": "databricks/databricks-shorts/pyspark-broadcast-join-auto-vs-manual.html"
+        },
+        {
+          "episode": "ep054",
+          "title": "大量データが遅いときの切り分け",
+          "file": "databricks/databricks-shorts/pyspark-performance-layout-shuffle-compute.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
