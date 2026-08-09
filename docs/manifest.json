@@ -262,6 +262,11 @@
           "episode": "ep050",
           "title": "いきなり全量実行しないための確認",
           "file": "databricks/databricks-shorts/pyspark-dry-run-explain.html"
+        },
+        {
+          "episode": "ep053",
+          "title": "broadcast joinは自動か手動か",
+          "file": "databricks/databricks-shorts/pyspark-broadcast-join-auto-vs-manual.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
