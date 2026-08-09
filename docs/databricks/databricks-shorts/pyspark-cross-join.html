@@ -443,6 +443,17 @@ thead th{
 tbody tr:last-child td{ border-bottom: 0; }
 td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
 
+/* 入力どうしを並べて見せる器（狭い画面では縦に積む） */
+.duo{ display: grid; gap: var(--sp-4); margin: var(--sp-4) 0; }
+@media (min-width: 48rem){ .duo{ grid-template-columns: repeat(2, minmax(0,1fr)); } }
+.duo > div{ min-width: 0; }
+.duo .scroll-x{ margin: var(--sp-2) 0 0; }
+.duo h4{ margin: 0; }
+/* 行番号の列は幅を固定して、値の列に幅を譲る */
+th.idx, td.idx{ width: 3.5rem; text-align: right; font-variant-numeric: tabular-nums; color: var(--faint); }
+/* 由来の注記（結果表の右端など、本文より一段弱く見せたいセル） */
+td.from{ color: var(--muted); font-family: var(--f-mono); font-size: var(--fs-xs); white-space: nowrap; }
+
 /* 時系列（順序が意味を持つときだけ使う） */
 .tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
 .tl li{
@@ -645,23 +656,113 @@ figcaption{
         </summary>
         <div class="sec-body">
           <p>cross join は、<strong>左のすべての行 × 右のすべての行</strong>を組み合わせる結合です。
-          左側に日付マスタ（2026-08-01 〜 2026-08-03 の3行）、右側に店舗マスタ（Tokyo, Osaka の2行）があるとします。</p>
+          結合条件（<code>on</code>）を書きません。<strong>どの行とどの行を突き合わせるかを指定しない</strong>ので、
+          残る答えは「全部と全部」しかない、と考えると分かりやすいです。</p>
 
-          <p><code>dates.crossJoin(stores)</code> すると、次の6行になります。</p>
+          <h3>元のテーブル</h3>
+
+          <p>左側に日付マスタ、右側に店舗マスタがあるとします。共通の列（キー）は<strong>ひとつもありません</strong>。</p>
+
+          <div class="duo">
+            <div>
+              <h4>dates（左・3行）</h4>
+              <div class="scroll-x">
+                <table>
+                  <thead><tr><th class="idx">#</th><th>date</th></tr></thead>
+                  <tbody>
+                    <tr><td class="idx">1</td><td>2026-08-01</td></tr>
+                    <tr><td class="idx">2</td><td>2026-08-02</td></tr>
+                    <tr><td class="idx">3</td><td>2026-08-03</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+            <div>
+              <h4>stores（右・2行）</h4>
+              <div class="scroll-x">
+                <table>
+                  <thead><tr><th class="idx">#</th><th>store</th></tr></thead>
+                  <tbody>
+                    <tr><td class="idx">1</td><td>Tokyo</td></tr>
+                    <tr><td class="idx">2</td><td>Osaka</td></tr>
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+
+          <div class="scroll-x"><pre><code>dates = spark.createDataFrame(
+    [("2026-08-01",), ("2026-08-02",), ("2026-08-03",)], ["date"])
+
+stores = spark.createDataFrame(
+    [("Tokyo",), ("Osaka",)], ["store"])
+
+result = dates.crossJoin(stores)   # 3行 × 2行 = 6行</code></pre></div>
+
+          <h3>つながり方</h3>
+
+          <figure>
+            <svg viewBox="0 0 720 230" role="img"
+                 aria-label="左の dates 3行それぞれから、右の stores 2行の両方へ線が伸び、合計6本になることを示す図。線の数が結果の行数と一致する">
+              <defs>
+                <marker id="cj-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <text x="40" y="28" class="d-t-mono">DATES ・ 3行</text>
+              <rect x="40" y="48"  width="200" height="36" rx="2" class="d-box-acc"/>
+              <text x="140" y="71" class="d-t" text-anchor="middle">2026-08-01</text>
+              <rect x="40" y="92"  width="200" height="36" rx="2" class="d-box"/>
+              <text x="140" y="115" class="d-t" text-anchor="middle">2026-08-02</text>
+              <rect x="40" y="136" width="200" height="36" rx="2" class="d-box"/>
+              <text x="140" y="159" class="d-t" text-anchor="middle">2026-08-03</text>
+
+              <text x="480" y="28" class="d-t-mono">STORES ・ 2行</text>
+              <rect x="480" y="70"  width="160" height="36" rx="2" class="d-box"/>
+              <text x="560" y="93" class="d-t" text-anchor="middle">Tokyo</text>
+              <rect x="480" y="114" width="160" height="36" rx="2" class="d-box"/>
+              <text x="560" y="137" class="d-t" text-anchor="middle">Osaka</text>
+
+              <line x1="244" y1="66"  x2="474" y2="88"  class="d-line-acc" marker-end="url(#cj-ar-acc)"/>
+              <line x1="244" y1="66"  x2="474" y2="132" class="d-line-acc" marker-end="url(#cj-ar-acc)"/>
+              <g opacity=".5">
+                <line x1="244" y1="110" x2="474" y2="88"  class="d-line-acc" marker-end="url(#cj-ar-acc)"/>
+                <line x1="244" y1="110" x2="474" y2="132" class="d-line-acc" marker-end="url(#cj-ar-acc)"/>
+                <line x1="244" y1="154" x2="474" y2="88"  class="d-line-acc" marker-end="url(#cj-ar-acc)"/>
+                <line x1="244" y1="154" x2="474" y2="132" class="d-line-acc" marker-end="url(#cj-ar-acc)"/>
+              </g>
+
+              <line x1="40" y1="192" x2="680" y2="192" class="d-rule"/>
+              <text x="40" y="216" class="d-t-key">左の1行から、右の行の数だけ線が出る</text>
+              <text x="680" y="216" class="d-t-code" text-anchor="end">3 × 2 = 6</text>
+            </svg>
+            <figcaption><strong>線の本数が、そのまま結果の行数です。</strong>
+            左の1行（2026-08-01）から Tokyo と Osaka の両方へ線が出るので、左の1行が<strong>右の行数ぶんに複製される</strong>形になります。
+            これが3行ぶん起きて 3 × 2 = 6 本。<code>dates</code> と <code>stores</code> のどちらにも共通の列が無くても成立する点が、他の結合との一番の違いです。</figcaption>
+          </figure>
+
+          <h3>結果</h3>
+
+          <p><code>dates.crossJoin(stores)</code> の結果は、次の6行です。
+          左の値が固定されたまま右が一巡し、それが左の行ごとに繰り返されます。</p>
 
           <div class="scroll-x">
           <table>
-            <thead><tr><th>date</th><th>store</th></tr></thead>
+            <thead><tr><th class="idx">#</th><th>date</th><th>store</th><th>元の行</th></tr></thead>
             <tbody>
-              <tr><td>2026-08-01</td><td>Tokyo</td></tr>
-              <tr><td>2026-08-01</td><td>Osaka</td></tr>
-              <tr><td>2026-08-02</td><td>Tokyo</td></tr>
-              <tr><td>2026-08-02</td><td>Osaka</td></tr>
-              <tr><td>2026-08-03</td><td>Tokyo</td></tr>
-              <tr><td>2026-08-03</td><td>Osaka</td></tr>
+              <tr><td class="idx">1</td><td>2026-08-01</td><td>Tokyo</td><td class="from">dates 1 × stores 1</td></tr>
+              <tr><td class="idx">2</td><td>2026-08-01</td><td>Osaka</td><td class="from">dates 1 × stores 2</td></tr>
+              <tr><td class="idx">3</td><td>2026-08-02</td><td>Tokyo</td><td class="from">dates 2 × stores 1</td></tr>
+              <tr><td class="idx">4</td><td>2026-08-02</td><td>Osaka</td><td class="from">dates 2 × stores 2</td></tr>
+              <tr><td class="idx">5</td><td>2026-08-03</td><td>Tokyo</td><td class="from">dates 3 × stores 1</td></tr>
+              <tr><td class="idx">6</td><td>2026-08-03</td><td>Osaka</td><td class="from">dates 3 × stores 2</td></tr>
             </tbody>
           </table>
           </div>
+
+          <p class="note">列は左右の列がそのまま横に並びます（<code>date</code> と <code>store</code>）。増えるのは<strong>行だけ</strong>で、列が掛け算になるわけではありません。</p>
         </div>
       </details>
 
