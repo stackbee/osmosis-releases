@@ -718,6 +718,10 @@ df.withColumn("active", lit(True))</code></pre></div>
         </div>
       </details>
 
+      <!-- 既知の例外: この節はスライドの上限 1080px を超える（実測 1310px）。
+           2026-08-09 に内容が追記され、表2つ＋コードという構成になったため。
+           ep042 の動画は追記前に撮っており切れていない。**撮り直すと2枚に割れる。**
+           撮り直す必要が出たら、先にどちらかの表を減らすこと。 -->
       <details class="sec" id="sec-colvslit" data-status="ship" open>
         <summary>
           <div class="sec-head">
@@ -731,11 +735,7 @@ df.withColumn("active", lit(True))</code></pre></div>
           <code>col()</code> は<strong>既存の列を参照</strong>し、<code>lit()</code> は<strong>固定値を列として扱い</strong>ます。</p>
 
           <div class="scroll-x"><pre><code>from pyspark.sql.functions import col, lit
-
-df.withColumn(
-    "discount_price",
-    col("price") - lit(20)
-)</code></pre></div>
+df.withColumn("discount_price", col("price") - lit(20))</code></pre></div>
 
           <div class="scroll-x">
           <table>
