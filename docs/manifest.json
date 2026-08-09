@@ -209,11 +209,6 @@
           "file": "databricks/databricks-shorts/pyspark-columns.html"
         },
         {
-          "episode": "ep042",
-          "title": "lit()とcol()の違い",
-          "file": "databricks/databricks-shorts/pyspark-lit-col.html"
-        },
-        {
           "episode": "ep043",
           "title": "PySparkのjoinを図解で理解する",
           "file": "databricks/databricks-shorts/pyspark-join-diagram.html"
@@ -247,6 +242,11 @@
           "episode": "ep049",
           "title": "日ごとの合計とユニーク件数を集計する",
           "file": "databricks/databricks-shorts/pyspark-daily-aggregation.html"
+        },
+        {
+          "episode": "ep042",
+          "title": "lit()とcol()の違い",
+          "file": "databricks/databricks-shorts/pyspark-lit-col.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
@@ -305,7 +305,7 @@
       "page": "databricks"
     }
   },
-  "updated_at": "2026-08-08",
+  "updated_at": "2026-08-09",
   "pages": {
     "databricks": {
       "title": "Databricks",
