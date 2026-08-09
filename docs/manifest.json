@@ -257,6 +257,11 @@
           "episode": "ep051",
           "title": "shuffleとは",
           "file": "databricks/databricks-shorts/pyspark-shuffle.html"
+        },
+        {
+          "episode": "ep052",
+          "title": "broadcast joinを具体例で追う",
+          "file": "databricks/databricks-shorts/pyspark-broadcast-join-concrete.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
