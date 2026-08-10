@@ -347,6 +347,11 @@
           "episode": "ep069",
           "title": "BI分析基盤とクエリ高速化のシナリオ",
           "file": "databricks/databricks-shorts/scenario-bi-query-performance.html"
+        },
+        {
+          "episode": "ep070",
+          "title": "Auto Loaderの実行パターンを具体例で",
+          "file": "databricks/databricks-shorts/autoloader-operation-patterns.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
