@@ -332,6 +332,11 @@
           "episode": "ep065",
           "title": "ファイル到着型処理のシナリオ",
           "file": "databricks/databricks-shorts/scenario-file-arrival.html"
+        },
+        {
+          "episode": "ep067",
+          "title": "大規模JOINと性能問題のシナリオ",
+          "file": "databricks/databricks-shorts/scenario-large-scale-join.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
