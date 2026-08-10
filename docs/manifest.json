@@ -307,6 +307,11 @@
           "episode": "ep061",
           "title": "Delta Lake の Parquet はどこに置かれるのか",
           "file": "databricks/databricks-shorts/delta-lake-physical-storage-location.html"
+        },
+        {
+          "episode": "ep062",
+          "title": "AQEは実行しながら計画を変える",
+          "file": "databricks/databricks-shorts/spark-aqe-adaptive-query-execution.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
