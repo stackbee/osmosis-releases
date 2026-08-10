@@ -327,6 +327,11 @@
           "episode": "ep065",
           "title": "ファイル到着型処理のシナリオ",
           "file": "databricks/databricks-shorts/scenario-file-arrival.html"
+        },
+        {
+          "episode": "ep066",
+          "title": "常時ストリーミングのシナリオ",
+          "file": "databricks/databricks-shorts/scenario-continuous-streaming.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
