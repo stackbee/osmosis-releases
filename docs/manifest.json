@@ -302,6 +302,11 @@
           "episode": "ep060",
           "title": "File arrival trigger と Auto Loader の違い",
           "file": "databricks/databricks-shorts/file-arrival-vs-file-notification.html"
+        },
+        {
+          "episode": "ep061",
+          "title": "Delta Lake の Parquet はどこに置かれるのか",
+          "file": "databricks/databricks-shorts/delta-lake-physical-storage-location.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
