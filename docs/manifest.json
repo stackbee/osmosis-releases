@@ -292,6 +292,11 @@
           "episode": "ep058",
           "title": "Jobs の cron とタイムゾーン",
           "file": "databricks/databricks-shorts/jobs-cron-timezone.html"
+        },
+        {
+          "episode": "ep059",
+          "title": "Declarative Pipelines と Jobs の役割分担",
+          "file": "databricks/databricks-shorts/declarative-pipelines-vs-jobs.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
