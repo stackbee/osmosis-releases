@@ -1,0 +1,998 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>日次バッチETLのシナリオ — DatabricksShorts</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksShorts · ep064</div>
+    <p class="rail-title">日次バッチETLのシナリオ</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-pattern"><span class="dot" data-status="idle"></span><span>取り込みから配置まで一本道</span></a></li>
+        <li><a href="#sec-case"><span class="dot" data-status="new"></span><span>100店舗の POS 売上を毎晩処理する</span></a></li>
+        <li><a href="#sec-flow"><span class="dot" data-status="active"></span><span>夜2時に何が動くか</span></a></li>
+        <li><a href="#sec-notebook"><span class="dot" data-status="crit"></span><span>Notebook は人が開くものではない</span></a></li>
+        <li><a href="#sec-hourly"><span class="dot" data-status="ship"></span><span>1時間ごとに刻む</span></a></li>
+        <li><a href="#sec-erp"><span class="dot" data-status="block"></span><span>毎朝1回、決まった時刻に</span></a></li>
+        <li><a href="#sec-multi"><span class="dot" data-status="new"></span><span>複数ソースをまとめて取り込む</span></a></li>
+        <li><a href="#sec-memo"><span class="dot" data-status="active"></span><span>溜まったデータを流すだけ</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/x3RcD_QESwQ" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/x3RcD_QESwQ" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksShorts</span>
+          <span>ep064</span>
+          <span class="num">2026-08-11</span>
+        </div>
+        <h1>日次バッチETLのシナリオ</h1>
+        <p class="lede">
+          シナリオ回の1本目です。個別技術の解説ではなく、<strong>「日次バッチETLという状況で、どの部品をどう組み合わせるか」</strong>を扱います。
+          大量のファイルを一定間隔でまとめて取り込み、Bronze → Silver → Gold と段階的に整形し、最終的に BI で使える形にする王道パターンです。
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-pattern" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>取り込みから配置まで一本道<span class="tag">このパターンの本質</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 78" role="img" aria-label="日次バッチETLの全体の流れ。左から Source System、Cloud Storage、Auto Loader または COPY INTO、Bronze、Silver、Gold、SQL Warehouse と BI の順に矢印でつながる一本道。">
+              <text x="54" y="14" text-anchor="middle" class="d-t-sm">ファイルが置かれる</text>
+              <text x="258" y="14" text-anchor="middle" class="d-t-key">取り込む</text>
+              <text x="513" y="14" text-anchor="middle" class="d-t-sm">段階的に整形する</text>
+              <text x="666" y="14" text-anchor="middle" class="d-t-sm">配る</text>
+
+              <rect x="8" y="28" width="92" height="40" rx="3" class="d-box"/>
+              <text x="54" y="46" text-anchor="middle" class="d-t-sm">Source</text>
+              <text x="54" y="59" text-anchor="middle" class="d-t-sm">System</text>
+              <polygon points="102,44 102,52 109,48" class="d-head"/>
+
+              <rect x="110" y="28" width="92" height="40" rx="3" class="d-box"/>
+              <text x="156" y="46" text-anchor="middle" class="d-t-sm">Cloud</text>
+              <text x="156" y="59" text-anchor="middle" class="d-t-sm">Storage</text>
+              <polygon points="204,44 204,52 211,48" class="d-head-acc"/>
+
+              <rect x="212" y="28" width="92" height="40" rx="3" class="d-box-acc"/>
+              <text x="258" y="46" text-anchor="middle" class="d-t-key">Auto Loader</text>
+              <text x="258" y="59" text-anchor="middle" class="d-t-key">COPY INTO</text>
+              <polygon points="306,44 306,52 313,48" class="d-head-acc"/>
+
+              <rect x="314" y="28" width="92" height="40" rx="3" class="d-box-ship"/>
+              <text x="360" y="52" text-anchor="middle" class="d-t">Bronze</text>
+              <polygon points="408,44 408,52 415,48" class="d-head"/>
+
+              <rect x="416" y="28" width="92" height="40" rx="3" class="d-box-ship"/>
+              <text x="462" y="52" text-anchor="middle" class="d-t">Silver</text>
+              <polygon points="510,44 510,52 517,48" class="d-head"/>
+
+              <rect x="518" y="28" width="92" height="40" rx="3" class="d-box-ship"/>
+              <text x="564" y="52" text-anchor="middle" class="d-t">Gold</text>
+              <polygon points="612,44 612,52 619,48" class="d-head"/>
+
+              <rect x="620" y="28" width="92" height="40" rx="3" class="d-box-acc"/>
+              <text x="666" y="46" text-anchor="middle" class="d-t-sm">SQL Warehouse</text>
+              <text x="666" y="59" text-anchor="middle" class="d-t-sm">/ BI</text>
+            </svg>
+            <figcaption><strong>この一本道が日次バッチETLの背骨です。</strong>派生シナリオが出てきても、背骨そのものは変わりません。変わるのは起動の間隔と、入口の本数だけです。</figcaption>
+          </figure>
+
+          <p>シナリオで考えるというのは、部品の仕組みを覚え直すことではありません。<strong>要件を聞いたときに、どの部品が要るのか、そしてそれがどういう順番で並ぶのかを言えるようにすること</strong>です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-case" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>100店舗の POS 売上を毎晩処理する<span class="tag">基本シナリオ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <dl class="facts">
+            <div class="fact">
+              <dt>要件 1</dt>
+              <dd>全国100店舗が毎日閉店後に CSV を ADLS へ送信する</dd>
+            </div>
+            <div class="fact">
+              <dt>要件 2</dt>
+              <dd>翌朝までに売上集計を完成させたい</dd>
+            </div>
+            <div class="fact">
+              <dt>要件 3</dt>
+              <dd>Power BI から店舗別・商品別の売上を見たい</dd>
+            </div>
+          </dl>
+
+          <p>この3つが出そろった時点で、答えの形はだいたい決まります。<strong>定期起動があって、取り込みがあって、段階的な整形があって、最後に BI の入り口がある。</strong>要件から部品を逆算する——これがシナリオ問題の解き方です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-flow" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>夜2時に何が動くか<span class="tag">1日の流れ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 98" role="img" aria-label="日次バッチの1日の流れ。閉店後に各店舗の POS が CSV を ADLS へ出し、02時に Lakeflow Job が起動する。Task A が Auto Loader で新着 CSV を Bronze の sales_raw へ、Task B が型変換と重複除去をして Silver の sales_clean へ、Task C が集計して Gold の daily_store_sales へ。最後に SQL Warehouse 経由で Power BI に渡る。">
+              <text x="65" y="14" text-anchor="middle" class="d-t-mono">閉店後</text>
+              <text x="183" y="14" text-anchor="middle" class="d-t-code">02:00</text>
+              <text x="301" y="14" text-anchor="middle" class="d-t-mono">Task A</text>
+              <text x="419" y="14" text-anchor="middle" class="d-t-mono">Task B</text>
+              <text x="537" y="14" text-anchor="middle" class="d-t-mono">Task C</text>
+              <text x="655" y="14" text-anchor="middle" class="d-t-mono">翌朝まで</text>
+
+              <rect x="10" y="22" width="110" height="40" rx="3" class="d-box"/>
+              <text x="65" y="40" text-anchor="middle" class="d-t-sm">各店舗 POS</text>
+              <text x="65" y="53" text-anchor="middle" class="d-t-sm">CSV 出力</text>
+              <text x="65" y="79" text-anchor="middle" class="d-t-mono">ADLS</text>
+              <text x="65" y="92" text-anchor="middle" class="d-t-mono">/incoming/sales/</text>
+              <polygon points="122,38 122,46 129,42" class="d-head"/>
+
+              <rect x="128" y="22" width="110" height="40" rx="3" class="d-box-acc"/>
+              <text x="183" y="40" text-anchor="middle" class="d-t-key">Lakeflow Job</text>
+              <text x="183" y="53" text-anchor="middle" class="d-t-key">起動</text>
+              <text x="183" y="79" text-anchor="middle" class="d-t-sm">1日の起点</text>
+              <polygon points="240,38 240,46 247,42" class="d-head-acc"/>
+
+              <rect x="246" y="22" width="110" height="40" rx="3" class="d-box-ship"/>
+              <text x="301" y="40" text-anchor="middle" class="d-t-sm">Auto Loader</text>
+              <text x="301" y="53" text-anchor="middle" class="d-t-sm">新着 CSV 取込</text>
+              <text x="301" y="79" text-anchor="middle" class="d-t">Bronze</text>
+              <text x="301" y="92" text-anchor="middle" class="d-t-mono">sales_raw</text>
+              <polygon points="358,38 358,46 365,42" class="d-head"/>
+
+              <rect x="364" y="22" width="110" height="40" rx="3" class="d-box-ship"/>
+              <text x="419" y="40" text-anchor="middle" class="d-t-sm">型変換・NULL 処理</text>
+              <text x="419" y="53" text-anchor="middle" class="d-t-sm">重複除去</text>
+              <text x="419" y="79" text-anchor="middle" class="d-t">Silver</text>
+              <text x="419" y="92" text-anchor="middle" class="d-t-mono">sales_clean</text>
+              <polygon points="476,38 476,46 483,42" class="d-head"/>
+
+              <rect x="482" y="22" width="110" height="40" rx="3" class="d-box-ship"/>
+              <text x="537" y="40" text-anchor="middle" class="d-t-sm">GROUP BY</text>
+              <text x="537" y="53" text-anchor="middle" class="d-t-sm">日別・店舗別</text>
+              <text x="537" y="79" text-anchor="middle" class="d-t">Gold</text>
+              <text x="537" y="92" text-anchor="middle" class="d-t-mono">daily_store_sales</text>
+              <polygon points="594,38 594,46 601,42" class="d-head"/>
+
+              <rect x="600" y="22" width="110" height="40" rx="3" class="d-box-acc"/>
+              <text x="655" y="40" text-anchor="middle" class="d-t-sm">SQL Warehouse</text>
+              <text x="655" y="53" text-anchor="middle" class="d-t-sm">→ Power BI</text>
+              <text x="655" y="79" text-anchor="middle" class="d-t-sm">店舗別・商品別</text>
+            </svg>
+            <figcaption>登場する部品は Lakeflow Jobs、Task / DAG、Auto Loader、Checkpoint、Delta Lake、Bronze / Silver / Gold、<code>GROUP BY</code>、SQL Warehouse、Photon。<strong>一度に全部を思い出す必要はありません。</strong></figcaption>
+          </figure>
+
+          <div class="note">
+            <p>Job・Task・DAG の定義は第56回で扱いました。ここで大事なのは、<strong>A から B へ、B から C へという依存を書けば、走る順番は Jobs のほうが決めてくれる</strong>という点だけです。3つの Task に分ける理由は2つ——<strong>どこで失敗したのかが分かること</strong>、そして<strong>失敗した段から作り直せること</strong>。取り込みは終わっているのに集計だけやり直したい、という形が作れます。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-notebook" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Notebook は人が開くものではない<span class="tag">ここで大事な理解</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="callout" data-kind="risk">
+            <p><strong>Notebook は人間が毎晩開くものではありません。</strong>夜中の2時に誰かが出社してセルを上から順に実行していく——そういう運用を想像してしまうと、シナリオ全体が読めなくなります。</p>
+          </div>
+
+          <p>実際には、<strong>Job が Notebook や Python コードを Task として自動実行します。</strong>人が書くのは中身と依存関係だけ。いつ動かすか、どの順で動かすかは Job の仕事です。ここを分けて考えられるかどうかが、この先のシナリオを読む土台になります。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-hourly" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>1時間ごとに刻む<span class="tag">派生シナリオ 1</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>日次では遅いため、<strong>毎時 00 分に Job を起動</strong>します。同じ処理を、扱う時間帯だけずらして繰り返す形です。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>起動</th><th>処理する範囲</th><th>向いているケース</th></tr></thead>
+            <tbody>
+              <tr><td class="num">09:00 Job</td><td class="num">08:00〜09:00 分</td><td rowspan="3">ほぼリアルタイムまでは不要 / 1時間程度の遅延で十分 / <strong>常時 Compute を動かしたくない</strong></td></tr>
+              <tr><td class="num">10:00 Job</td><td class="num">09:00〜10:00 分</td></tr>
+              <tr><td class="num">11:00 Job</td><td class="num">10:00〜11:00 分</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>Auto Loader の <code>AvailableNow</code> のような実行方式を使うと、<strong>今ある未処理ファイルを処理して終了できます。</strong>動かし続けるのではなく、起動して、溜まった分だけ片づけて、止まる。<strong>バッチの形のまま、間隔だけを詰めたもの</strong>だと考えてください。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-erp" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>毎朝1回、決まった時刻に<span class="tag">派生シナリオ 2</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x"><pre><code>06:00 ERP export → ADLS → 06:30 Scheduled Job → Delta へ取り込み</code></pre></div>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>注意点</th><th>何が起きるか</th></tr></thead>
+            <tbody>
+              <tr><td>タイムゾーン設定</td><td>同じ指定でも解釈が違えば起動時刻がずれる</td></tr>
+              <tr><td>遅延到着</td><td>06:30 の時点でまだファイルが揃っていない</td></tr>
+              <tr><td><strong>届かなかった日の扱い</strong></td><td>空で走らせるのか、止めるのか、待つのかを決めておく</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="note">
+            <p>非常に典型的な<strong>固定スケジュール型</strong>——ファイルが出てくる時刻が分かっているので、その少しあとに起動を置くだけです。スケジュールの書式（Quartz cron）とタイムゾーンの解釈そのものは第58回で扱いました。ここで言いたいのは、<strong>時刻を決めるということは、来なかったときにどうするかまで決めることだ</strong>という点です。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-multi" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>複数ソースをまとめて取り込む<span class="tag">派生シナリオ 3</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 100" role="img" aria-label="複数データソースの日次統合。Sales、Customer、Product、Inventory の4つの CSV が Bronze に集まり、Silver で整形したあと JOIN して Gold ができる流れ。">
+              <rect x="8" y="6" width="120" height="18" rx="3" class="d-box"/><text x="68" y="19" text-anchor="middle" class="d-t-sm">Sales CSV</text>
+              <rect x="8" y="30" width="120" height="18" rx="3" class="d-box"/><text x="68" y="43" text-anchor="middle" class="d-t-sm">Customer CSV</text>
+              <rect x="8" y="54" width="120" height="18" rx="3" class="d-box"/><text x="68" y="67" text-anchor="middle" class="d-t-sm">Product CSV</text>
+              <rect x="8" y="78" width="120" height="18" rx="3" class="d-box"/><text x="68" y="91" text-anchor="middle" class="d-t-sm">Inventory CSV</text>
+
+              <path d="M128 15 H154 V51" class="d-line"/>
+              <path d="M128 39 H154" class="d-line"/>
+              <path d="M128 63 H154 V51" class="d-line"/>
+              <path d="M128 87 H154 V51" class="d-line"/>
+              <path d="M154 51 H181" class="d-line"/>
+              <polygon points="181,47 181,55 188,51" class="d-head"/>
+
+              <rect x="190" y="31" width="112" height="40" rx="3" class="d-box-ship"/>
+              <text x="246" y="55" text-anchor="middle" class="d-t">Bronze</text>
+              <polygon points="304,47 304,55 311,51" class="d-head"/>
+
+              <rect x="313" y="31" width="112" height="40" rx="3" class="d-box-ship"/>
+              <text x="369" y="49" text-anchor="middle" class="d-t">Silver</text>
+              <text x="369" y="62" text-anchor="middle" class="d-t-sm">で整形</text>
+              <polygon points="427,47 427,55 434,51" class="d-head-acc"/>
+
+              <rect x="436" y="31" width="112" height="40" rx="3" class="d-box-acc"/>
+              <text x="492" y="55" text-anchor="middle" class="d-t-code">JOIN</text>
+              <polygon points="550,47 550,55 557,51" class="d-head"/>
+
+              <rect x="559" y="31" width="112" height="40" rx="3" class="d-box-ship"/>
+              <text x="615" y="55" text-anchor="middle" class="d-t">Gold</text>
+            </svg>
+            <figcaption>売上だけでなく、<strong>顧客マスタ・商品マスタ・在庫も同時に取り込む</strong>形。入口が4本になっても、Bronze から先の背骨は同じです。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p><strong>ここでは Task を分離すると、データソースごとの失敗や再実行がしやすくなります。</strong>在庫のファイルだけ届かなかった——そういうときに、売上まで巻き添えにして止めなくて済みます。ひとつの Task に全部詰め込むと、この分け方ができません。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-memo" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>溜まったデータを流すだけ<span class="tag">覚え方</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="callout" data-kind="win">
+            <p><strong>日次バッチETL = 「定期的に起動して、溜まったデータを Bronze → Silver → Gold へ流す」</strong></p>
+          </div>
+
+          <p>試験で意識したいのは、部品そのものではなく<strong>組み合わせ</strong>です。スケジュール、Auto Loader、Delta、Medallion、Jobs、Task / DAG——この6つが同じ問題文の中に一緒に出てきます。</p>
+
+          <p>シナリオを読むときの順番も同じです。<strong>まず、いつ動くのか。次に、何をどこへ取り込むのか。そして、どこまで整形して誰に渡すのか。</strong>この3つを順に埋めていけば、答えの形は見えてきます。</p>
+        </div>
+      </details>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-11</span></span>
+        <span>ソース: osmosis @ <code>main</code> — shows/databricks-shorts/episodes/ep064</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>

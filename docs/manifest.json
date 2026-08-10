@@ -317,6 +317,11 @@
           "episode": "ep063",
           "title": "データスキューはなぜ効くのか",
           "file": "databricks/databricks-shorts/spark-data-skew.html"
+        },
+        {
+          "episode": "ep064",
+          "title": "日次バッチETLのシナリオ",
+          "file": "databricks/databricks-shorts/scenario-daily-batch-etl.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
