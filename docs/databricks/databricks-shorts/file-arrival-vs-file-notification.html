@@ -1,0 +1,1122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>File arrival trigger と Auto Loader の違い — DatabricksShorts</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksShorts · ep060</div>
+    <p class="rail-title">File arrival trigger と Auto Loader の違い</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-roles"><span class="dot" data-status="active"></span><span>役割が違う3つ</span></a></li>
+        <li><a href="#sec-trigger"><span class="dot" data-status="ship"></span><span>ファイル到着で Job を起こす</span></a></li>
+        <li><a href="#sec-autoloader"><span class="dot" data-status="new"></span><span>新着を増分で取り込む</span></a></li>
+        <li><a href="#sec-discovery"><span class="dot" data-status="idle"></span><span>新着をどう見つけるか</span></a></li>
+        <li><a href="#sec-not-trigger"><span class="dot" data-status="crit"></span><span>通知は起動の仕組みではない</span></a></li>
+        <li><a href="#sec-compare"><span class="dot" data-status="block"></span><span>並べて違いを見る</span></a></li>
+        <li><a href="#sec-combine"><span class="dot" data-status="ship"></span><span>両方を組み合わせる</span></a></li>
+        <li><a href="#sec-layers"><span class="dot" data-status="active"></span><span>同じ事象、別レイヤー</span></a></li>
+        <li><a href="#sec-schedule"><span class="dot" data-status="new"></span><span>時刻スケジュールとの違い</span></a></li>
+        <li><a href="#sec-latency"><span class="dot" data-status="crit"></span><span>完全リアルタイムではない</span></a></li>
+        <li><a href="#sec-managed"><span class="dot" data-status="idle"></span><span>Managed File Events との関係</span></a></li>
+        <li><a href="#sec-memo"><span class="dot" data-status="ship"></span><span>3行で覚える</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/0pqzSSrPo90" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/0pqzSSrPo90" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksShorts</span>
+          <span>ep060</span>
+          <span class="num">2026-08-10</span>
+        </div>
+        <h1>File arrival trigger と Auto Loader の違い</h1>
+        <p class="lede">
+          どちらも「ファイルが来たら反応する」ように見えますが、立っているレイヤーが違います。
+          <strong>File arrival trigger は Job を起動し、File Notification は Auto Loader に新着を知らせます。</strong>
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-roles" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>役割が違う3つ<span class="tag">WHEN / WHAT / HOW</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>名前が似ているので混同されますが、この3つは<strong>別のレイヤーの仕組み</strong>です。
+          次の3つの問いに分けて置くと、混ざらなくなります。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>仕組み</th><th>問い</th><th>ひとことで</th></tr></thead>
+            <tbody>
+              <tr><td><strong>File arrival trigger</strong></td><td><code>WHEN to run</code></td><td>いつ Job を動かす？</td></tr>
+              <tr><td><strong>Auto Loader</strong></td><td><code>WHAT files to ingest</code></td><td>どの新着ファイルを取り込む？</td></tr>
+              <tr><td><strong>File Notification</strong></td><td><code>HOW to discover them</code></td><td>その新着をどう見つける？</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">結論</p>
+            <p>File arrival trigger は <strong>Job を起動する仕組み</strong>。Auto Loader は
+            <strong>新着ファイルを増分で取り込む仕組み</strong>。File Notification は
+            <strong>Auto Loader が新着ファイルを見つける方法</strong>です。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-trigger" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>ファイル到着で Job を起こす<span class="tag">File arrival trigger</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>File arrival trigger は、<strong>Databricks Jobs の起動条件</strong>です。外部システムが
+          <code>/incoming/orders/</code> に <code>orders_20260810.json</code> を置いたら、Databricks が
+          その場所を監視していて Job を起動します。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 138" role="img"
+                 aria-label="外部システムがクラウドストレージの監視パスにファイルを置き、新しいファイルの到着を File arrival trigger が検知して Job Run を開始し、その中の Task が動くまでの経路を示す図">
+              <defs>
+                <marker id="f1-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <rect x="8" y="12" width="164" height="46" rx="2" class="d-box"/>
+              <text x="90" y="40" class="d-t-sm" text-anchor="middle">外部システム</text>
+              <line x1="176" y1="35" x2="212" y2="35" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="218" y="12" width="220" height="46" rx="2" class="d-box"/>
+              <text x="328" y="32" class="d-t-sm" text-anchor="middle">クラウドストレージ</text>
+              <text x="328" y="49" class="d-t-mono" text-anchor="middle">/incoming/orders/</text>
+              <line x1="442" y1="35" x2="478" y2="35" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="484" y="12" width="228" height="46" rx="2" class="d-box"/>
+              <text x="598" y="32" class="d-t-sm" text-anchor="middle">新しいファイルが到着</text>
+              <text x="598" y="49" class="d-t-mono" text-anchor="middle">orders_20260810.json</text>
+
+              <path d="M598,62 L598,72 L90,72 L90,82" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="8" y="86" width="164" height="46" rx="2" class="d-box-acc"/>
+              <text x="90" y="114" class="d-t-sm" text-anchor="middle">File arrival trigger</text>
+              <line x1="176" y1="109" x2="212" y2="109" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="218" y="86" width="180" height="46" rx="2" class="d-box-ship"/>
+              <text x="308" y="114" class="d-t-sm" text-anchor="middle">Job Run 開始</text>
+              <line x1="402" y1="109" x2="438" y2="109" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="444" y="86" width="268" height="46" rx="2" class="d-box"/>
+              <text x="578" y="114" class="d-t-sm" text-anchor="middle">Task A / Task B / Task C</text>
+            </svg>
+            <figcaption><strong>関心事は「新しいファイルが来たか」だけです。</strong>
+            来ていたら「じゃあ Job を始めよう」となります。ファイルの中身は読みません。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-autoloader" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>新着を増分で取り込む<span class="tag">Auto Loader</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Auto Loader は、クラウドストレージへ到着した新しいファイルを見つけて、
+          <strong>増分で読み込む仕組み</strong>です。</p>
+
+          <div class="scroll-x"><pre><code>df = (spark.readStream.format("cloudFiles")
+        .option("cloudFiles.format", "json")
+        .load("/incoming/orders/"))</code></pre></div>
+
+          <p>Auto Loader はこの場所の中から、<strong>どれが新着か</strong>を判別して読み込みます。</p>
+
+          <div class="scroll-x"><pre><code>orders_001.json → 処理済み    orders_002.json → 処理済み    orders_003.json → 新着</code></pre></div>
+
+          <p>読み込んだあとは、変換して Delta Table へ書き込みます。どのファイルをすでに処理したかという
+          状態は<strong>チェックポイント</strong>が持ちます。ここは
+          <a href="autoloader-checkpoint-internals.html">ep035「Auto Loader のチェックポイントの中身」</a>で扱いました。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-discovery" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>新着をどう見つけるか<span class="tag">Directory Listing / File Notification</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Auto Loader が新着ファイルを見つける方法は、大きく分けて2つあります。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>方式</th><th>やっていること</th><th>大規模だと</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Directory Listing</strong></td><td>ストレージの一覧を取得し、前回との差分を見る</td><td>毎回一覧を調べるコストが大きくなる</td></tr>
+              <tr><td><strong>File Notification</strong></td><td>ストレージ側の File Event を通知／Queue 経由で受け取る</td><td>全体を探しに行かずに済む</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p class="note">通知の仕組みそのもの（クラウドごとの通知基盤、Unity Catalog の External Location、
+          Managed File Events）は <a href="autoloader-managed-file-events.html">ep037「Auto Loader の Managed File Events」</a>で扱いました。
+          この回では深追いせず、<strong>Jobs の File arrival trigger との対比</strong>に絞ります。
+          方式の選び分けは <a href="auto-loader-cloud-storage.html">ep012</a> にあります。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-not-trigger" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>通知は起動の仕組みではない<span class="tag">検出であって起動ではない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 72" role="img"
+                 aria-label="新しいファイルの作成がクラウドの File Event になり、通知やキューを経由してすでに動いている Auto Loader に届き、そのファイルを新着として認識して Delta Table へ書き込むまでの一本の経路を示す図。この経路に Job を起動する段は無い">
+              <defs>
+                <marker id="f2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <rect x="0" y="8" width="124" height="54" rx="2" class="d-box"/>
+              <text x="62" y="32" class="d-t-sm" text-anchor="middle">新しい</text>
+              <text x="62" y="49" class="d-t-sm" text-anchor="middle">ファイル作成</text>
+              <line x1="128" y1="35" x2="145" y2="35" class="d-line-acc" marker-end="url(#f2-ar)"/>
+
+              <rect x="149" y="8" width="124" height="54" rx="2" class="d-box"/>
+              <text x="211" y="32" class="d-t-sm" text-anchor="middle">クラウドの</text>
+              <text x="211" y="49" class="d-t-sm" text-anchor="middle">File Event</text>
+              <line x1="277" y1="35" x2="294" y2="35" class="d-line-acc" marker-end="url(#f2-ar)"/>
+
+              <rect x="298" y="8" width="124" height="54" rx="2" class="d-box"/>
+              <text x="360" y="32" class="d-t-sm" text-anchor="middle">通知</text>
+              <text x="360" y="49" class="d-t-sm" text-anchor="middle">Queue</text>
+              <line x1="426" y1="35" x2="443" y2="35" class="d-line-acc" marker-end="url(#f2-ar)"/>
+
+              <rect x="447" y="8" width="124" height="54" rx="2" class="d-box-acc"/>
+              <text x="509" y="32" class="d-t-sm" text-anchor="middle">Auto Loader</text>
+              <text x="509" y="49" class="d-t-sm" text-anchor="middle">すでに動いている</text>
+              <line x1="575" y1="35" x2="592" y2="35" class="d-line-acc" marker-end="url(#f2-ar)"/>
+
+              <rect x="596" y="8" width="124" height="54" rx="2" class="d-box-ship"/>
+              <text x="658" y="32" class="d-t-sm" text-anchor="middle">新着と分かる</text>
+              <text x="658" y="49" class="d-t-sm" text-anchor="middle">Delta Table へ</text>
+            </svg>
+            <figcaption><strong>この経路のどこにも「Job を起動する」段はありません。</strong>
+            Auto Loader はすでに動いていて、通知は「どれが新着か」を教えているだけです。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">File Notification は Auto Loader を起動する仕組みではない</p>
+            <p>あくまで、<strong>Auto Loader が新着ファイルを見つけるための検出方法</strong>です。
+            毎回全体を探しに行く代わりに通知を使う、という置き換えにすぎません。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-compare" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>並べて違いを見る<span class="tag">ここが最重要</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>項目</th><th>File arrival trigger</th><th>Auto Loader File Notification</th></tr></thead>
+            <tbody>
+              <tr><td><strong>所属</strong></td><td>Jobs</td><td>Auto Loader</td></tr>
+              <tr><td><strong>目的</strong></td><td>Job を起動する</td><td>新着ファイルを見つける</td></tr>
+              <tr><td><strong>見ているもの</strong></td><td>監視パスへのファイル到着</td><td>ファイル作成イベント</td></tr>
+              <tr><td><strong>結果</strong></td><td>Job Run 開始</td><td>Auto Loader が対象ファイルを認識</td></tr>
+              <tr><td><strong>データ読み込み</strong></td><td>しない</td><td>Auto Loader が行う</td></tr>
+              <tr><td><strong>実行単位</strong></td><td>Job</td><td>Streaming ingestion</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p class="note">矢印の先が違う、と覚えるのが早いです。File arrival trigger の矢印の先は
+          <strong>Job の起動</strong>。File Notification の矢印の先は
+          <strong>Auto Loader への「新着はこれ」という通知</strong>です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-combine" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>両方を組み合わせる<span class="tag">競合しない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>この2つは競合する仕組みではありません。むしろ、同じシステムの中で一緒に使えます。</p>
+
+          <div class="scroll-x"><pre><code>① 外部システムがファイルを置く   → ② File arrival trigger が検知 → ③ Job が起動
+④ Job 内で Auto Loader を実行   → ⑤ Auto Loader が新着を見つける → ⑥ Delta Table へ取り込む</code></pre></div>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>役どころ</th><th>担当</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Job を始めるスイッチ</strong></td><td>File arrival trigger</td></tr>
+              <tr><td><strong>実際にファイルを取り込む処理</strong></td><td>Auto Loader</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p class="note">Job・Task・DAG の関係そのものは <a href="jobs-task-dag.html">ep056「Job / Task / DAG の全体像」</a>で扱います。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-layers" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>同じ事象、別レイヤー<span class="tag">ひとつの File Event、ふたつの行き先</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 168" role="img"
+                 aria-label="クラウドストレージに置かれた新しいファイルの File Event から経路が2つに分かれ、左は File arrival trigger が Job を起動して Job Run になり、右は Auto Loader File Notification が新着ファイルを見つけて Delta Table へ書き込むことを示す図">
+              <defs>
+                <marker id="f3-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <rect x="250" y="6" width="220" height="46" rx="2" class="d-box"/>
+              <text x="360" y="26" class="d-t-sm" text-anchor="middle">Cloud Storage の File Event</text>
+              <text x="360" y="43" class="d-t-mono" text-anchor="middle">new_file.json</text>
+
+              <path d="M360,56 L360,66 L152,66 L152,78" class="d-line-acc" marker-end="url(#f3-ar)"/>
+              <path d="M360,56 L360,66 L568,66 L568,78" class="d-line-acc" marker-end="url(#f3-ar)"/>
+
+              <rect x="12" y="82" width="280" height="76" rx="2" class="d-box-acc"/>
+              <text x="152" y="102" class="d-t-sm" text-anchor="middle">File arrival trigger</text>
+              <text x="152" y="120" class="d-t-key" text-anchor="middle">↓ Job を起動する</text>
+              <text x="152" y="140" class="d-t-sm" text-anchor="middle">↓ Job Run</text>
+              <text x="152" y="156" class="d-t-mono" text-anchor="middle">起動レイヤー</text>
+
+              <rect x="428" y="82" width="280" height="76" rx="2" class="d-box-ship"/>
+              <text x="568" y="102" class="d-t-sm" text-anchor="middle">Auto Loader File Notification</text>
+              <text x="568" y="120" class="d-t-sm" text-anchor="middle">↓ 新着ファイルを見つける</text>
+              <text x="568" y="140" class="d-t-sm" text-anchor="middle">↓ Auto Loader → Delta Table</text>
+              <text x="568" y="156" class="d-t-mono" text-anchor="middle">検出レイヤー</text>
+            </svg>
+            <figcaption><strong>きっかけは同じ「ファイル到着」でも、左は Job 起動、右は取り込み対象ファイルの発見です。</strong>
+            別レイヤーの仕事なので、どちらか一方だけでも、両方同時でも成立します。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-schedule" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>時刻スケジュールとの違い<span class="tag">待ち時間と空振り</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>File arrival trigger のメリットは、<strong>時刻ベースで Job を動かす必要がない</strong>ことです。
+          毎時00分に動かす設定だと、こうなります。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th></th><th>時刻スケジュール（毎時00分）</th><th>File arrival trigger</th></tr></thead>
+            <tbody>
+              <tr><td><strong>ファイルが 10:05 に着いたら</strong></td><td>10:00 起動 → 11:00 が次。<strong>55分待つ</strong></td><td>到着を検知してすぐ起動</td></tr>
+              <tr><td><strong>ファイルが来ていないと</strong></td><td>10:00 / 11:00 / 12:00 と<strong>空振り実行</strong></td><td>起動しない</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p class="note">不要な待ち時間と、空振り実行の両方を減らせるのが利点です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-latency" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>完全リアルタイムではない<span class="tag">0秒起動ではない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">「置かれた瞬間に必ず0秒で起動」ではない</p>
+            <p>File arrival trigger はイベント駆動に近い動きをしますが、監視やストレージ側の
+            イベント伝達には<strong>多少の遅延があり得ます</strong>。</p>
+          </div>
+
+          <p>正確には、<strong>時刻スケジュールによる不要な待ち時間や空振りを減らせる</strong>
+          と考えるのがよいです。レイテンシ保証の仕組みとして期待すると外します。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-managed" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Managed File Events との関係<span class="tag">これも検出レイヤー</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>現在の Databricks では、Auto Loader の新着検出に <strong>Managed File Events</strong> を使う
+          構成があります。以前は、クラウド側の通知インフラを利用する構成が中心でした。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>クラウド</th><th>従来の通知インフラ</th></tr></thead>
+            <tbody>
+              <tr><td><strong>AWS</strong></td><td>SNS / SQS</td></tr>
+              <tr><td><strong>Azure</strong></td><td>Event Grid / Queue Storage</td></tr>
+              <tr><td><strong>GCP</strong></td><td>Pub/Sub</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="scroll-x"><pre><code>.option("cloudFiles.useManagedFileEvents", "true")</code></pre></div>
+
+          <p class="note">中身は <a href="autoloader-managed-file-events.html">ep037</a> で扱った通りです。
+          ここで押さえるのは、<strong>Managed File Events も「Auto Loader がどのファイルを新着として
+          認識するか」という detection layer の話</strong>で、Job を起動する File arrival trigger とは
+          別物だ、という一点です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-memo" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>3行で覚える<span class="tag">試験対策</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x"><pre><code>File arrival trigger        = WHEN to run   = Job をいつ動かす？
+Auto Loader                 = WHAT to ingest = どの新着ファイルを取り込む？
+File Notification / Events  = HOW to discover= その新着をどう見つける？</code></pre></div>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>よくある誤解</th><th>正しくは</th></tr></thead>
+            <tbody>
+              <tr><td>File Notification = Job 起動 ／ File arrival trigger がファイルを読む</td><td><strong>File arrival trigger = Job 起動</strong>。<strong>読むのは Auto Loader</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">一言でまとめると</p>
+            <p><strong>File arrival trigger は「ファイルが来たら Job を始める」。Auto Loader は
+            「来たファイルを増分で取り込む」。File Notification は「Auto Loader がその新着ファイルを
+            効率よく見つける方法」。</strong></p>
+          </div>
+        </div>
+      </details>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-10</span></span>
+        <span>ソース: osmosis @ <code>main</code> — shows/databricks-shorts/episodes/ep060</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>

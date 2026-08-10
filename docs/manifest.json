@@ -297,6 +297,11 @@
           "episode": "ep059",
           "title": "Declarative Pipelines と Jobs の役割分担",
           "file": "databricks/databricks-shorts/declarative-pipelines-vs-jobs.html"
+        },
+        {
+          "episode": "ep060",
+          "title": "File arrival trigger と Auto Loader の違い",
+          "file": "databricks/databricks-shorts/file-arrival-vs-file-notification.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
