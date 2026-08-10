@@ -1,0 +1,1054 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>増分更新とMERGEのシナリオ — DatabricksShorts</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksShorts · ep068</div>
+    <p class="rail-title">増分更新とMERGEのシナリオ</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-pattern"><span class="dot" data-status="idle"></span><span>作り直さずに差分を当てる</span></a></li>
+        <li><a href="#sec-basic"><span class="dot" data-status="new"></span><span>顧客マスタの日次更新</span></a></li>
+        <li><a href="#sec-branch"><span class="dot" data-status="active"></span><span>一致すれば更新、無ければ挿入</span></a></li>
+        <li><a href="#sec-flow"><span class="dot" data-status="ship"></span><span>受け口から反映までを一本にする</span></a></li>
+        <li><a href="#sec-price"><span class="dot" data-status="block"></span><span>価格変更は上書きでいいのか</span></a></li>
+        <li><a href="#sec-delete"><span class="dot" data-status="crit"></span><span>消えた行をどう扱うか</span></a></li>
+        <li><a href="#sec-cdc"><span class="dot" data-status="new"></span><span>操作種別が付いて届く場合</span></a></li>
+        <li><a href="#sec-why"><span class="dot" data-status="idle"></span><span>なぜデルタと相性がいいのか</span></a></li>
+        <li><a href="#sec-perf"><span class="dot" data-status="block"></span><span>重くなったら何を見るか</span></a></li>
+        <li><a href="#sec-memo"><span class="dot" data-status="active"></span><span>変更分だけ取り込んで当てる</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/SAslJsM4VqQ" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/SAslJsM4VqQ" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksShorts</span>
+          <span>ep068</span>
+          <span class="num">2026-08-11</span>
+        </div>
+        <h1>増分更新とMERGEのシナリオ</h1>
+        <p class="lede">
+          マスタデータを増分で更新し続ける、という場面の組み立て方。
+          <strong>毎回テーブル全体を作り直すのではなく、届いた変更分だけを既存の Delta Table へ当てる。</strong>
+          その受け口から反映までを一本の線にします。
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-pattern" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>作り直さずに差分を当てる<span class="tag">このパターンの本質</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>毎回テーブル全体を作り直すのではなく、<strong>新しく届いた変更分だけを既存の Delta Table へ反映する</strong>。
+          これが増分更新パターンです。<code>MERGE</code> は、既存行の UPDATE、新規行の INSERT、条件次第では DELETE まで、
+          <strong>1つの処理として扱えます</strong>。だから増分を受ける口として使われます。</p>
+
+          <dl class="facts">
+            <div class="fact"><dt>やること</dt><dd>届いた変更分だけを既存の Delta Table へ当てる</dd></div>
+            <div class="fact"><dt>使う道具</dt><dd><code>MERGE</code> — 更新・挿入・削除を1回の処理にまとめられる</dd></div>
+            <div class="fact"><dt>この回の範囲</dt><dd><strong>構文そのものは第14回、遅いときの対処は第15回。</strong>ここは組み合わせ方と判断の順序</dd></div>
+          </dl>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-basic" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>顧客マスタの日次更新<span class="tag">基本シナリオ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>昨日時点のテーブルに2行あり、今日そこへ変更ファイルが2行届く、という形です。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>customer_id</th><th>昨日時点</th><th>今日届いた変更</th><th>期待する結果</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1001</td><td>A / Silver</td><td>A / <strong>Gold</strong></td><td><strong>UPDATE</strong> — 既にいるので置き換える</td></tr>
+              <tr><td class="num">1002</td><td>B / Gold</td><td>—</td><td>そのまま — 触らない</td></tr>
+              <tr><td class="num">1003</td><td>—</td><td>C / Silver</td><td><strong>INSERT</strong> — いないので追加する</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p><strong>更新と挿入が、同じ1回の処理で起きてほしい。</strong>ここが出発点です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-branch" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>一致すれば更新、無ければ挿入<span class="tag">分岐は2本だけ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 104" role="img" aria-label="届いた変更分と既存の customers テーブルを customer_id で突き合わせ、一致した行は更新、一致しない行は挿入という2本に分かれる図。1001 は既存にあるのでランクが Gold へ更新され、1003 は既存に無いので新しい行として追加される。">
+              <defs>
+                <marker id="f1-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <rect x="2" y="2" width="156" height="42" rx="3" class="d-box"/>
+              <text x="10" y="18" class="d-t-sm">既存 customers</text>
+              <text x="10" y="36" class="d-t-mono">1001 A Silver / 1002 B Gold</text>
+
+              <rect x="2" y="60" width="156" height="42" rx="3" class="d-box-acc"/>
+              <text x="10" y="76" class="d-t-sm">届いた変更分</text>
+              <text x="10" y="94" class="d-t-mono">1001 A Gold / 1003 C Silver</text>
+
+              <path d="M162,23 L192,44" class="d-line-acc" marker-end="url(#f1-ar)"/>
+              <path d="M162,81 L192,60" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="196" y="26" width="150" height="52" rx="3" class="d-box-acc"/>
+              <text x="271" y="48" text-anchor="middle" class="d-t">customer_id で</text>
+              <text x="271" y="68" text-anchor="middle" class="d-t">突き合わせる</text>
+
+              <path d="M350,44 L392,26" class="d-line-acc" marker-end="url(#f1-ar)"/>
+              <path d="M350,60 L392,78" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="398" y="2" width="320" height="42" rx="3" class="d-box-ship"/>
+              <text x="408" y="20" class="d-t">一致した → その行を更新</text>
+              <text x="408" y="37" class="d-t-sm">1001 のランクを Gold に置き換える</text>
+
+              <rect x="398" y="60" width="320" height="42" rx="3" class="d-box-block"/>
+              <text x="408" y="78" class="d-t">一致しない → 新しい行を挿入</text>
+              <text x="408" y="95" class="d-t-sm">1003 を新しい行として追加する</text>
+            </svg>
+            <figcaption><strong>増分を受ける側の分岐は、この2本だけ。</strong>書き分けが必要な理由は第14回で扱いました。</figcaption>
+          </figure>
+
+          <div class="scroll-x"><pre><code>MERGE INTO customers t USING customer_updates s ON t.customer_id = s.customer_id
+WHEN MATCHED THEN UPDATE SET *   WHEN NOT MATCHED THEN INSERT *</code></pre></div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-flow" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>受け口から反映までを一本にする<span class="tag">組み立ての順序</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 62" role="img" aria-label="更新ファイルが届き、Auto Loader が拾い、Bronze に生のまま入り、Silver で整形され、MERGE で当てられて、customers が最新になるまでの一本の流れ。">
+              <defs>
+                <marker id="f2-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" class="d-head"/>
+                </marker>
+              </defs>
+
+              <rect x="2" y="4" width="108" height="50" rx="3" class="d-box"/>
+              <text x="56" y="28" text-anchor="middle" class="d-t">更新ファイル</text>
+              <text x="56" y="46" text-anchor="middle" class="d-t-sm">が届く</text>
+              <path d="M112,29 L120,29" class="d-line" marker-end="url(#f2-ar)"/>
+
+              <rect x="124" y="4" width="108" height="50" rx="3" class="d-box-acc"/>
+              <text x="178" y="28" text-anchor="middle" class="d-t">Auto Loader</text>
+              <text x="178" y="46" text-anchor="middle" class="d-t-sm">が拾う</text>
+              <path d="M234,29 L242,29" class="d-line" marker-end="url(#f2-ar)"/>
+
+              <rect x="246" y="4" width="108" height="50" rx="3" class="d-box"/>
+              <text x="300" y="28" text-anchor="middle" class="d-t">Bronze</text>
+              <text x="300" y="46" text-anchor="middle" class="d-t-sm">生のまま</text>
+              <path d="M356,29 L364,29" class="d-line" marker-end="url(#f2-ar)"/>
+
+              <rect x="368" y="4" width="108" height="50" rx="3" class="d-box"/>
+              <text x="422" y="28" text-anchor="middle" class="d-t">Silver</text>
+              <text x="422" y="46" text-anchor="middle" class="d-t-sm">整形済み</text>
+              <path d="M478,29 L486,29" class="d-line" marker-end="url(#f2-ar)"/>
+
+              <rect x="490" y="4" width="108" height="50" rx="3" class="d-box-acc"/>
+              <text x="544" y="28" text-anchor="middle" class="d-t">MERGE</text>
+              <text x="544" y="46" text-anchor="middle" class="d-t-sm">本体へ当てる</text>
+              <path d="M600,29 L608,29" class="d-line" marker-end="url(#f2-ar)"/>
+
+              <rect x="612" y="4" width="106" height="50" rx="3" class="d-box-ship"/>
+              <text x="665" y="28" text-anchor="middle" class="d-t">customers</text>
+              <text x="665" y="46" text-anchor="middle" class="d-t-sm">最新の状態</text>
+            </svg>
+            <figcaption><strong>大事なのは MERGE 単体ではなく、その前後。</strong>
+            届いた生の姿がそのまま残るので、整形の失敗もやり直せます。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="wait">
+            <p><strong>MERGE の直前に「当てる用のテーブル」を1枚挟む。</strong>
+            増分更新で怖いのは、変な行をそのまま本体へ当ててしまうことです。</p>
+          </div>
+
+          <div class="pills">
+            <span class="pill" data-status="active">Delta Lake</span>
+            <span class="pill" data-status="active">MERGE</span>
+            <span class="pill" data-status="ship">ACID</span>
+            <span class="pill" data-status="ship">Transaction Log</span>
+            <span class="pill" data-status="new">Auto Loader</span>
+            <span class="pill" data-status="new">Schema Evolution</span>
+            <span class="pill" data-status="block">Bronze / Silver</span>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-price" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>価格変更は上書きでいいのか<span class="tag">派生1 — 商品マスタ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>10番の商品に価格の変更が届いたとします。旧価格は 1,000円、新価格は 1,200円。
+          ここで<strong>組み合わせ方が2つに割れます</strong>。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>要件</th><th>組み立て方</th></tr></thead>
+            <tbody>
+              <tr><td><strong>最新値だけあればいい</strong></td><td>届いた変更を <code>MERGE</code> で当てて <code>current_price</code> を更新。それで終わり</td></tr>
+              <tr><td><strong>過去の価格履歴も残したい</strong></td><td>上書きすると前の値が消える。履歴テーブルを別途設計するなど、<strong>単純な上書き MERGE とは違う設計</strong>になる</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>つまり<strong>最初に確かめるべきは「最新値だけでいいのか、履歴も要るのか」</strong>。ここを決めずに書き始めると、後から作り直しになります。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-delete" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>消えた行をどう扱うか<span class="tag">派生2 — ソースから削除</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>外部システムのほうで顧客が無効化されたとします。すると
+          <strong>Target には行があるのに Source にはいない</strong>、という状態になります。
+          更新でも挿入でもない、<strong>3つ目の形</strong>です。</p>
+
+          <div class="scroll-x"><pre><code>WHEN NOT MATCHED BY SOURCE THEN UPDATE SET active = false</code></pre></div>
+
+          <div class="callout" data-kind="risk">
+            <p><strong>いきなり物理削除にしない。</strong>行そのものを消すのではなく <code>active = false</code> に倒すほうが、
+            業務上は扱いやすいケースが多いです。消してしまうと、<strong>いつ消えたのかが後から分からなくなります</strong>。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-cdc" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>操作種別が付いて届く場合<span class="tag">派生3 — CDC</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>変更データキャプチャ（CDC）からデータが届くときは、行に<strong>操作種別が付いてきます</strong>。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>operation</th><th>customer_id</th><th>name</th><th>Delta 側での処理</th></tr></thead>
+            <tbody>
+              <tr><td><code>INSERT</code></td><td class="num">1003</td><td>C</td><td>挿入</td></tr>
+              <tr><td><code>UPDATE</code></td><td class="num">1001</td><td>A</td><td>更新</td></tr>
+              <tr><td><code>DELETE</code></td><td class="num">1002</td><td>B</td><td>削除、または無効化</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p><strong>CDC = 変更イベントを受け取る仕組み。MERGE = その変更を Delta Table へ反映する代表的な方法。</strong>
+            受け取る側と当てる側で役割が分かれています。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-why" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>なぜデルタと相性がいいのか<span class="tag">下で起きていること</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 64" role="img" aria-label="旧 Parquet に対して MERGE をかけると、その場で書き換えるのではなく必要なファイルを新しく書き直し、_delta_log に新しいバージョンを記録して確定する流れ。">
+              <defs>
+                <marker id="f3-ar" viewBox="0 0 10 10" refX="9" refY="5" markerWidth="6" markerHeight="6" orient="auto-start-reverse">
+                  <path d="M0,0 L10,5 L0,10 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <rect x="2" y="4" width="160" height="52" rx="3" class="d-box"/>
+              <text x="82" y="28" text-anchor="middle" class="d-t">旧 Parquet</text>
+              <text x="82" y="46" text-anchor="middle" class="d-t-sm">既存のファイル</text>
+              <path d="M166,30 L182,30" class="d-line-acc" marker-end="url(#f3-ar)"/>
+
+              <rect x="188" y="4" width="160" height="52" rx="3" class="d-box-acc"/>
+              <text x="268" y="28" text-anchor="middle" class="d-t">MERGE</text>
+              <text x="268" y="46" text-anchor="middle" class="d-t-sm">変更分を当てる</text>
+              <path d="M352,30 L368,30" class="d-line-acc" marker-end="url(#f3-ar)"/>
+
+              <rect x="374" y="4" width="160" height="52" rx="3" class="d-box"/>
+              <text x="454" y="28" text-anchor="middle" class="d-t">新しい Parquet</text>
+              <text x="454" y="46" text-anchor="middle" class="d-t-sm">必要な分を書き直す</text>
+              <path d="M538,30 L554,30" class="d-line-acc" marker-end="url(#f3-ar)"/>
+
+              <rect x="560" y="4" width="158" height="52" rx="3" class="d-box-ship"/>
+              <text x="639" y="28" text-anchor="middle" class="d-t">_delta_log</text>
+              <text x="639" y="46" text-anchor="middle" class="d-t-sm">新バージョンを記録</text>
+            </svg>
+            <figcaption><strong>その場で1行だけ書き換えることはしない。</strong>
+            書き直したうえで Transaction Log に新しい状態を記録し、そこで確定させます。</figcaption>
+          </figure>
+
+          <div class="note">
+            <p>上書きではなくログを重ねる、というこの考え方は第9回で扱いました。
+            この作りのおかげで<strong>ACID な更新と Time Travel が成り立ち</strong>、増分を何度も当て続ける用途と噛み合っています。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-perf" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>重くなったら何を見るか<span class="tag">見る順番は決まっている</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p><code>MERGE</code> の対象が巨大になると、毎回大量のファイルを読むことになって重くなります。上から順に見ます。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>順</th><th>観点</th></tr></thead>
+            <tbody>
+              <tr><td class="num">①</td><td>どのファイルを読んでいるか</td></tr>
+              <tr><td class="num">②</td><td>Join 条件は適切か</td></tr>
+              <tr><td class="num">③</td><td>データ配置は適切か</td></tr>
+              <tr><td class="num">④</td><td>不要な Shuffle がないか</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="note">
+            <p><strong>遅いときの具体的な対処と、データ配置の直し方は第15回で扱いました。</strong>
+            ここで押さえたいのは、増分更新は毎日回るものなので、<strong>この遅さがそのまま毎日の遅さになる</strong>ということです。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-memo" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>変更分だけ取り込んで当てる<span class="tag">覚え方</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="callout" data-kind="win">
+            <p><strong>増分更新パターン = 「変更分だけ取り込み、MERGE で既存 Delta Table へ反映する」</strong><br>
+            流れは1セットで覚える —— <strong>Auto Loader → Staging → MERGE → Delta</strong>。</p>
+          </div>
+
+          <p>そして、組み立てるときに<strong>最初に決めることが3つ</strong>あります。
+          更新と挿入だけでいいのか。消えた行も扱うのか。履歴も残すのか。
+          <strong>ここが決まれば、あとは部品の当てはめです。</strong></p>
+        </div>
+      </details>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-11</span></span>
+        <span>ソース: osmosis @ <code>main</code> — shows/databricks-shorts/episodes/ep068</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>
