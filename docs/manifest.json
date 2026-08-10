@@ -287,6 +287,11 @@
           "episode": "ep057",
           "title": "%run と Task の違い",
           "file": "databricks/databricks-shorts/databricks-run-vs-task.html"
+        },
+        {
+          "episode": "ep058",
+          "title": "Jobs の cron とタイムゾーン",
+          "file": "databricks/databricks-shorts/jobs-cron-timezone.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
