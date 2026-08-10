@@ -282,6 +282,11 @@
           "episode": "ep056",
           "title": "Job / Task / DAG の全体像",
           "file": "databricks/databricks-shorts/jobs-task-dag.html"
+        },
+        {
+          "episode": "ep057",
+          "title": "%run と Task の違い",
+          "file": "databricks/databricks-shorts/databricks-run-vs-task.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
