@@ -277,6 +277,11 @@
           "episode": "ep055",
           "title": "Deltaのパーティション指定と誤解",
           "file": "databricks/databricks-shorts/delta-lake-partitioning-manual-auto-multiple.html"
+        },
+        {
+          "episode": "ep056",
+          "title": "Job / Task / DAG の全体像",
+          "file": "databricks/databricks-shorts/jobs-task-dag.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
@@ -335,7 +340,7 @@
       "page": "databricks"
     }
   },
-  "updated_at": "2026-08-09",
+  "updated_at": "2026-08-10",
   "pages": {
     "databricks": {
       "title": "Databricks",
