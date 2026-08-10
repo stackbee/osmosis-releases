@@ -342,6 +342,11 @@
           "episode": "ep068",
           "title": "増分更新とMERGEのシナリオ",
           "file": "databricks/databricks-shorts/scenario-incremental-merge.html"
+        },
+        {
+          "episode": "ep069",
+          "title": "BI分析基盤とクエリ高速化のシナリオ",
+          "file": "databricks/databricks-shorts/scenario-bi-query-performance.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
