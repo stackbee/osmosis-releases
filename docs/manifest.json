@@ -406,11 +406,6 @@
           "file": "databricks/databricks-review/07-exam-tactics.html"
         },
         {
-          "episode": "ep010",
-          "title": "Unity Catalogの階層構造",
-          "file": "databricks/databricks-review/uc-hierarchy.html"
-        },
-        {
           "episode": "ep011",
           "title": "Managed Table / External Table / Volume",
           "file": "databricks/databricks-review/managed-vs-external-assets.html"
@@ -454,6 +449,11 @@
           "episode": "ep019",
           "title": "Delta SharingとInteroperability",
           "file": "databricks/databricks-review/delta-sharing-interoperability.html"
+        },
+        {
+          "episode": "ep010",
+          "title": "Unity Catalogの階層構造",
+          "file": "databricks/databricks-review/uc-hierarchy.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
