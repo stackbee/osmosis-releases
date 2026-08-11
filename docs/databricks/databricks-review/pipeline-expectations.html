@@ -1,0 +1,1026 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Pipeline Expectations — DatabricksReview</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksReview · ep016</div>
+    <p class="rail-title">Pipeline Expectations</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-what"><span class="dot" data-status="active"></span><span>品質ルールを宣言として書く</span></a></li>
+        <li><a href="#sec-check"><span class="dot" data-status="idle"></span><span>何をチェックするのか</span></a></li>
+        <li><a href="#sec-actions"><span class="dot" data-status="crit"></span><span>三つの代表的な動き</span></a></li>
+        <li><a href="#sec-warn"><span class="dot" data-status="block"></span><span>まず観測したいときは警告だけ</span></a></li>
+        <li><a href="#sec-drop"><span class="dot" data-status="ship"></span><span>不正な行だけ落とす</span></a></li>
+        <li><a href="#sec-fail"><span class="dot" data-status="crit"></span><span>重大なら処理全体を止める</span></a></li>
+        <li><a href="#sec-filter"><span class="dot" data-status="new"></span><span>単なる絞り込みとの違い</span></a></li>
+        <li><a href="#sec-layer"><span class="dot" data-status="block"></span><span>どの層で適用するか</span></a></li>
+        <li><a href="#sec-exam"><span class="dot" data-status="active"></span><span>試験ではこう問われる</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/cAeSqcI62jA" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/cAeSqcI62jA" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksReview</span>
+          <span>ep016</span>
+          <span class="num">2026-08-11</span>
+        </div>
+        <h1>Pipeline Expectations</h1>
+        <p class="lede">
+          Expectations は、Lakeflow Pipelines の中で「このデータはこの条件を満たしていてほしい」という品質ルールを定義する仕組みです。
+          <strong>条件を書く場所であると同時に、違反したときにどうするかを書く場所でもあります。</strong>
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-what" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>品質ルールを宣言として書く<span class="tag">今回の主題</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>流れは単純です。データが入ってくる。Expectation が条件を確かめる。その結果として、<strong>通すか、落とすか、止めるか</strong>が決まります。</p>
+
+          <div class="scroll-x"><pre><code>Incoming Data
+    ↓
+Expectation
+    ↓
+OK / Drop / Fail</code></pre></div>
+
+          <dl class="facts">
+            <div class="fact">
+              <dt>この回の位置</dt>
+              <dd>第5回「変換とモデリング」で概観した Expectations の深掘り</dd>
+            </div>
+            <div class="fact">
+              <dt>隣の回との境界</dt>
+              <dd>宣言的パイプラインそのものの定義方法は第15回。ここは<strong>中に置く品質チェックだけ</strong></dd>
+            </div>
+          </dl>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-check" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>何をチェックするのか<span class="tag">条件の書きどころ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>条件には、そのテーブルにとっての当たり前を書きます。例えば注文データなら、こうなります。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>条件</th><th>何を守っているか</th></tr></thead>
+            <tbody>
+              <tr><td><code>order_id IS NOT NULL</code></td><td>注文を識別できない行を、注文として扱わない</td></tr>
+              <tr><td><code>amount &gt;= 0</code></td><td>金額が負のままの行を、正常な行と同じ扱いにしない</td></tr>
+              <tr><td><code>country IN ('JP','US','DE')</code></td><td>決められた値のどれかであること。集合を明示する</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>条件そのものは、ふだん書いている条件式と同じです。<strong>新しい言語を覚える必要はありません。</strong>名前を付けた制約として書き、そこに違反時の挙動を添えます。</p>
+
+          <div class="scroll-x"><pre><code>CONSTRAINT valid_order EXPECT (order_id IS NOT NULL)
+  [ ON VIOLATION DROP ROW | ON VIOLATION FAIL UPDATE ]   -- 省略時は記録のみ。行はテーブルに残る</code></pre></div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-actions" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>三つの代表的な動き<span class="tag">この回の核</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 136" role="img" aria-label="違反レコードが1件到着したときの3つの分岐。WARN は Pipeline を継続し違反行はテーブルに残る。DROP は Pipeline を継続し違反レコードだけ落ちて正常行だけが Silver へ進む。FAIL は Pipeline Update 自体が失敗してそこで処理が止まる。">
+              <defs>
+                <marker id="pe-br-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+                  <path d="M0 0 L8 4 L0 8 z" class="d-head"/>
+                </marker>
+              </defs>
+
+              <text x="4" y="16" class="d-t">不正な行が1件来たとき</text>
+              <rect x="275" y="2" width="170" height="22" rx="3" class="d-box-crit"/>
+              <text x="360" y="17" text-anchor="middle" class="d-t-crit">違反レコード 1 件</text>
+
+              <path d="M360 24 V32" class="d-line"/>
+              <path d="M120 32 H600" class="d-line"/>
+              <path d="M120 32 V44" class="d-line" marker-end="url(#pe-br-arrow)"/>
+              <path d="M360 32 V44" class="d-line" marker-end="url(#pe-br-arrow)"/>
+              <path d="M600 32 V44" class="d-line" marker-end="url(#pe-br-arrow)"/>
+
+              <rect x="16" y="50" width="208" height="26" rx="3" class="d-box-block"/>
+              <text x="120" y="68" text-anchor="middle" class="d-t">1. WARN</text>
+              <text x="120" y="96" text-anchor="middle" class="d-t-sm">Pipeline は継続する</text>
+              <text x="120" y="114" text-anchor="middle" class="d-t-sm">違反行はテーブルに残る</text>
+              <text x="120" y="133" text-anchor="middle" class="d-t-key">品質違反を記録する</text>
+
+              <rect x="256" y="50" width="208" height="26" rx="3" class="d-box-ship"/>
+              <text x="360" y="68" text-anchor="middle" class="d-t">2. DROP</text>
+              <text x="360" y="96" text-anchor="middle" class="d-t-sm">Pipeline は継続する</text>
+              <text x="360" y="114" text-anchor="middle" class="d-t-sm">違反レコードだけ落とす</text>
+              <text x="360" y="133" text-anchor="middle" class="d-t-key">正常行だけ Silver へ</text>
+
+              <rect x="496" y="50" width="208" height="26" rx="3" class="d-box-crit"/>
+              <text x="600" y="68" text-anchor="middle" class="d-t">3. FAIL</text>
+              <text x="600" y="96" text-anchor="middle" class="d-t-sm">Pipeline Update 失敗</text>
+              <text x="600" y="114" text-anchor="middle" class="d-t-sm">そこで処理が止まる</text>
+              <text x="600" y="133" text-anchor="middle" class="d-t-crit">1行でも違反したら止まる</text>
+            </svg>
+            <figcaption>違反したレコードを<strong>どう扱うか</strong>で考える。条件を書くことと違反時の挙動を決めることは別で、選ぶ基準は「観測したいのか、除外したいのか、1行も許さないのか」です。</figcaption>
+          </figure>
+
+          <div class="note">
+            <p><strong>落とし穴。</strong>何も指定しなければ既定は記録するだけで、違反した行はテーブルに残ります。「書いたのだから弾かれる」と思い込むのが典型的な誤りです。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-warn" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>まず観測したいときは警告だけ<span class="tag">ケース1 — 金額が負でも止めたくない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x"><pre><code>amount &lt; 0   →   WARN   →   Pipeline は継続</code></pre></div>
+
+          <dl class="facts">
+            <div class="fact">
+              <dt>条件</dt>
+              <dd><code>amount &gt;= 0</code></dd>
+            </div>
+            <div class="fact">
+              <dt>違反行</dt>
+              <dd>そのままテーブルに入る。落ちない</dd>
+            </div>
+            <div class="fact">
+              <dt>得られるもの</dt>
+              <dd>違反が何件あったかの記録</dd>
+            </div>
+          </dl>
+
+          <p><strong>まず品質状況を観測したい場合に向きます。</strong>
+          いきなり落としたり止めたりすると、何がどれだけ壊れているのか分からないまま、処理の結果だけが変わってしまいます。
+          新しくルールを入れるときは、この形から始めて、件数を見てから次へ進むのが安全です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-drop" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>不正な行だけ落とす<span class="tag">ケース2 — 不正行だけ除外したい</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x"><pre><code>order_id IS NULL   →   DROP   →   正常行だけ Silver へ</code></pre></div>
+
+          <dl class="facts">
+            <div class="fact">
+              <dt>条件</dt>
+              <dd><code>order_id IS NOT NULL</code></dd>
+            </div>
+            <div class="fact">
+              <dt>違反行</dt>
+              <dd>その行だけ落ちる。Pipeline は止まらない</dd>
+            </div>
+            <div class="fact">
+              <dt>向く場面</dt>
+              <dd>壊れた行は少数で、下流に流したくない。でも処理全体は動かし続けたい</dd>
+            </div>
+          </dl>
+
+          <p>落とした行が何件あったかは、やはり記録されます。<strong>黙って消えるわけではありません。</strong>
+          ここが、次に見る単純な絞り込みとの分かれ目になります。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-fail" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>重大なら処理全体を止める<span class="tag">ケース3 — 重大な品質問題</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x"><pre><code>business_date IS NULL   →   FAIL   →   Pipeline Update 失敗</code></pre></div>
+
+          <p>この列が <code>NULL</code> だと、日付で切る集計も、日付で並べる処理も、どれもおかしくなります。
+          <strong>1行でも混ざったら、続けても意味がありません。</strong>
+          だから落とすのではなく、止めます。落としてしまうと、その行が無かったことになったまま下流が動いてしまうからです。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>問題文にこう書いてあったら</th><th>選ぶ動き</th></tr></thead>
+            <tbody>
+              <tr><td>品質違反レコードを記録したい / まず観測したい</td><td><strong>WARN</strong></td></tr>
+              <tr><td>不正行だけ除外したい / 正常行だけ Silver へ上げたい</td><td><strong>DROP</strong></td></tr>
+              <tr><td>品質違反なら Pipeline を止めたい / 1行も許さない</td><td><strong>FAIL</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-filter" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>単なる絞り込みとの違い<span class="tag">WHERE との差 — 試験で問われる形</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>単純な <code>WHERE amount &gt;= 0</code> でも不正データは除外できます。出来上がったテーブルだけ見れば同じに見えます。
+          <strong>では何が違うのか。</strong></p>
+
+          <figure>
+            <svg viewBox="0 0 720 146" role="img" aria-label="WHERE 句と Expectation の比較。WHERE 句で得られるのは不正行の除外だけ。Expectation では、単なるフィルタに加えて、品質ルールとしての宣言、違反件数の観測、違反時の挙動の指定という3つが積み上がる。">
+              <defs>
+                <marker id="pe-fl-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+                  <path d="M0 0 L8 4 L0 8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <text x="4" y="13" class="d-t-mono">WHERE 句</text>
+              <rect x="4" y="22" width="300" height="30" rx="3" class="d-box"/>
+              <text x="154" y="42" text-anchor="middle" class="d-t-sm">単なるフィルタ</text>
+              <text x="154" y="76" text-anchor="middle" class="d-t-sm">何行落ちたのかは誰も知らない</text>
+              <text x="154" y="96" text-anchor="middle" class="d-t-sm">ルールはクエリ本文の中に埋もれる</text>
+
+              <path d="M320 76 H392" class="d-line-acc" marker-end="url(#pe-fl-arrow)"/>
+
+              <text x="410" y="13" class="d-t-mono">Expectation</text>
+              <rect x="410" y="22" width="306" height="30" rx="3" class="d-box"/>
+              <text x="563" y="42" text-anchor="middle" class="d-t-sm">単なるフィルタ</text>
+              <rect x="410" y="56" width="306" height="26" rx="3" class="d-box-acc"/>
+              <text x="563" y="74" text-anchor="middle" class="d-t-key">＋ 品質ルールとして宣言</text>
+              <rect x="410" y="88" width="306" height="26" rx="3" class="d-box-acc"/>
+              <text x="563" y="106" text-anchor="middle" class="d-t-key">＋ 違反件数の観測</text>
+              <rect x="410" y="120" width="306" height="26" rx="3" class="d-box-acc"/>
+              <text x="563" y="138" text-anchor="middle" class="d-t-key">＋ 違反時の挙動を指定</text>
+            </svg>
+            <figcaption><strong>この4つが揃ってはじめて「データ品質管理」になる。</strong>
+            除外そのものが目的ではありません。除外だけなら <code>WHERE</code> で足ります。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-layer" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>どの層で適用するか<span class="tag">Bronze / Silver との相性</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 96" role="img" aria-label="Bronze から Silver へ上げる矢印の上に Expectation が置かれている図。Bronze の責任は失わないこと、Silver の責任は正しくすること。品質チェックは Silver へ上げる際が本番。">
+              <defs>
+                <marker id="pe-ly-arrow" viewBox="0 0 8 8" refX="7" refY="4" markerWidth="6" markerHeight="6" orient="auto">
+                  <path d="M0 0 L8 4 L0 8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <rect x="4" y="30" width="200" height="36" rx="3" class="d-box"/>
+              <text x="104" y="53" text-anchor="middle" class="d-t">Bronze — 元データを広く保持</text>
+
+              <rect x="266" y="14" width="188" height="28" rx="3" class="d-box-acc"/>
+              <text x="360" y="33" text-anchor="middle" class="d-t-key">Expectation</text>
+              <path d="M360 42 V54" class="d-line-acc"/>
+              <path d="M212 54 H508" class="d-line-acc" marker-end="url(#pe-ly-arrow)"/>
+
+              <rect x="516" y="30" width="200" height="36" rx="3" class="d-box-ship"/>
+              <text x="616" y="53" text-anchor="middle" class="d-t">Silver — 正しくする</text>
+
+              <text x="104" y="88" text-anchor="middle" class="d-t-sm">責任は「失わないこと」</text>
+              <text x="616" y="88" text-anchor="middle" class="d-t-sm">品質チェックはここが本番</text>
+            </svg>
+            <figcaption>典型的には <strong>Bronze には元データを広く保持し、Silver へ上げる際に品質ルールを適用します。</strong>
+            Bronze で弾いてしまうと、あとから見直せなくなるからです（第5回）。</figcaption>
+          </figure>
+
+          <div class="note">
+            <p>ただし、<strong>どこで適用するかは要件次第</strong>です。取り込む時点で明らかに壊れているものを止めたい、という要件もあります。
+            試験では「データ品質ルールを適用したい」＝ Silver を答えの軸にしてください。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-exam" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>試験ではこう問われる<span class="tag">DEA 試験ポイントと覚え方</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>「品質違反レコードを記録したい」「除外したい」「品質違反なら Pipeline を止めたい」という問題なら、
+          <strong>Expectations を考える。</strong>そのうえで、3つの動きのどれを選ぶかまで決めます。</p>
+
+          <div class="callout" data-kind="win">
+            <div class="callout-title">覚え方</div>
+            <p><strong>Expectation = データに対する健康診断ルール</strong></p>
+            <p>健康診断なので、まず測ります。測った結果をどう扱うかは別の判断です。
+            所見を書いて終わりにするのか（WARN）。その項目だけ除くのか（DROP）。手術のためにいったん全部止めるのか（FAIL）。</p>
+          </div>
+
+          <p><strong>条件を書くことと、違反時の挙動を決めること。この2つが別だと分かっていれば、この論点は落としません。</strong></p>
+        </div>
+      </details>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-11</span></span>
+        <span>ソース: osmosis @ <code>main</code> — shows/databricks-review/episodes/ep016</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>

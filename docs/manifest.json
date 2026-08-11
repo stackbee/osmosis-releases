@@ -434,6 +434,11 @@
           "episode": "ep015",
           "title": "Lakeflow Spark Declarative Pipelines",
           "file": "databricks/databricks-review/lakeflow-declarative-pipelines.html"
+        },
+        {
+          "episode": "ep016",
+          "title": "Pipeline Expectations",
+          "file": "databricks/databricks-review/pipeline-expectations.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
