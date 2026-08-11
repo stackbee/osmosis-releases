@@ -409,6 +409,11 @@
           "episode": "ep010",
           "title": "Unity Catalogの階層構造",
           "file": "databricks/databricks-review/uc-hierarchy.html"
+        },
+        {
+          "episode": "ep011",
+          "title": "Managed Table / External Table / Volume",
+          "file": "databricks/databricks-review/managed-vs-external-assets.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
