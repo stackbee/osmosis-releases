@@ -444,6 +444,11 @@
           "episode": "ep017",
           "title": "Declarative Automation Bundles",
           "file": "databricks/databricks-review/declarative-automation-bundles.html"
+        },
+        {
+          "episode": "ep018",
+          "title": "DatabricksのCI/CDとDev・Staging・Prod",
+          "file": "databricks/databricks-review/databricks-cicd.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
