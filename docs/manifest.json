@@ -284,11 +284,6 @@
           "file": "databricks/databricks-shorts/jobs-task-dag.html"
         },
         {
-          "episode": "ep057",
-          "title": "%run と Task の違い",
-          "file": "databricks/databricks-shorts/databricks-run-vs-task.html"
-        },
-        {
           "episode": "ep058",
           "title": "Jobs の cron とタイムゾーン",
           "file": "databricks/databricks-shorts/jobs-cron-timezone.html"
@@ -352,6 +347,11 @@
           "episode": "ep070",
           "title": "Auto Loaderの実行パターンを具体例で",
           "file": "databricks/databricks-shorts/autoloader-operation-patterns.html"
+        },
+        {
+          "episode": "ep057",
+          "title": "%run と Task の違い",
+          "file": "databricks/databricks-shorts/databricks-run-vs-task.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",

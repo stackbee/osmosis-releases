@@ -758,8 +758,10 @@ figcaption{
           </div>
         </summary>
         <div class="sec-body">
-          <div class="scroll-x"><pre><code>Job   ├─ Task A: load_data   ├─ Task B: clean_data   └─ Task C: aggregate_data
-依存関係:  A → B → C</code></pre></div>
+          <div class="scroll-x"><pre><code>Job
+  ├─ Task A: load_data
+  ├─ Task B: clean_data
+  └─ Task C: aggregate_data      依存関係:  A → B → C</code></pre></div>
 
           <div class="scroll-x">
           <table>
@@ -897,8 +899,12 @@ figcaption{
           </div>
         </summary>
         <div class="sec-body">
-          <div class="scroll-x"><pre><code>%run  →  1冊の本   ├─ 第1章   ├─ 第2章   └─ 第3章
-Task  →  本A       本B        本C</code></pre></div>
+          <div class="scroll-x"><pre><code>%run  →  1冊の本
+           ├─ 第1章
+           ├─ 第2章
+           └─ 第3章
+
+Task  →  本A       本B        本C   （別々の3冊）</code></pre></div>
 
           <p>章が3つに分かれていても、<strong>「1冊の本」であることは変わりません</strong>。
           一方、Task 分割は本そのものを3冊に分けるイメージです。
