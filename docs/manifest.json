@@ -414,6 +414,11 @@
           "episode": "ep011",
           "title": "Managed Table / External Table / Volume",
           "file": "databricks/databricks-review/managed-vs-external-assets.html"
+        },
+        {
+          "episode": "ep012",
+          "title": "Unity Catalogの権限と継承",
+          "file": "databricks/databricks-review/uc-privileges.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
