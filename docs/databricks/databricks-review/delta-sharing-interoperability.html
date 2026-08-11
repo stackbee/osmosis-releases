@@ -1,0 +1,1058 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Delta SharingとInteroperability — DatabricksReview</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksReview · ep019</div>
+    <p class="rail-title">Delta Sharing と Interoperability</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-what"><span class="dot" data-status="new"></span><span>外へ渡すための仕組み</span></a></li>
+        <li><a href="#sec-terms"><span class="dot" data-status="idle"></span><span>提供する側と受け取る側</span></a></li>
+        <li><a href="#sec-example"><span class="dot" data-status="active"></span><span>毎日 CSV を送らない</span></a></li>
+        <li><a href="#sec-copy"><span class="dot" data-status="crit"></span><span>運搬そのものが消える</span></a></li>
+        <li><a href="#sec-d2d"><span class="dot" data-status="ship"></span><span>相手も Databricks の場合</span></a></li>
+        <li><a href="#sec-open"><span class="dot" data-status="new"></span><span>相手が Databricks でなくても</span></a></li>
+        <li><a href="#sec-federation"><span class="dot" data-status="crit"></span><span>外へ渡すか、外を見に行くか</span></a></li>
+        <li><a href="#sec-security"><span class="dot" data-status="active"></span><span>Share も Unity Catalog の管理対象</span></a></li>
+        <li><a href="#sec-exam"><span class="dot" data-status="block"></span><span>試験ではどこを見るか</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/Envo2vWcgBA" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/Envo2vWcgBA" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksReview</span>
+          <span>ep019</span>
+          <span>DEA補強 10 / 10</span>
+          <span class="num">2026-08-11</span>
+        </div>
+        <h1>Delta Sharing と Interoperability</h1>
+        <p class="lede">
+          Delta Sharing は、Databricks 内外の相手にデータを安全に共有するための仕組みです。
+          <strong>コピーを配るのではなく、その場から読ませる。</strong>
+          Lakehouse Federation との違いは、データが誰の管理下にあるかで決まります。
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <div class="note">
+        <strong>試験範囲についての前置き。</strong>
+        Delta Sharing と Lakehouse Federation は、第2回・第8回・第9回で見たとおり
+        <strong>新しい試験ガイドの本文から消えています</strong>。ただしそれは「本文に語として現れない」という意味で、
+        出題しないと宣言されたわけではありません。旧版の教材にはまだ大量に載っており、実務でも普通に使う機能です。
+        この回は、<strong>暗記のためではなく、Federation と取り違えないため</strong>に置いています。
+      </div>
+
+      <details class="sec" id="sec-what" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>外へ渡すための仕組み<span class="tag">一言でいうと</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Delta Sharing は、<strong>Databricks 内外の相手にデータを安全に共有するための仕組み</strong>です。
+          登場するのは3つで、提供する側から Share を通って、受け取る側へ渡ります。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 122" role="img"
+                 aria-label="Provider から Share を経て Recipient へ一方向に渡る流れの図。Provider はデータを提供する側、Share は共有する資産をまとめた単位、Recipient はデータを受け取る側。全体を Unity Catalog がガバナンスする。">
+              <defs>
+                <marker id="f1-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <text x="360" y="14" class="d-t-mono" text-anchor="middle">UNITY CATALOG が共有対象と権限をガバナンスする</text>
+
+              <rect x="8" y="28" width="196" height="56" rx="2" class="d-box"/>
+              <text x="106" y="52" class="d-t" text-anchor="middle">Provider</text>
+              <text x="106" y="72" class="d-t-sm" text-anchor="middle">データを提供する側</text>
+
+              <line x1="208" y1="56" x2="248" y2="56" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="254" y="28" width="196" height="56" rx="2" class="d-box-acc"/>
+              <text x="352" y="52" class="d-t" text-anchor="middle">Share</text>
+              <text x="352" y="72" class="d-t-sm" text-anchor="middle">共有する資産をまとめた単位</text>
+
+              <line x1="454" y1="56" x2="494" y2="56" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="500" y="28" width="212" height="56" rx="2" class="d-box"/>
+              <text x="606" y="52" class="d-t" text-anchor="middle">Recipient</text>
+              <text x="606" y="72" class="d-t-sm" text-anchor="middle">データを受け取る側</text>
+
+              <text x="360" y="110" class="d-t-key" text-anchor="middle">コピーを配るのではなく、その場から読ませる</text>
+            </svg>
+            <figcaption>
+              <strong>一方向の流れが基本の形。</strong>
+              Unity Catalog と統合されているので、共有対象や権限をガバナンスできる。ここが「ただ配る」こととの違いになる。
+            </figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-terms" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>提供する側と受け取る側<span class="tag">基本用語</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>用語</th><th>意味</th><th>Unity Catalog 上の姿</th></tr></thead>
+            <tbody>
+              <tr><td><code>PROVIDER</code></td><td>データを提供する側</td><td>共有元。Share を作り、資産を載せる</td></tr>
+              <tr><td><code>SHARE</code></td><td>共有するデータ資産をまとめた単位</td><td>Securable Object（→ 下の「Share も Unity Catalog の管理対象」）</td></tr>
+              <tr><td><code>RECIPIENT</code></td><td>データを受け取る側</td><td>共有先。Share を公開する相手</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p><strong>真ん中の <code>SHARE</code> が分かりにくいところ。</strong>
+          これは相手そのものでも、テーブルそのものでもありません。<strong>渡すものをひとまとめにした、荷物の側の単位</strong>です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-example" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>毎日 CSV を送らない<span class="tag">具体例</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>自社の Databricks に、次の Gold Table があるとします。これを取引先に渡したい。</p>
+
+          <div class="scroll-x"><pre><code>prod.sales.monthly_sales</code></pre></div>
+
+          <p><strong>CSV を毎日メール送信するのではなく、Delta Sharing で共有します。</strong>
+          手順は3段です。</p>
+
+          <div class="scroll-x"><pre><code>Unity Catalog Table  →  Share に載せる
+Share                →  Recipient へ公開する
+Recipient            →  取引先が参照</code></pre></div>
+
+          <p>ここで押さえたいのは、<strong>共有元データを毎回コピーして別システムへ配布する、という発想とは異なる</strong>ことです。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-copy" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>運搬そのものが消える<span class="tag">ファイルコピーとの違い</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 170" role="img"
+                 aria-label="従来のファイル配布と Delta Sharing の比較図。従来は CSV へ Export し、SFTP やメールやバケットコピーで運び、相手が Import する三段。Delta Sharing は Share へ登録し、Recipient へ公開し、相手が参照する三段で、真ん中の運搬工程が無い。">
+              <defs>
+                <marker id="f2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="f2-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <text x="4" y="14" class="d-t">従来 — ファイルを運ぶ</text>
+              <rect x="8" y="24" width="168" height="44" rx="2" class="d-box"/>
+              <text x="92" y="51" class="d-t-sm" text-anchor="middle">CSV へ Export</text>
+              <line x1="180" y1="46" x2="204" y2="46" class="d-line" marker-end="url(#f2-ar)"/>
+              <rect x="210" y="24" width="210" height="44" rx="2" class="d-box-crit"/>
+              <text x="315" y="43" class="d-t-sm" text-anchor="middle">SFTP / Email</text>
+              <text x="315" y="59" class="d-t-sm" text-anchor="middle">Bucket copy</text>
+              <line x1="424" y1="46" x2="448" y2="46" class="d-line" marker-end="url(#f2-ar)"/>
+              <rect x="454" y="24" width="168" height="44" rx="2" class="d-box"/>
+              <text x="538" y="51" class="d-t-sm" text-anchor="middle">相手が Import</text>
+              <text x="632" y="51" class="d-t-crit">配布処理を自作</text>
+
+              <line x1="4" y1="88" x2="716" y2="88" class="d-rule"/>
+
+              <text x="4" y="110" class="d-t">Delta Sharing — その場から読ませる</text>
+              <rect x="8" y="120" width="168" height="44" rx="2" class="d-box-acc"/>
+              <text x="92" y="147" class="d-t-sm" text-anchor="middle">Share へ登録</text>
+              <line x1="180" y1="142" x2="204" y2="142" class="d-line-acc" marker-end="url(#f2-ar-acc)"/>
+              <rect x="210" y="120" width="210" height="44" rx="2" class="d-box-idle"/>
+              <text x="315" y="147" class="d-t-sm" text-anchor="middle">運搬する工程が無い</text>
+              <line x1="424" y1="142" x2="448" y2="142" class="d-line-acc" marker-end="url(#f2-ar-acc)"/>
+              <rect x="454" y="120" width="168" height="44" rx="2" class="d-box-ship"/>
+              <text x="538" y="147" class="d-t-sm" text-anchor="middle">相手が参照</text>
+              <text x="632" y="147" class="d-t-key">自作しなくてよい</text>
+            </svg>
+            <figcaption>
+              上下を見比べると、<strong>消えるのは真ん中の運搬</strong>。Recipient へ公開したあとは、相手がその場から読む。
+              データ配布処理を自作する必要を減らせる。
+            </figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-d2d" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>相手も Databricks の場合<span class="tag">Databricks-to-Databricks</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>相手も Databricks を使用している場合、<strong>受信した Share を Catalog として取り込み、
+          通常の Unity Catalog オブジェクトに近い感覚で参照できます。</strong></p>
+
+          <div class="scroll-x"><pre><code>Provider Databricks
+      ↓   Delta Sharing
+Recipient Databricks
+      ↓   受信した Share を Catalog として取り込む
+Catalog  →  SELECT ...</code></pre></div>
+
+          <p>つまり相手にとっては、<strong>外から来たデータが、自分の Catalog の並びに入る</strong>ということです。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-open" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>相手が Databricks でなくても<span class="tag">Open Sharing</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Delta Sharing は<strong>オープンな共有方式を持つため、受信側が必ずしも Databricks である必要はありません。</strong></p>
+
+          <figure>
+            <svg viewBox="0 0 720 160" role="img"
+                 aria-label="Provider の Databricks から Delta Sharing を経て、受信側が二方向に分かれる図。片方は Recipient 側の Databricks で Catalog として取り込む。もう片方は他の分析プラットフォームやクライアント。">
+              <defs>
+                <marker id="f3-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <rect x="8" y="46" width="164" height="54" rx="2" class="d-box-acc"/>
+              <text x="90" y="70" class="d-t" text-anchor="middle">Databricks</text>
+              <text x="90" y="88" class="d-t-sm" text-anchor="middle">Provider 側</text>
+
+              <line x1="176" y1="73" x2="212" y2="73" class="d-line-acc" marker-end="url(#f3-ar)"/>
+
+              <rect x="218" y="46" width="158" height="54" rx="2" class="d-box"/>
+              <text x="297" y="70" class="d-t" text-anchor="middle">Delta Sharing</text>
+              <text x="297" y="88" class="d-t-sm" text-anchor="middle">オープンな共有方式</text>
+
+              <path d="M380,62 C 406,62 406,34 426,34" class="d-line-acc" marker-end="url(#f3-ar)"/>
+              <path d="M380,86 C 406,86 406,116 426,116" class="d-line-acc" marker-end="url(#f3-ar)"/>
+
+              <rect x="432" y="10" width="280" height="48" rx="2" class="d-box-ship"/>
+              <text x="572" y="30" class="d-t-sm" text-anchor="middle">Recipient 側の Databricks</text>
+              <text x="572" y="47" class="d-t-sm" text-anchor="middle">Catalog として取り込む</text>
+
+              <rect x="432" y="92" width="280" height="48" rx="2" class="d-box"/>
+              <text x="572" y="112" class="d-t-sm" text-anchor="middle">他の分析プラットフォーム</text>
+              <text x="572" y="129" class="d-t-sm" text-anchor="middle">クライアント</text>
+
+              <text x="360" y="154" class="d-t-key" text-anchor="middle">共有先を、同じ製品の中に閉じない</text>
+            </svg>
+            <figcaption>
+              Interoperability という言葉が指しているのはここ。<strong>相手が Databricks でも、そうでなくても共有できる</strong>という相互運用が、この機能の効きどころになる。
+            </figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-federation" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>外へ渡すか、外を見に行くか<span class="tag">Lakehouse Federation との違い</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 168" role="img"
+                 aria-label="Delta Sharing と Lakehouse Federation の向きの違いを並べた図。左は自社 Databricks から取引先へ矢印が右向きに出ていて、外へ渡すことを示す。右は外部 PostgreSQL から自社 Databricks へ矢印が左向きに入っていて、外を見に行くことを示す。">
+              <defs>
+                <marker id="f4-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <text x="4" y="16" class="d-t">Delta Sharing</text>
+              <text x="4" y="36" class="d-t-key">自分が管理しているデータを相手へ共有する</text>
+              <rect x="8" y="50" width="140" height="54" rx="2" class="d-box-acc"/>
+              <text x="78" y="72" class="d-t-sm" text-anchor="middle">自社 Databricks</text>
+              <text x="78" y="90" class="d-t-sm" text-anchor="middle">Gold Table</text>
+              <line x1="152" y1="77" x2="192" y2="77" class="d-line-acc" marker-end="url(#f4-ar)"/>
+              <rect x="198" y="50" width="140" height="54" rx="2" class="d-box"/>
+              <text x="268" y="72" class="d-t-sm" text-anchor="middle">取引先</text>
+              <text x="268" y="90" class="d-t-sm" text-anchor="middle">参照する</text>
+              <text x="172" y="128" class="d-t" text-anchor="middle">外へ渡す</text>
+
+              <line x1="356" y1="8" x2="356" y2="136" class="d-rule"/>
+
+              <text x="376" y="16" class="d-t">Lakehouse Federation</text>
+              <text x="376" y="36" class="d-t-key">外部システムにあるデータを Databricks から参照する</text>
+              <rect x="380" y="50" width="140" height="54" rx="2" class="d-box-acc"/>
+              <text x="450" y="72" class="d-t-sm" text-anchor="middle">自社 Databricks</text>
+              <text x="450" y="90" class="d-t-sm" text-anchor="middle">クエリする</text>
+              <line x1="564" y1="77" x2="524" y2="77" class="d-line-acc" marker-end="url(#f4-ar)"/>
+              <rect x="570" y="50" width="142" height="54" rx="2" class="d-box"/>
+              <text x="641" y="72" class="d-t-sm" text-anchor="middle">外部 PostgreSQL</text>
+              <text x="641" y="90" class="d-t-sm" text-anchor="middle">コピーしない</text>
+              <text x="544" y="128" class="d-t" text-anchor="middle">外を見に行く</text>
+
+              <text x="360" y="160" class="d-t-key" text-anchor="middle">どちらもコピーを作らない。違うのは、データが誰の管理下にあるか</text>
+            </svg>
+            <figcaption>
+              <strong>向きが逆。</strong>片方は外へ出していく、もう片方は外を見に行く。
+              「コピーしない」点が共通しているので混ざりやすい。分かれ目は<strong>そのデータが誰の管理下にあるか</strong>。
+            </figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-security" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Share も Unity Catalog の管理対象<span class="tag">セキュリティ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p><strong>Share そのものも Unity Catalog の Securable Object です。</strong>
+          そのため、誰が Share を作れるか、どの資産を追加できるか、といった管理が
+          <strong>Unity Catalog の権限モデルと結びつきます。</strong></p>
+
+          <div class="note">
+            第8回「ガバナンスとセキュリティ」では、権限が効く単位として Catalog / Schema / Table を並べました。
+            <strong>Share も、その同じ並びに入るもの</strong>だと考えてください。
+          </div>
+
+          <p>外への共有が、別の仕組みの設定ではなく<strong>いつもの権限管理の延長線上にある</strong>。
+          ここが、統合されていることの意味です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-exam" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>試験ではどこを見るか<span class="tag">DEA 試験ポイントと覚え方</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>疑うのは</th><th>問題文がこう言っていたら</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Delta Sharing</strong></td><td>別組織へデータを安全に共有したい ／ 相手側にデータコピーを配布する運用を避けたい ／ Databricks 以外の利用者にもデータを共有したい</td></tr>
+              <tr><td><strong>Federation 系</strong></td><td>外部 DB のデータを Databricks から直接クエリしたい ／ データを移動せず外部データソースを参照したい</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <div class="callout-title">覚え方</div>
+            <p><strong>Sharing = 外へ渡す / Federation = 外を見に行く</strong>
+            この二語だけで、問題文がどちらを指しているかは決まります。細かい設定手順を覚え直す必要はありません。</p>
+          </div>
+
+          <div class="note">
+            <strong>置き方。</strong>本文から消えた領域なので時間を積む段階ではないが、旧版の教材を使うなら必ず出てくる。取り違えないための一語だけ持っておく。
+          </div>
+        </div>
+      </details>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-11</span></span>
+        <span>ソース: osmosis @ <code>main</code> — shows/databricks-review/episodes/ep019</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>
