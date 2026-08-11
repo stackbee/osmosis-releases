@@ -404,13 +404,18 @@
           "episode": "ep009",
           "title": "試験の解き方",
           "file": "databricks/databricks-review/07-exam-tactics.html"
+        },
+        {
+          "episode": "ep010",
+          "title": "Unity Catalogの階層構造",
+          "file": "databricks/databricks-review/uc-hierarchy.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
       "page": "databricks"
     }
   },
-  "updated_at": "2026-08-10",
+  "updated_at": "2026-08-11",
   "pages": {
     "databricks": {
       "title": "Databricks",
