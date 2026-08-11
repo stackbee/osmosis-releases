@@ -750,13 +750,14 @@ figcaption{
           </div>
         </summary>
         <div class="sec-body">
-          <div class="scroll-x"><pre><code>Job  └─ Pipeline Task  └─ Declarative Pipeline
-                             ├─ Bronze  ├─ Silver  └─ Gold</code></pre></div>
+          <div class="scroll-x"><pre><code>Job
+  └─ Pipeline Task
+      └─ Declarative Pipeline:  Bronze / Silver / Gold</code></pre></div>
 
           <p>そして <strong>Job 側</strong>で「毎日 02:00 に実行」と設定します。実行時はこう流れます。</p>
 
           <figure>
-            <svg viewBox="0 0 720 72" role="img"
+            <svg viewBox="0 0 720 64" role="img"
                  aria-label="毎日2時になると Jobs が起動し、Pipeline Task を実行し、その中の Declarative Pipeline が動いて Bronze から Silver、Gold へ処理が流れることを示す図">
               <defs>
                 <marker id="f2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
