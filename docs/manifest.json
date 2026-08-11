@@ -424,6 +424,11 @@
           "episode": "ep013",
           "title": "Unity CatalogのLineageとAudit",
           "file": "databricks/databricks-review/uc-lineage-audit.html"
+        },
+        {
+          "episode": "ep014",
+          "title": "Lakeflow Connect",
+          "file": "databricks/databricks-review/lakeflow-connect.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
