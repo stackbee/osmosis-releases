@@ -429,6 +429,11 @@
           "episode": "ep014",
           "title": "Lakeflow Connect",
           "file": "databricks/databricks-review/lakeflow-connect.html"
+        },
+        {
+          "episode": "ep015",
+          "title": "Lakeflow Spark Declarative Pipelines",
+          "file": "databricks/databricks-review/lakeflow-declarative-pipelines.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
