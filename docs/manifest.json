@@ -362,6 +362,11 @@
           "episode": "ep072",
           "title": "Auto Loaderの常時ストリーミングとコスト",
           "file": "databricks/databricks-shorts/autoloader-streaming-cost.html"
+        },
+        {
+          "episode": "ep073",
+          "title": "SupabaseとDatabricksの接続",
+          "file": "databricks/databricks-shorts/supabase-databricks-connection.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
