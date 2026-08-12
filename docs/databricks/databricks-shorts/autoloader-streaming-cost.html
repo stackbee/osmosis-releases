@@ -1,0 +1,1096 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Auto Loaderの常時ストリーミングとコスト — DatabricksShorts</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksShorts · ep072</div>
+    <p class="rail-title">Auto Loaderの常時ストリーミングとコスト</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-frame"><span class="dot" data-status="idle"></span><span>待機時間にもコストが出る</span></a></li>
+        <li><a href="#sec-idle"><span class="dot" data-status="crit"></span><span>ファイル0件でも Compute は起動中</span></a></li>
+        <li><a href="#sec-fit"><span class="dot" data-status="new"></span><span>待機コストが見合うかどうか</span></a></li>
+        <li><a href="#sec-patterns"><span class="dot" data-status="block"></span><span>常時待機させない形</span></a></li>
+        <li><a href="#sec-scaleout"><span class="dot" data-status="ship"></span><span>待機中は小さく、処理時は大きく</span></a></li>
+        <li><a href="#sec-updown"><span class="dot" data-status="crit"></span><span>Scale Up と Scale Out</span></a></li>
+        <li><a href="#sec-enhanced"><span class="dot" data-status="block"></span><span>Streaming と Autoscaling</span></a></li>
+        <li><a href="#sec-serverless"><span class="dot" data-status="active"></span><span>Compute 管理の3段階</span></a></li>
+        <li><a href="#sec-decide"><span class="dot" data-status="crit"></span><span>一番重要な設計判断</span></a></li>
+        <li><a href="#sec-cases"><span class="dot" data-status="new"></span><span>3つのケースで考える</span></a></li>
+        <li><a href="#sec-dea"><span class="dot" data-status="ship"></span><span>DEA試験向け整理</span></a></li>
+        <li><a href="#sec-tradeoff"><span class="dot" data-status="active"></span><span>最終的な判断軸</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/Jr_xGAl5wLo" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/Jr_xGAl5wLo" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksShorts</span>
+          <span>ep072</span>
+          <span class="num">2026-08-12</span>
+        </div>
+        <h1>Auto Loaderの常時ストリーミングとコスト</h1>
+        <p class="lede">
+          Auto Loader を常時ストリーミングで動かすと、Streaming Query を実行する Compute が稼働し続けます。
+          <strong>基本的には、ファイルが来ていない待機時間にも Compute コストが発生します。</strong>
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-frame" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>待機時間にもコストが出る<span class="tag">まず結論</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>設計では、次の<strong>2点を分けて考えると分かりやすい</strong>です。</p>
+
+          <div class="facts">
+            <div class="fact">
+              <dt>問い ①</dt>
+              <dd>本当に<strong>24時間待ち受ける必要があるのか</strong></dd>
+            </div>
+            <div class="fact">
+              <dt>問い ②</dt>
+              <dd>待ち受けるなら、負荷に応じて <strong>Compute をどこまで縮小・拡張できるか</strong></dd>
+            </div>
+            <div class="fact">
+              <dt>今回の軸</dt>
+              <dd>実行パターンそのものは第70回。ここは<strong>コストと Compute のスケール側</strong>を見る</dd>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-idle" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>ファイル0件でも Compute は起動中<span class="tag">常時ストリーミングの課金</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 138" role="img" aria-label="ファイル到着がまばらでも、Streaming Query と Compute は全区間で稼働し続け、Compute コストも全区間で発生することを時間軸で示した図。CPU 使用率だけが待機中は低い。">
+              <text x="4" y="14" class="d-t-mono">ファイル到着</text>
+              <g class="d-box-crit">
+                <rect x="196" y="4" width="5" height="12" rx="1"/>
+                <rect x="392" y="4" width="5" height="12" rx="1"/>
+                <rect x="404" y="4" width="5" height="12" rx="1"/>
+                <rect x="612" y="4" width="5" height="12" rx="1"/>
+              </g>
+              <line x1="4" y1="24" x2="716" y2="24" class="d-rule"/>
+
+              <text x="4" y="48" class="d-t">Streaming Query</text>
+              <rect x="184" y="36" width="532" height="22" rx="2" class="d-box-ship"/>
+              <text x="450" y="51" text-anchor="middle" class="d-t-sm">ファイルが来ていない時間も生きている</text>
+
+              <text x="4" y="82" class="d-t">CPU 使用率</text>
+              <rect x="184" y="70" width="532" height="22" rx="2" class="d-box-idle"/>
+              <g class="d-box-acc">
+                <rect x="192" y="70" width="22" height="22" rx="2"/>
+                <rect x="388" y="70" width="34" height="22" rx="2"/>
+                <rect x="608" y="70" width="22" height="22" rx="2"/>
+              </g>
+              <text x="300" y="85" text-anchor="middle" class="d-t-mono">低い（ファイル 0件）</text>
+              <text x="520" y="85" text-anchor="middle" class="d-t-mono">低い（ファイル 0件）</text>
+
+              <text x="4" y="116" class="d-t-crit">Compute コスト</text>
+              <rect x="184" y="104" width="532" height="22" rx="2" class="d-box-crit"/>
+              <text x="450" y="119" text-anchor="middle" class="d-t-crit">待機中も含めて発生し続ける</text>
+            </svg>
+            <figcaption>Continuous Job / Pipeline が Compute を起動し、その上で Auto Loader の Streaming Query が動きます。
+            処理して、また待つ、の繰り返しです。<strong>「データを処理している時間だけ課金される」と考えるのは正確ではありません。</strong></figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-fit" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>待機コストが見合うかどうか<span class="tag">向いているケース / 向かないケース</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th></th><th>データの来かた</th><th>要件</th><th>常時ストリーミングは</th></tr></thead>
+            <tbody>
+              <tr><td>EC の注文、IoT</td><td><strong>データが絶えず到着する</strong></td><td>数秒〜数分以内に反映したい</td><td><strong>向く。</strong>待機中にも Compute コストを払って低レイテンシを得る意味がある</td></tr>
+              <tr><td>1時間に数ファイル<br>1日に数回</td><td>まばらにしか来ない</td><td>そこまでの低レイテンシは不要</td><td><strong>24時間 Compute を維持するのはコスト効率が悪い可能性がある</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="note">
+            <p>低レイテンシの見返りがあるかどうかで決まります。同じ「常時起動」でも、注文が数秒おきに来る現場と、1日数回しか来ない現場では意味がまったく違います。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-patterns" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>常時待機させない形<span class="tag">第70回で扱った3つの形</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>リアルタイム性がそれほど重要でなければ、<strong>Auto Loader を一過性の処理として利用できます</strong>。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>形</th><th>起動のきっかけ</th><th>Auto Loader の使い方</th><th>Compute</th></tr></thead>
+            <tbody>
+              <tr><td>常時ストリーミング</td><td>ずっと動かす</td><td>Streaming Query が生き続ける</td><td><strong>基本的に稼働継続</strong></td></tr>
+              <tr><td>定期実行 + AvailableNow</td><td>毎時 Job 起動</td><td>現在ある未処理ファイルを処理して Job 終了</td><td>Job 終了で停止</td></tr>
+              <tr><td>File arrival trigger + AvailableNow</td><td>ファイル到着</td><td>未処理ファイルを取り込んで Job 終了</td><td>Job 終了で解放</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p>次回起動時に Checkpoint などを利用して未処理分を取り込むので、止まっている間に来たファイルも取りこぼしません。
+            File arrival trigger は<strong>「ファイルが来るまで Compute を寝かせ、必要になったら起こす」</strong>という設計に近い形です。
+            3つの形の具体例は第70回、trigger 自体の仕組みは第60回で扱いました。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-scaleout" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>待機中は小さく、処理時は大きく<span class="tag">Worker 数で伸び縮みさせる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 126" role="img" aria-label="最小2 Worker、最大10 Worker と設定した場合に、待機・低負荷では Worker 2台、大量ファイル到着で5台、さらに負荷が増えて10台、処理完了で4台、そして2台へ戻る流れを横に並べた図。">
+              <defs>
+                <marker id="f5-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <rect x="4" y="30" width="112" height="46" rx="3" class="d-box"/>
+              <text x="60" y="52" text-anchor="middle" class="d-t">Worker × 2</text>
+              <text x="60" y="68" text-anchor="middle" class="d-t-sm">待機・低負荷</text>
+
+              <rect x="156" y="30" width="112" height="46" rx="3" class="d-box-acc"/>
+              <text x="212" y="52" text-anchor="middle" class="d-t">Worker × 5</text>
+              <text x="212" y="68" text-anchor="middle" class="d-t-sm">大量ファイル到着</text>
+
+              <rect x="308" y="30" width="112" height="46" rx="3" class="d-box-crit"/>
+              <text x="364" y="52" text-anchor="middle" class="d-t">Worker × 10</text>
+              <text x="364" y="68" text-anchor="middle" class="d-t-sm">さらに負荷増加</text>
+
+              <rect x="460" y="30" width="112" height="46" rx="3" class="d-box-acc"/>
+              <text x="516" y="52" text-anchor="middle" class="d-t">Worker × 4</text>
+              <text x="516" y="68" text-anchor="middle" class="d-t-sm">処理完了・負荷低下</text>
+
+              <rect x="604" y="30" width="112" height="46" rx="3" class="d-box"/>
+              <text x="660" y="52" text-anchor="middle" class="d-t">Worker × 2</text>
+              <text x="660" y="68" text-anchor="middle" class="d-t-sm">また待機へ</text>
+
+              <path d="M120,53 L152,53" class="d-line-acc" marker-end="url(#f5-ar)"/>
+              <path d="M272,53 L304,53" class="d-line-acc" marker-end="url(#f5-ar)"/>
+              <path d="M424,53 L456,53" class="d-line-acc" marker-end="url(#f5-ar)"/>
+              <path d="M576,53 L600,53" class="d-line-acc" marker-end="url(#f5-ar)"/>
+
+              <text x="4" y="18" class="d-t-mono">最小 2 Worker / 最大 10 Worker と設定した場合</text>
+              <text x="4" y="112" class="d-t-key">最低限の Compute を維持しつつ、本格的な処理が始まったら Worker を増やす</text>
+            </svg>
+            <figcaption>「待機中は小さく、処理時は大きく」は目的としては可能です。ただし通常のクラスタでは、
+            <strong>同じ Worker の VM スペックを負荷に応じて小型から大型へ頻繁に交換する、というより Worker の台数を増減する水平スケーリングが基本</strong>になります。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-updown" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Scale Up と Scale Out<span class="tag">用語として重要</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>用語</th><th>別名</th><th>やること</th><th>例</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Scale Up</strong></td><td>垂直スケール</td><td>1台あたりの CPU・メモリなどを強くする</td><td>小さい Worker → 大きい Worker</td></tr>
+              <tr><td><strong>Scale Out</strong></td><td>水平スケール</td><td>Worker の台数を増やす</td><td>Worker × 2 → Worker × 10</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="risk">
+            <p>Databricks の一般的なクラスタ Autoscaling で中心になるのは<strong>後者の Scale Out</strong> です。
+            「待機時は低コスト、本格処理時はリソースを増やしたい」という考え方は正しいのですが、
+            <strong>従来型クラスタでは「Worker のサイズを変える」より「Worker 数を変える」と考えた方が近い</strong>です。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-enhanced" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Streaming と Autoscaling<span class="tag">縮小が進みにくい</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="callout" data-kind="risk">
+            <p>通常の Structured Streaming Job に一般的なクラスタ Autoscaling を組み合わせる場合、
+            <strong>Streaming 特有の事情によって Worker の縮小が期待どおりに進みにくい場合があります。</strong></p>
+          </div>
+
+          <div class="facts">
+            <div class="fact">
+              <dt>そこで</dt>
+              <dd>新しいストリーミング処理では <strong>Lakeflow Declarative Pipelines と Enhanced Autoscaling を組み合わせる構成</strong>が重要になります</dd>
+            </div>
+            <div class="fact">
+              <dt>何を見るか</dt>
+              <dd>Enhanced Autoscaling では <strong>Task の利用状況や Queue などを考慮し、必要な Worker 数を調整</strong>します</dd>
+            </div>
+            <div class="fact">
+              <dt>関連</dt>
+              <dd>Declarative Pipelines と Jobs の役割分担は第59回で扱いました</dd>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-serverless" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Compute 管理の3段階<span class="tag">Serverless へ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 118" role="img" aria-label="Compute 管理を3段階で整理した図。1段階目は固定 Compute で Worker 4台を24時間維持する。2段階目は Autoscaling と Enhanced Autoscaling で低負荷なら Worker 少、高負荷なら Worker 多。3段階目は Serverless で Compute の管理とスケーリングを Databricks 側へ大きく委ねる。">
+              <rect x="4" y="4" width="232" height="86" rx="3" class="d-box"/>
+              <text x="18" y="28" class="d-t">① 固定 Compute</text>
+              <text x="18" y="52" class="d-t-sm">Worker × 4 を 24時間維持</text>
+              <text x="18" y="76" class="d-t-mono">自分で決める</text>
+
+              <rect x="244" y="4" width="232" height="86" rx="3" class="d-box-acc"/>
+              <text x="258" y="28" class="d-t">② Autoscaling / Enhanced</text>
+              <text x="258" y="52" class="d-t-sm">低負荷 → Worker 少 ／ 高負荷 → Worker 多</text>
+              <text x="258" y="76" class="d-t-mono">範囲を決めて任せる</text>
+
+              <rect x="484" y="4" width="232" height="86" rx="3" class="d-box-ship"/>
+              <text x="498" y="28" class="d-t">③ Serverless</text>
+              <text x="498" y="52" class="d-t-sm">管理・スケーリングを Databricks 側へ</text>
+              <text x="498" y="76" class="d-t-mono">大きく委ねる</text>
+
+              <text x="4" y="110" class="d-t-key">Serverless では水平スケーリングだけでなく、ワークロードに応じた垂直方向の Compute 最適化も利用される</text>
+            </svg>
+            <figcaption>Serverless Pipeline を利用する場合は、<strong>Compute の細かな管理を Databricks 側へさらに任せられます。</strong>
+            ①→②→③ と進むほど、自分で決める範囲が減っていきます。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-decide" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>一番重要な設計判断<span class="tag">順番を間違えない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="callout" data-kind="win">
+            <p class="callout-title">先に問うべきはこちら</p>
+            <p><strong>「待機中の Worker をどこまで小さくできるか」を考える前に、そもそも待機用 Compute を常時起動しておく必要があるかを考えます。</strong></p>
+          </div>
+
+          <div class="facts">
+            <div class="fact">
+              <dt>順番 ①</dt>
+              <dd>待機用 Compute を<strong>常時起動しておく必要があるか</strong>（= 24時間待ち受けるか）</dd>
+            </div>
+            <div class="fact">
+              <dt>順番 ②</dt>
+              <dd>起動しておくなら、<strong>待機中の Worker をどこまで小さくできるか</strong>（= Autoscaling / Serverless）</dd>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-cases" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>3つのケースで考える<span class="tag">要件から設計へ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>ケース</th><th>典型例</th><th>要件</th><th>設計の候補</th></tr></thead>
+            <tbody>
+              <tr><td><strong>A</strong> リアルタイム性が重要</td><td>EC 注文、IoT、リアルタイムログ</td><td>データが絶えず到着し、数秒〜数分以内に反映したい</td><td><strong>Continuous Streaming ＋ Enhanced Autoscaling / Serverless。</strong>待機コストは低レイテンシを得るためのコストと考える</td></tr>
+              <tr><td><strong>B</strong> 1時間程度遅れてもよい</td><td>店舗売上 CSV、取引先からのファイル、日次・時間単位のデータ</td><td>多少の遅延は許容できる</td><td>定期 Job → Auto Loader AvailableNow → 処理終了 → <strong>Compute 停止</strong>の方が合理的なことが多い</td></tr>
+              <tr><td><strong>C</strong> すぐ処理したいが常時 Compute は避けたい</td><td>到着契機のファイル処理</td><td>到着したらすぐ処理したい</td><td>File arrival trigger → Job 起動 → Auto Loader AvailableNow → <strong>Job 終了</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-dea" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>DEA試験向け整理<span class="tag">覚えるポイント</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>用語</th><th>＝</th></tr></thead>
+            <tbody>
+              <tr><td><strong>常時 Streaming</strong></td><td>Streaming Query が生き続ける＝Compute も基本的に稼働＝<strong>待機中にもコスト</strong></td></tr>
+              <tr><td><strong>Autoscaling</strong></td><td>負荷に応じて Compute を調整。<strong>従来型では主に Worker 数を増減する水平スケール</strong></td></tr>
+              <tr><td><strong>AvailableNow</strong></td><td>現在ある未処理データを処理。<strong>処理後は Streaming Query を終了できる</strong></td></tr>
+              <tr><td><strong>File arrival trigger</strong></td><td>ファイル到着を契機に Job を起動</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-tradeoff" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>最終的な判断軸<span class="tag">低レイテンシか、コストか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 122" role="img" aria-label="最終的な判断軸を2本の枝で示した図。低レイテンシ最優先なら Continuous Streaming を選び、Autoscaling や Serverless で効率化する。多少の遅延が許されるなら AvailableNow を使い、定期実行または File arrival trigger で必要なときだけ Compute を起動する。">
+              <text x="4" y="16" class="d-t-key">低レイテンシを取るか、Compute コストを抑えるか</text>
+
+              <rect x="4" y="30" width="176" height="34" rx="3" class="d-box-crit"/>
+              <text x="92" y="52" text-anchor="middle" class="d-t">低レイテンシ最優先</text>
+              <rect x="196" y="30" width="228" height="34" rx="3" class="d-box-acc"/>
+              <text x="310" y="52" text-anchor="middle" class="d-t-sm">Continuous Streaming</text>
+              <rect x="440" y="30" width="276" height="34" rx="3" class="d-box"/>
+              <text x="578" y="52" text-anchor="middle" class="d-t-sm">Autoscaling / Serverless で効率化</text>
+
+              <rect x="4" y="76" width="176" height="34" rx="3" class="d-box-ship"/>
+              <text x="92" y="98" text-anchor="middle" class="d-t">多少の遅延OK</text>
+              <rect x="196" y="76" width="228" height="34" rx="3" class="d-box-acc"/>
+              <text x="310" y="98" text-anchor="middle" class="d-t-sm">Auto Loader AvailableNow</text>
+              <rect x="440" y="76" width="276" height="34" rx="3" class="d-box"/>
+              <text x="578" y="98" text-anchor="middle" class="d-t-sm">定期実行 or File arrival trigger で必要なときだけ Compute</text>
+
+              <path d="M182,47 L194,47" class="d-line-acc"/>
+              <path d="M426,47 L438,47" class="d-line-acc"/>
+              <path d="M182,93 L194,93" class="d-line-acc"/>
+              <path d="M426,93 L438,93" class="d-line-acc"/>
+            </svg>
+            <figcaption>このトレードオフを理解しておくと、<strong>Auto Loader の実装方法だけでなく、Databricks の Streaming アーキテクチャ全体を判断しやすくなります。</strong></figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-12</span></span>
+        <span>ソース: osmosis @ <code>main</code> — shows/databricks-shorts/episodes/ep072</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>

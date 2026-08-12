@@ -357,6 +357,11 @@
           "episode": "ep071",
           "title": "Databricks は AI 企業に変わったのか — 歴史と学習ルート",
           "file": "databricks/databricks-shorts/databricks-history-and-learning-route.html"
+        },
+        {
+          "episode": "ep072",
+          "title": "Auto Loaderの常時ストリーミングとコスト",
+          "file": "databricks/databricks-shorts/autoloader-streaming-cost.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
