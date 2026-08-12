@@ -1,0 +1,1163 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Databricks は AI 企業に変わったのか — 歴史と学習ルート — DatabricksShorts</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksShorts · ep071</div>
+    <p class="rail-title">Databricks は AI 企業に変わったのか — 歴史と学習ルート</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-frame"><span class="dot" data-status="crit"></span><span>転換ではなく、拡張</span></a></li>
+        <li><a href="#sec-roots"><span class="dot" data-status="idle"></span><span>ルーツはスパーク</span></a></li>
+        <li><a href="#sec-mlflow"><span class="dot" data-status="crit"></span><span>MLflow は 2018年</span></a></li>
+        <li><a href="#sec-sql"><span class="dot" data-status="new"></span><span>伸ばしたのは SQL 側</span></a></li>
+        <li><a href="#sec-concept"><span class="dot" data-status="crit"></span><span>コンセプトの変遷</span></a></li>
+        <li><a href="#sec-strategy"><span class="dot" data-status="active"></span><span>狙うのは上の層</span></a></li>
+        <li><a href="#sec-govern"><span class="dot" data-status="block"></span><span>誰が、どれを、どこまで</span></a></li>
+        <li><a href="#sec-sameday"><span class="dot" data-status="crit"></span><span>同日提供は一般則でない</span></a></li>
+        <li><a href="#sec-route"><span class="dot" data-status="ship"></span><span>学習ルートは三段</span></a></li>
+        <li><a href="#sec-step1"><span class="dot" data-status="new"></span><span>STEP 1 — Spark / DE</span></a></li>
+        <li><a href="#sec-step2"><span class="dot" data-status="active"></span><span>STEP 2 — 運用レイヤー</span></a></li>
+        <li><a href="#sec-step3"><span class="dot" data-status="idle"></span><span>STEP 3 — 横断コース</span></a></li>
+        <li><a href="#sec-fix"><span class="dot" data-status="ship"></span><span>教材を直すなら3点</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/w5HQg2mX7ZE" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/w5HQg2mX7ZE" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksShorts</span>
+          <span>ep071</span>
+          <span class="num">2026-08-12</span>
+        </div>
+        <h1>Databricks は AI 企業に変わったのか — 歴史と学習ルート</h1>
+        <p class="lede">
+          「もともと DWH の会社で、最近 AI 企業へ転換した」と捉えるのは少し違います。
+          <strong>Spark を起点に、データ処理・データサイエンス・SQL / DWH・生成 AI を一つのプラットフォームへ広げてきた</strong>、という理解のほうが近い。
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-frame" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>転換ではなく、拡張<span class="tag">今回の結論</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>特に重要なのは、<strong>ML / データサイエンスは後から追加された脇役ではなく、Databricks のかなり初期から重要なユースケースだった</strong>という点です。</p>
+
+          <div class="facts">
+            <div class="fact">
+              <div class="k">よくある捉え方</div>
+              <div class="v">データ分析 / DWH の会社が、最近 AI 企業へ転換した</div>
+            </div>
+            <div class="fact">
+              <div class="k">より正確な捉え方</div>
+              <div class="v">Spark を起点に、<strong>データ処理・DS / ML・SQL / DWH・生成 AI を一つのプラットフォームへ広げてきた</strong></div>
+            </div>
+            <div class="fact">
+              <div class="k">後から強化された側</div>
+              <div class="v">SQL アナリティクス / DWH。現在は DE・BI / SQL・ML / MLOps・生成 AI を横断して扱う</div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-roots" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>ルーツはスパーク、初期から ML が近かった<span class="tag">見方の対比</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>初期の Databricks は、Notebook → Spark → 大規模データ処理 → データ分析 / データサイエンス / ML という世界観に近いものでした。
+          つまり<strong>データエンジニアだけではなく、データサイエンティストも重要な利用者だった</strong>ということです。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 130" role="img" aria-label="二つの見方を並べた図。左は「DWH の会社 → AI ブーム → AI 企業へ方向転換」という捉え方で、破線の枠で示されている。右は「Spark / Data Engineering / Data Science → SQL / DWH を強化 → ML / MLOps を拡張 → Generative AI」という捉え方で、実線の枠と矢印でつながれている。">
+              <text x="4" y="12" class="d-t-mono">よくある捉え方</text>
+              <g class="d-box-idle">
+                <rect x="4" y="20" width="300" height="26" rx="2"/>
+                <rect x="4" y="52" width="300" height="26" rx="2"/>
+                <rect x="4" y="84" width="300" height="26" rx="2"/>
+              </g>
+              <text x="154" y="37" text-anchor="middle" class="d-t-sm">DWH の会社</text>
+              <text x="154" y="69" text-anchor="middle" class="d-t-sm">AI ブーム</text>
+              <text x="154" y="101" text-anchor="middle" class="d-t-crit">AI 企業へ方向転換</text>
+              <path d="M154 46 L154 52" class="d-line-crit"/>
+              <path d="M154 78 L154 84" class="d-line-crit"/>
+              <text x="154" y="124" text-anchor="middle" class="d-t-mono">これは少し違う</text>
+
+              <line x1="352" y1="16" x2="352" y2="118" class="d-rule"/>
+
+              <text x="400" y="12" class="d-t-mono">より自然な捉え方</text>
+              <g class="d-box">
+                <rect x="400" y="20" width="316" height="24" rx="2"/>
+                <rect x="400" y="48" width="316" height="24" rx="2"/>
+                <rect x="400" y="76" width="316" height="24" rx="2"/>
+              </g>
+              <rect x="400" y="104" width="316" height="24" rx="2" class="d-box-acc"/>
+              <text x="558" y="36" text-anchor="middle" class="d-t-sm">Spark / Data Engineering / Data Science</text>
+              <text x="558" y="64" text-anchor="middle" class="d-t-sm">SQL / DWH を強化</text>
+              <text x="558" y="92" text-anchor="middle" class="d-t-sm">ML / MLOps を拡張</text>
+              <text x="558" y="120" text-anchor="middle" class="d-t-key">Generative AI</text>
+              <path d="M558 44 L558 48" class="d-line-acc"/>
+              <path d="M558 72 L558 76" class="d-line-acc"/>
+              <path d="M558 100 L558 104" class="d-line-acc"/>
+            </svg>
+            <figcaption>左は「方向転換」として見る図。右は「広げてきた」として見る図。同じ現在地を説明していても、どちらで理解するかで次に何を学ぶかが変わる。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-mlflow" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>MLflow は 2018年 — 創業時からではない<span class="tag">修正必須</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="callout" data-kind="crit">
+            <p><strong>「MLflow が創業時から存在していた」は正確ではありません。</strong> Databricks は 2013年創業、MLflow の発表は 2018年。</p>
+          </div>
+
+          <figure>
+            <svg viewBox="0 0 720 94" role="img" aria-label="時系列の図。2013年に Databricks 創業として Spark / Notebook / Data Science があり、2018年に MLflow 発表、その後 SQL / DWH 強化、Unity Catalog、Model Serving、AI Gateway、Generative AI が続く。">
+              <line x1="96" y1="14" x2="96" y2="86" class="d-line"/>
+
+              <circle cx="96" cy="20" r="5" class="d-head"/>
+              <text x="4" y="24" class="d-t">2013</text>
+              <text x="116" y="16" class="d-t-sm">Databricks 創業</text>
+              <text x="116" y="30" class="d-t-sm">Spark / Notebook / Data Science</text>
+
+              <circle cx="96" cy="54" r="5" class="d-head-crit"/>
+              <text x="4" y="58" class="d-t">2018</text>
+              <text x="116" y="50" class="d-t-crit">MLflow 発表</text>
+              <text x="116" y="64" class="d-t-sm">ML ライフサイクル管理が体系化される</text>
+
+              <circle cx="96" cy="84" r="5" class="d-head-acc"/>
+              <text x="4" y="88" class="d-t">その後</text>
+              <text x="116" y="88" class="d-t-key">SQL / DWH 強化 → Unity Catalog → Model Serving → AI Gateway → Generative AI</text>
+            </svg>
+            <figcaption>ML / DS の思想・ユースケースは創業初期から強く、その後 2018年に MLflow が加わって ML ライフサイクル管理が体系化された。「思想」と「製品」は時期が違う。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-sql" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>後から大きく伸ばしたのは SQL / DWH 側<span class="tag">3つの入り口</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>初期は Notebook と Spark 中心の体験が強く、SQL を中心に仕事をする BI アナリストには <strong>Snowflake のような専用 DWH のほうが分かりやすい場面が多かった</strong>。
+          その後 SQL Warehouse などを強化し、現在は<strong>インフラや Spark クラスタを強く意識せず SQL を実行する</strong>使い方もできます。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 128" role="img" aria-label="3つの利用者と入り口を並べた図。SQL / BI ユーザーは SQL Warehouse、Data Engineer は Spark / PySpark / Pipeline、ML / AI Engineer は MLflow / Model Serving / AI Gateway から入り、いずれも同じデータ基盤とガバナンスにつながる。">
+              <g class="d-box">
+                <rect x="4" y="4" width="228" height="26" rx="2"/>
+                <rect x="246" y="4" width="228" height="26" rx="2"/>
+                <rect x="488" y="4" width="228" height="26" rx="2"/>
+              </g>
+              <text x="118" y="21" text-anchor="middle" class="d-t">SQL / BI ユーザー</text>
+              <text x="360" y="21" text-anchor="middle" class="d-t">Data Engineer</text>
+              <text x="602" y="21" text-anchor="middle" class="d-t">ML / AI Engineer</text>
+
+              <path d="M118 30 L118 44" class="d-line-acc"/>
+              <path d="M360 30 L360 44" class="d-line-acc"/>
+              <path d="M602 30 L602 44" class="d-line-acc"/>
+
+              <g class="d-box-acc">
+                <rect x="4" y="46" width="228" height="26" rx="2"/>
+                <rect x="246" y="46" width="228" height="26" rx="2"/>
+                <rect x="488" y="46" width="228" height="26" rx="2"/>
+              </g>
+              <text x="118" y="63" text-anchor="middle" class="d-t-key">SQL Warehouse</text>
+              <text x="360" y="63" text-anchor="middle" class="d-t-key">Spark / PySpark / Pipeline</text>
+              <text x="602" y="63" text-anchor="middle" class="d-t-key">MLflow / Serving / AI Gateway</text>
+
+              <path d="M118 72 L118 86 L602 86 L602 72" class="d-line"/>
+              <path d="M360 72 L360 86" class="d-line"/>
+              <path d="M360 86 L360 96" class="d-line"/>
+
+              <rect x="150" y="98" width="420" height="26" rx="2" class="d-box-ship"/>
+              <text x="360" y="115" text-anchor="middle" class="d-t">同じデータ基盤・同じガバナンス</text>
+            </svg>
+            <figcaption>入り口は3つに分かれるが、下は一つ。これを同じ基盤・同じガバナンスで扱えることが強みになる。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-concept" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>単純な名称変更ではなく、コンセプトの変遷<span class="tag">表現を弱める</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>これらは<strong>完全に旧名称を捨てて次へリブランドした、という単純な関係ではありません</strong>。
+          Databricks がその時期に前面へ出してきた<strong>コンセプト / 訴求ポイントの変化</strong>として理解するほうがよい。</p>
+
+          <div class="scroll-x">
+            <table>
+              <thead>
+                <tr><th>前面に出てきた語</th><th>何を指しているか</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>Lakehouse</strong></td><td>Data Lake と Data Warehouse の統合</td></tr>
+                <tr><td><strong>Data Intelligence</strong></td><td>データ・メタデータ・AI を使った統合的な知能化</td></tr>
+                <tr><td><strong>Data + AI</strong></td><td>データ基盤と AI 基盤を一体として提供</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout" data-kind="ship">
+            <p>教材では「<strong>名称の変遷</strong>」より「<strong>Databricks が前面に出してきたコンセプトの変遷</strong>」と表現したほうが安全。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-strategy" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>狙うのはモデルではなく、その上の層<span class="tag">AI 戦略</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>OpenAI や Anthropic と同じ立場で「最先端の基盤モデルそのもの」を競うのではなく、
+          <strong>企業が複数の AI モデルを自社データと組み合わせ、安全に利用・運用するためのプラットフォーム層</strong>を狙うもの、と理解すると分かりやすい。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 140" role="img" aria-label="AI 戦略の階層図。上から OpenAI / Anthropic / その他モデル、Model Serving、AI Gateway、Unity Catalog、企業データ / AI の順に積み重なっている。">
+              <rect x="180" y="2" width="360" height="24" rx="2" class="d-box-idle"/>
+              <text x="360" y="18" text-anchor="middle" class="d-t-sm">OpenAI / Anthropic / その他モデル</text>
+              <path d="M360 26 L360 34" class="d-line-acc"/>
+
+              <rect x="180" y="34" width="360" height="24" rx="2" class="d-box"/>
+              <text x="360" y="50" text-anchor="middle" class="d-t">Model Serving</text>
+              <text x="552" y="50" class="d-t-mono">推論 API として出す</text>
+              <path d="M360 58 L360 66" class="d-line-acc"/>
+
+              <rect x="180" y="66" width="360" height="24" rx="2" class="d-box-acc"/>
+              <text x="360" y="82" text-anchor="middle" class="d-t-key">AI Gateway</text>
+              <text x="552" y="82" class="d-t-mono">アクセス・制御・監視</text>
+              <path d="M360 90 L360 98" class="d-line-acc"/>
+
+              <rect x="180" y="98" width="360" height="24" rx="2" class="d-box-ship"/>
+              <text x="360" y="114" text-anchor="middle" class="d-t">Unity Catalog</text>
+              <text x="552" y="114" class="d-t-mono">誰が何にアクセスできるか</text>
+
+              <text x="360" y="136" text-anchor="middle" class="d-t-mono">↓ 企業データ / AI</text>
+            </svg>
+            <figcaption>モデルは外から差し替わっていく。変わらず残るのは、その下のサービング・ゲートウェイ・カタログの層。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-govern" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>誰が、どれを、どこまで使えるか<span class="tag">統制の観点</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>重要なのは、モデルそのものだけではありません。<strong>次の統制を企業全体で管理できること</strong>です。</p>
+
+          <div class="facts">
+            <div class="fact">
+              <div class="k">誰が</div>
+              <div class="v">利用できるユーザー / グループ</div>
+            </div>
+            <div class="fact">
+              <div class="k">どのモデルを</div>
+              <div class="v">利用を許すモデルの範囲</div>
+            </div>
+            <div class="fact">
+              <div class="k">どの程度</div>
+              <div class="v">レート・コストなどの上限</div>
+            </div>
+            <div class="fact">
+              <div class="k">どのように監視するか</div>
+              <div class="v">利用状況・ログの可観測性</div>
+            </div>
+            <div class="fact">
+              <div class="k">どのデータに</div>
+              <div class="v">アクセスできるデータの範囲</div>
+            </div>
+          </div>
+
+          <p class="note">大企業では、この<strong>中央集権的なガバナンス</strong>が特に重要になる。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-sameday" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>「same-day availability」は一般化しない<span class="tag">表現を弱める</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Databricks が新しいフロンティアモデルを非常に早く提供するケースはあります。
+          ただし<strong>提供時期はモデル・クラウド・リージョンによって異なる</strong>ため、一般原則のようには書けません。</p>
+
+          <div class="facts">
+            <div class="fact">
+              <div class="k">避ける書き方</div>
+              <div class="v">最新の Anthropic モデルは<strong>必ず</strong>同日提供される</div>
+            </div>
+            <div class="fact">
+              <div class="k">適切な書き方</div>
+              <div class="v"><strong>主要なフロンティアモデルを迅速に Databricks 上で利用可能にする</strong></div>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-route" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>学習ルートは三段<span class="tag">全体像</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>AI 機能を学ぶ場合でも、<strong>まず Spark / Data Engineering を土台として理解するルートは合理的</strong>です。下から順に積み上げます。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 138" role="img" aria-label="学習ルートの3段の図。下から STEP 1 Spark / Data Engineering、STEP 2 MLflow / AI Gateway / Model Serving、STEP 3 Generative AI Engineering / Machine Learning Engineer の順に上へ積み上がる。">
+              <rect x="120" y="4" width="480" height="34" rx="2" class="d-box-acc"/>
+              <text x="140" y="19" class="d-t-mono">STEP 3</text>
+              <text x="360" y="19" text-anchor="middle" class="d-t-key">Generative AI Engineering</text>
+              <text x="360" y="33" text-anchor="middle" class="d-t-key">Machine Learning Engineer</text>
+              <text x="616" y="26" class="d-t-sm">横断して整理</text>
+
+              <path d="M360 60 L360 40" class="d-line-acc"/>
+              <path d="M354 48 L360 40 L366 48 Z" class="d-head-acc"/>
+
+              <rect x="120" y="62" width="480" height="34" rx="2" class="d-box"/>
+              <text x="140" y="77" class="d-t-mono">STEP 2</text>
+              <text x="360" y="77" text-anchor="middle" class="d-t">MLflow / AI Gateway</text>
+              <text x="360" y="91" text-anchor="middle" class="d-t">Model Serving</text>
+              <text x="616" y="84" class="d-t-sm">運用レイヤー</text>
+
+              <path d="M360 118 L360 98" class="d-line-acc"/>
+              <path d="M354 106 L360 98 L366 106 Z" class="d-head-acc"/>
+
+              <rect x="120" y="104" width="480" height="30" rx="2" class="d-box-ship"/>
+              <text x="140" y="123" class="d-t-mono">STEP 1</text>
+              <text x="360" y="123" text-anchor="middle" class="d-t">Spark / Data Engineering</text>
+              <text x="616" y="123" class="d-t-sm">土台</text>
+            </svg>
+            <figcaption>STEP 3 は STEP 1 の代わりではない。土台・運用レイヤー・全体像という3つの役割の違いとして見る。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-step1" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>STEP 1 — Spark / Data Engineering<span class="tag">土台</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>まずここを固める理由は、<strong>ML や生成 AI を扱う場合でも、実際のシステムでは大量の時間がデータ準備・変換・品質管理・パイプライン構築に使われる</strong>から。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 92" role="img" aria-label="データ処理の流れの図。Raw Data、Cleaning、Transform、Feature / Context 作成、ML / AI の順に左から右へ矢印でつながっている。最後の ML / AI だけが強調されている。">
+              <g class="d-box">
+                <rect x="4" y="26" width="122" height="30" rx="2"/>
+                <rect x="150" y="26" width="122" height="30" rx="2"/>
+                <rect x="296" y="26" width="122" height="30" rx="2"/>
+                <rect x="442" y="26" width="152" height="30" rx="2"/>
+              </g>
+              <rect x="618" y="26" width="98" height="30" rx="2" class="d-box-acc"/>
+              <text x="65" y="45" text-anchor="middle" class="d-t-sm">Raw Data</text>
+              <text x="211" y="45" text-anchor="middle" class="d-t-sm">Cleaning</text>
+              <text x="357" y="45" text-anchor="middle" class="d-t-sm">Transform</text>
+              <text x="518" y="45" text-anchor="middle" class="d-t-sm">Feature / Context 作成</text>
+              <text x="667" y="45" text-anchor="middle" class="d-t-key">ML / AI</text>
+              <g class="d-line">
+                <path d="M126 41 L146 41"/><path d="M272 41 L292 41"/>
+                <path d="M418 41 L438 41"/><path d="M594 41 L614 41"/>
+              </g>
+              <text x="4" y="16" class="d-t-mono">ここに大量の時間が使われる</text>
+              <line x1="4" y1="66" x2="594" y2="66" class="d-line-crit"/>
+              <text x="4" y="82" class="d-t-mono">AI が上に乗っても、この区間が消えるわけではない</text>
+            </svg>
+            <figcaption>AI が上に乗っていても、下のデータ処理基盤が消えるわけではない。だから STEP 1 が先になる。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-step2" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>STEP 2 — MLflow / AI Gateway / Model Serving<span class="tag">運用レイヤー</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Spark / DE の上に、AI・ML の運用機能を積んでいきます。</p>
+
+          <div class="scroll-x">
+            <table>
+              <thead>
+                <tr><th>機能</th><th>役割</th><th>扱うもの / 流れ</th></tr>
+              </thead>
+              <tbody>
+                <tr><td><strong>MLflow</strong></td><td>ML / LLM のライフサイクルを管理する</td><td>Experiment / Model / Evaluation / Tracing / Observability</td></tr>
+                <tr><td><strong>Model Serving</strong></td><td>モデルを推論 API として提供する</td><td>Model → Serving Endpoint → Application</td></tr>
+                <tr><td><strong>AI Gateway</strong></td><td>アクセス・利用制御・監視を横断的に扱う</td><td>Application → AI Gateway → 複数の Model Endpoint</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="note">3つは重なりではなく<strong>役割の分担</strong>。ライフサイクル・提供・統制のどれが要るかで、どれを先に触るかが決まる。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-step3" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>STEP 3 — 横断的な認定 / Academy コース<span class="tag">全体像</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>全体像を得る目的なら、<strong>Generative AI Engineering Associate</strong>、<strong>Machine Learning Engineer Associate</strong>、<strong>Machine Learning Engineer Advanced 相当</strong>の学習を追加します。</p>
+
+          <div class="callout" data-kind="crit">
+            <p><strong>ただし、これらは Spark / DE の代わりではありません。</strong>
+            Spark / DE が<strong>土台</strong>、MLflow / AI Gateway / Serving が <strong>AI・ML の運用レイヤー</strong>、生成 AI / ML コースが<strong>全体像を横断して整理するもの</strong>、という位置づけで考えます。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-fix" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>教材を直すなら3点<span class="tag">チェック</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead>
+                <tr><th>元の説明</th><th>どう直すか</th></tr>
+              </thead>
+              <tbody>
+                <tr><td>MLflow は創業時から</td><td><strong>修正必須。</strong> ML / DS は初期から重要だったが、MLflow 自体は 2018年発表</td></tr>
+                <tr><td>Lakehouse → Data Intelligence → Data and AI という名称変更</td><td><strong>表現を弱める。</strong> 「前面に出してきたコンセプトの変遷」とする</td></tr>
+                <tr><td>Anthropic の最新モデルは same-day availability</td><td><strong>一般化しない。</strong> 「主要なフロンティアモデルを迅速に提供」とする</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout" data-kind="ship">
+            <p><strong>Databricks は「DWH 企業が AI へ転換した」のではない。Spark をルーツに、データ処理・ML・SQL・AI を一つのプラットフォームへ広げてきた。</strong><br>
+            学習順序は <strong>Spark / DE → MLflow / Model Serving / AI Gateway → Generative AI / ML 全体像</strong>。</p>
+          </div>
+        </div>
+      </details>
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-12</span></span>
+        <span>ソース: osmosis @ <code>main</code> — shows/databricks-shorts/episodes/ep071</span>
+      </footer>
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>

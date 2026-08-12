@@ -352,6 +352,11 @@
           "episode": "ep059",
           "title": "Declarative Pipelines と Jobs の役割分担",
           "file": "databricks/databricks-shorts/declarative-pipelines-vs-jobs.html"
+        },
+        {
+          "episode": "ep071",
+          "title": "Databricks は AI 企業に変わったのか — 歴史と学習ルート",
+          "file": "databricks/databricks-shorts/databricks-history-and-learning-route.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
@@ -460,7 +465,7 @@
       "page": "databricks"
     }
   },
-  "updated_at": "2026-08-11",
+  "updated_at": "2026-08-12",
   "pages": {
     "databricks": {
       "title": "Databricks",
