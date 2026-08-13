@@ -1,0 +1,1218 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>数TB級データのコスト見積もり — DatabricksShorts</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksShorts · ep074</div>
+    <p class="rail-title">数TB級データのコスト見積もり</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-frame"><span class="dot" data-status="idle"></span><span>データ量だけでは決まらない</span></a></li>
+        <li><a href="#sec-breakdown"><span class="dot" data-status="crit"></span><span>コストを4つに分解する</span></a></li>
+        <li><a href="#sec-sample"><span class="dot" data-status="new"></span><span>小さく実測して外挿する</span></a></li>
+        <li><a href="#sec-metrics"><span class="dot" data-status="block"></span><span>実測時に見る指標</span></a></li>
+        <li><a href="#sec-extrapolate"><span class="dot" data-status="active"></span><span>100GBから10TBへ外挿</span></a></li>
+        <li><a href="#sec-price"><span class="dot" data-status="block"></span><span>仮の単価で金額感を出す</span></a></li>
+        <li><a href="#sec-workload"><span class="dot" data-status="crit"></span><span>処理内容で金額が変わる</span></a></li>
+        <li><a href="#sec-heavy"><span class="dot" data-status="crit"></span><span>同じ10TBでも差が出る</span></a></li>
+        <li><a href="#sec-shuffle"><span class="dot" data-status="block"></span><span>なぜコストが違うのか</span></a></li>
+        <li><a href="#sec-skew"><span class="dot" data-status="crit"></span><span>偏りで終了時間が延びる</span></a></li>
+        <li><a href="#sec-transfer"><span class="dot" data-status="block"></span><span>転送コストを忘れない</span></a></li>
+        <li><a href="#sec-incremental"><span class="dot" data-status="ship"></span><span>初回と増分は分ける</span></a></li>
+        <li><a href="#sec-steps"><span class="dot" data-status="active"></span><span>実務的な見積もり手順</span></a></li>
+        <li><a href="#sec-budget"><span class="dot" data-status="new"></span><span>予算取りの桁感</span></a></li>
+        <li><a href="#sec-memo"><span class="dot" data-status="active"></span><span>最後に一言で整理</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/yjwLkvZr6XI" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/yjwLkvZr6XI" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksShorts</span>
+          <span>ep074</span>
+          <span class="num">2026-08-12</span>
+        </div>
+        <h1>数TB級データのコスト見積もり</h1>
+        <p class="lede">
+          Databricks では「データ量 × 固定単価」だけでは正確に見積もりにくい。
+          <strong>代表サンプルを小さく実行して、実測値から本番規模へ外挿するのが、もっとも実務的で再現性のある方法です。</strong>
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <div class="callout" data-kind="risk">
+        <div class="callout-title">この資料の金額について</div>
+        <p>以降に出てくる金額は、すべて<strong>説明用の仮の DBU 単価（1 DBU あたり $0.50）と仮の為替（$1 = 150円）にもとづく概算</strong>です。
+        実際の価格を保証するものではありません。DBU 単価はクラウド、リージョン、SKU、Serverless かどうか、契約条件によって異なります。</p>
+      </div>
+
+      <details class="sec" id="sec-frame" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>データ量だけでは決まらない<span class="tag">今回の軸</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Supabase などに、すでに数TB〜10TB規模のデータがあるとします。それを Databricks へ取り込んで分析したり、Bronze から Silver へ変換したりする場合の見積もりの話です。</p>
+
+          <dl class="facts">
+            <div class="fact">
+              <dt>なぜ難しいか</dt>
+              <dd><strong>「データ量 × 固定単価」だけでは正確に見積もりにくい。</strong>処理内容・Compute 構成・実行時間・Shuffle 量でコストが大きく変わる</dd>
+            </div>
+            <div class="fact">
+              <dt>ではどうするか</dt>
+              <dd><strong>代表サンプルを小さく実行し、実測値から本番規模へ外挿する。</strong>これが非常に有効</dd>
+            </div>
+          </dl>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-breakdown" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>コストを4つに分解する<span class="tag">まず総コストを割る</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 100" role="img" aria-label="総コストを4つに分解した図。①Supabaseから Databricks 側へのデータ転送、②Bronze への取り込み Compute、③Bronze から Silver への変換 Compute、④ストレージコスト。②と③が Databricks の処理コストとして特に重要。">
+              <rect x="4" y="4" width="172" height="92" rx="3" class="d-box"/>
+              <text x="18" y="28" class="d-t">① データ転送</text>
+              <text x="18" y="52" class="d-t-sm">Supabase →</text>
+              <text x="18" y="70" class="d-t-sm">Databricks 側へ</text>
+              <text x="18" y="90" class="d-t-mono">egress / 転送料</text>
+
+              <rect x="184" y="4" width="172" height="92" rx="3" class="d-box-acc"/>
+              <text x="198" y="28" class="d-t">② 取り込み Compute</text>
+              <text x="198" y="52" class="d-t-sm">Bronze へ書き込む</text>
+              <text x="198" y="70" class="d-t-sm">ときの Compute</text>
+              <text x="198" y="90" class="d-t-key">特に重要</text>
+
+              <rect x="364" y="4" width="172" height="92" rx="3" class="d-box-acc"/>
+              <text x="378" y="28" class="d-t">③ 変換 Compute</text>
+              <text x="378" y="52" class="d-t-sm">Bronze → Silver の</text>
+              <text x="378" y="70" class="d-t-sm">変換にかかる Compute</text>
+              <text x="378" y="90" class="d-t-key">特に重要</text>
+
+              <rect x="544" y="4" width="172" height="92" rx="3" class="d-box"/>
+              <text x="558" y="28" class="d-t">④ ストレージ</text>
+              <text x="558" y="52" class="d-t-sm">Bronze / Silver を</text>
+              <text x="558" y="70" class="d-t-sm">置いておく費用</text>
+              <text x="558" y="90" class="d-t-mono">容量課金</text>
+            </svg>
+            <figcaption>Supabase から Databricks へ取り込み、Bronze → Silver 処理を行う場合の総コストは、この4つに分けて考えます。
+            <strong>Databricks の処理コストとして特に重要なのは ② と ③ です。</strong></figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-sample" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>小さく実測して外挿する<span class="tag">一番現実的な見積もり方法</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 92" role="img" aria-label="本番データ10TBから代表サンプル100GBを抽出し、Bronze から Silver への処理を実行して、実行時間・DBU・Shuffle量を測定する流れの図。">
+              <defs>
+                <marker id="f1-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+              <rect x="4" y="4" width="160" height="84" rx="3" class="d-box"/>
+              <text x="84" y="34" text-anchor="middle" class="d-t">本番データ</text>
+              <text x="84" y="60" text-anchor="middle" class="d-t-code">10TB</text>
+
+              <path d="M166,46 L186,46" class="d-line-acc" marker-end="url(#f1-ar)"/>
+              <text x="176" y="24" text-anchor="middle" class="d-t-mono">抽出</text>
+
+              <rect x="188" y="4" width="160" height="84" rx="3" class="d-box-acc"/>
+              <text x="268" y="34" text-anchor="middle" class="d-t">代表サンプル</text>
+              <text x="268" y="60" text-anchor="middle" class="d-t-code">100GB</text>
+
+              <path d="M350,46 L370,46" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="372" y="4" width="160" height="84" rx="3" class="d-box-ship"/>
+              <text x="452" y="34" text-anchor="middle" class="d-t">本番と同じ処理</text>
+              <text x="452" y="60" text-anchor="middle" class="d-t-sm">Bronze → Silver</text>
+
+              <path d="M534,46 L554,46" class="d-line-acc" marker-end="url(#f1-ar)"/>
+
+              <rect x="556" y="4" width="160" height="84" rx="3" class="d-box-ship"/>
+              <text x="636" y="28" text-anchor="middle" class="d-t">測定する</text>
+              <text x="636" y="50" text-anchor="middle" class="d-t-sm">実行時間・DBU</text>
+              <text x="636" y="68" text-anchor="middle" class="d-t-sm">Shuffle 量</text>
+            </svg>
+            <figcaption>いきなり 10TB 全体を処理せず、まず 100GB 程度の代表サンプルで本番と同じ処理を実行します。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="risk">
+            <p><strong>単に最初の 100GB を切り出すのではなく、本番データの特徴をある程度保ったサンプルを使うこと。</strong>
+            例えば本番データに Data Skew があるのに、テストデータに Skew が含まれていなければ、本番コストを過小評価する可能性があります。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-metrics" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>実測時に見る指標<span class="tag">100GB を処理したら何を見るか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>分類</th><th>見る値</th><th>なぜ見るか</th></tr></thead>
+            <tbody>
+              <tr><td>データ量</td><td><code>Input bytes</code> / <code>Shuffle read / write</code> / <code>Output bytes</code></td><td>入力・中間・出力のどこが重いかが分かる</td></tr>
+              <tr><td><strong>時間と DBU</strong></td><td><strong><code>実行時間</code> / <code>DBU 消費量</code></strong></td><td><strong>Databricks の料金見積もりで最も重要な2つ</strong></td></tr>
+              <tr><td>並列度</td><td><code>Worker 数</code> / <code>Task 実行時間</code></td><td>Skew や並列効率の確認に使う</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="note">
+            <p>特に Databricks の料金見積もりでは、<strong>DBU 消費量と実行時間</strong>が重要になります。ここを取り損ねると外挿できません。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-extrapolate" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>100GBから10TBへ外挿<span class="tag">第一近似の考え方</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>仮に 100GB の Bronze → Silver 処理で <strong>4 DBU</strong> 消費したとします。10TB は 100GB の約100倍なので、第一近似としてこう考えられます。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>処理量</th><th class="num">100GB</th><th class="num">1TB</th><th class="num">5TB</th><th class="num">10TB</th></tr></thead>
+            <tbody>
+              <tr><td>推定 DBU</td><td class="num">4 DBU（実測）</td><td class="num">約 40 DBU</td><td class="num">約 200 DBU</td><td class="num"><strong>約 400 DBU</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p><strong>推定料金 ＝ 推定 DBU × 対象 SKU の DBU 単価</strong></p>
+          </div>
+
+          <div class="note">
+            <p>ただし DBU 単価は、クラウド・リージョン・SKU・Serverless かどうか・契約条件などによって異なります。実環境では自身の Databricks 契約価格を確認してください。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-price" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>仮の単価で金額感を出す<span class="tag">$0.50 / DBU と置いてみる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>処理量</th><th class="num">推定 DBU</th><th class="num">概算 Compute 料金</th><th class="num">円換算（$1=150円）</th></tr></thead>
+            <tbody>
+              <tr><td>1TB</td><td class="num">40 DBU</td><td class="num">約 $20</td><td class="num">約 3,000円</td></tr>
+              <tr><td>3TB</td><td class="num">120 DBU</td><td class="num">約 $60</td><td class="num">約 9,000円</td></tr>
+              <tr><td>5TB</td><td class="num">200 DBU</td><td class="num">約 $100</td><td class="num">約 15,000円</td></tr>
+              <tr><td><strong>10TB</strong></td><td class="num"><strong>400 DBU</strong></td><td class="num"><strong>約 $200</strong></td><td class="num"><strong>約 3万円</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="risk">
+            <p>10TB の比較的軽い処理で<strong>約3万円程度</strong>という桁感になります。
+            ただしこれは<strong>単純な変換処理を前提とした、かなり粗い概算</strong>です。単価はあくまで説明用の仮の値です。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-workload" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>処理内容で金額が変わる<span class="tag">軽い処理と重い処理</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>重さ</th><th>中心になる処理</th><th>コストの振る舞い</th></tr></thead>
+            <tbody>
+              <tr><td><strong>軽い</strong><br>Bronze → Silver</td><td><code>Filter</code> / <code>Select</code> / <code>Cast</code> / <code>NULL 処理</code> / <code>軽い重複除去</code></td><td><strong>入力データ量に比較的比例しやすい</strong></td></tr>
+              <tr><td><strong>重い</strong></td><td><code>大規模 JOIN</code> / <code>GROUP BY</code> / <code>DISTINCT</code> / <code>ORDER BY</code> / <code>Window</code> / <code>MERGE</code></td><td><strong>Shuffle を発生させやすく、コストが増えやすい</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="note">
+            <p>重い側の処理は Shuffle を発生させやすく、<strong>Worker 間のデータ移動や追加の I/O が増える</strong>ためコストが上がります。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-heavy" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>同じ10TBでも差が出る<span class="tag">処理の重さ別の概算</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>10TB の処理内容</th><th class="num">推定 DBU</th><th class="num">概算料金</th><th class="num">円換算</th></tr></thead>
+            <tbody>
+              <tr><td>軽い ETL</td><td class="num">400 DBU</td><td class="num">約 $200</td><td class="num">約 3万円</td></tr>
+              <tr><td>中程度の JOIN・集計</td><td class="num">800 DBU</td><td class="num">約 $400</td><td class="num">約 6万円</td></tr>
+              <tr><td><strong>重い JOIN・GROUP BY・Skew あり</strong></td><td class="num"><strong>1,500〜2,000 DBU</strong></td><td class="num"><strong>約 $750〜$1,000</strong></td><td class="num"><strong>約 11〜15万円</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="note">
+            <p>同じ 10TB でも <strong>4〜5倍の開き</strong>が出ます。ここでの金額はあくまで説明用の仮単価に基づく概算であり、実際の価格を保証するものではありません。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-shuffle" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>なぜコストが違うのか<span class="tag">Compute がどれだけ仕事をしたか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 80" role="img" aria-label="10TB の Bronze に対して GROUP BY customer_id を行うと Shuffle が起き、Worker 間で大量データが移動し、Compute 時間が増え、DBU が増えるという連鎖を横に並べた図。">
+              <defs>
+                <marker id="f2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+              <rect x="4" y="4" width="126" height="72" rx="3" class="d-box"/>
+              <text x="67" y="34" text-anchor="middle" class="d-t">10TB Bronze</text>
+              <text x="67" y="56" text-anchor="middle" class="d-t-sm">読むだけなら軽い</text>
+              <path d="M132,40 L148,40" class="d-line-acc" marker-end="url(#f2-ar)"/>
+
+              <rect x="150" y="4" width="126" height="72" rx="3" class="d-box-acc"/>
+              <text x="213" y="34" text-anchor="middle" class="d-t">GROUP BY</text>
+              <text x="213" y="56" text-anchor="middle" class="d-t-sm">customer_id</text>
+              <path d="M278,40 L294,40" class="d-line-acc" marker-end="url(#f2-ar)"/>
+
+              <rect x="296" y="4" width="126" height="72" rx="3" class="d-box-crit"/>
+              <text x="359" y="34" text-anchor="middle" class="d-t">Shuffle</text>
+              <text x="359" y="56" text-anchor="middle" class="d-t-sm">同じキーを1か所へ</text>
+              <path d="M424,40 L440,40" class="d-line-acc" marker-end="url(#f2-ar)"/>
+
+              <rect x="442" y="4" width="126" height="72" rx="3" class="d-box-crit"/>
+              <text x="505" y="34" text-anchor="middle" class="d-t">Worker 間移動</text>
+              <text x="505" y="56" text-anchor="middle" class="d-t-sm">大量データが動く</text>
+              <path d="M570,40 L586,40" class="d-line-acc" marker-end="url(#f2-ar)"/>
+
+              <rect x="588" y="4" width="128" height="72" rx="3" class="d-box-crit"/>
+              <text x="652" y="34" text-anchor="middle" class="d-t">Compute 時間増</text>
+              <text x="652" y="56" text-anchor="middle" class="d-t-crit">＝ DBU 増加</text>
+            </svg>
+            <figcaption>Databricks では「10TB 読んだから○円」ではなく、<strong>Compute がどれだけ仕事をしたか</strong>が効きます。
+            10TB をそのまま <code>Filter</code> するだけなら軽い。しかし <code>customer_id</code> で <code>GROUP BY</code> すると、同じキーのデータを同じ Worker に集めるため Shuffle が起こります。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-skew" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>偏りで終了時間が延びる<span class="tag">Data Skew</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 116" role="img" aria-label="Worker A、B、C がそれぞれ25GBなのに Worker D だけ500GBを担当している棒グラフ。全体の終了時間は Worker D に引きずられる。">
+              <text x="4" y="20" class="d-t">Worker A</text>
+              <rect x="96" y="6" width="31" height="20" rx="2" class="d-box-ship"/>
+              <text x="135" y="20" class="d-t-sm">25GB</text>
+
+              <text x="4" y="48" class="d-t">Worker B</text>
+              <rect x="96" y="34" width="31" height="20" rx="2" class="d-box-ship"/>
+              <text x="135" y="48" class="d-t-sm">25GB</text>
+
+              <text x="4" y="76" class="d-t">Worker C</text>
+              <rect x="96" y="62" width="31" height="20" rx="2" class="d-box-ship"/>
+              <text x="135" y="76" class="d-t-sm">25GB</text>
+
+              <text x="4" y="104" class="d-t">Worker D</text>
+              <rect x="96" y="90" width="560" height="20" rx="2" class="d-box-crit"/>
+              <text x="376" y="104" text-anchor="middle" class="d-t-crit">500GB — 全体の終了時間はここに引きずられる</text>
+              <text x="666" y="104" class="d-t-mono">遅い</text>
+            </svg>
+            <figcaption>Data Skew があると、一部の Worker だけ極端に処理時間が伸びます。
+            <strong>見積もり時には、本番データの分布を再現したサンプルで測ることが重要です。</strong></figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-transfer" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>転送コストを忘れない<span class="tag">Supabase → Databricks</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 80" role="img" aria-label="Supabase PostgreSQL からネットワーク転送を経て Cloud Storage や Databricks へ入り、Bronze Delta、Silver Delta へ進む流れの図。ネットワーク転送のところで egress 費用がかかる。">
+              <defs>
+                <marker id="f3-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+              <rect x="4" y="4" width="126" height="72" rx="3" class="d-box"/>
+              <text x="67" y="34" text-anchor="middle" class="d-t">Supabase</text>
+              <text x="67" y="56" text-anchor="middle" class="d-t-sm">PostgreSQL</text>
+              <path d="M132,40 L148,40" class="d-line-acc" marker-end="url(#f3-ar)"/>
+
+              <rect x="150" y="4" width="126" height="72" rx="3" class="d-box-crit"/>
+              <text x="213" y="34" text-anchor="middle" class="d-t">ネットワーク転送</text>
+              <text x="213" y="56" text-anchor="middle" class="d-t-crit">egress がかかる</text>
+              <path d="M278,40 L294,40" class="d-line-acc" marker-end="url(#f3-ar)"/>
+
+              <rect x="296" y="4" width="126" height="72" rx="3" class="d-box"/>
+              <text x="359" y="34" text-anchor="middle" class="d-t">Cloud Storage</text>
+              <text x="359" y="56" text-anchor="middle" class="d-t-sm">/ Databricks</text>
+              <path d="M424,40 L440,40" class="d-line-acc" marker-end="url(#f3-ar)"/>
+
+              <rect x="442" y="4" width="126" height="72" rx="3" class="d-box-acc"/>
+              <text x="505" y="34" text-anchor="middle" class="d-t">Bronze Delta</text>
+              <text x="505" y="56" text-anchor="middle" class="d-t-sm">取り込み Compute</text>
+              <path d="M570,40 L586,40" class="d-line-acc" marker-end="url(#f3-ar)"/>
+
+              <rect x="588" y="4" width="128" height="72" rx="3" class="d-box-acc"/>
+              <text x="652" y="34" text-anchor="middle" class="d-t">Silver Delta</text>
+              <text x="652" y="56" text-anchor="middle" class="d-t-sm">変換 Compute</text>
+            </svg>
+            <figcaption>Supabase と Databricks が<strong>別クラウド・別リージョン</strong>の場合、egress やネットワーク転送料が無視できなくなる可能性があります。
+            <strong>特に初回フルロードで 10TB を一度に移動する場合は、Databricks の Compute 料金よりも転送費のほうが大きな要素になることがあります。</strong></figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-incremental" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>初回と増分は分ける<span class="tag">長期のコスト設計</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>本番運用で毎回 10TB を全件処理するのは非効率です。<strong>初回だけ Full Load、その後は変更分のみ（Incremental / CDC）</strong>と設計します。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>局面</th><th class="num">処理量</th><th class="num">推定 DBU</th><th class="num">金額感</th></tr></thead>
+            <tbody>
+              <tr><td><strong>初回 Full Load</strong></td><td class="num">10TB</td><td class="num">400 DBU</td><td class="num">数万円〜十数万円</td></tr>
+              <tr><td><strong>その後の日次増分</strong></td><td class="num">1日 50GB</td><td class="num">約 2 DBU</td><td class="num"><strong>数百円〜数千円</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p><strong>初回は数万円〜十数万円かかっても、その後の増分処理は数百円〜数千円程度まで落ちる可能性があります。</strong>
+            長期的なコスト設計では「初回ロード」と「日々の増分」を分離して考えることが重要です。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-steps" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>実務的な見積もり手順<span class="tag">この順番で進める</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th class="num">手順</th><th>やること</th></tr></thead>
+            <tbody>
+              <tr><td class="num">1 – 2</td><td>データ総量を確認する。1日あたりの増分量を確認する</td></tr>
+              <tr><td class="num">3 – 4</td><td>Full / Incremental / CDC のどれで取り込むか決める。Bronze → Silver で何をするか整理する</td></tr>
+              <tr><td class="num">5</td><td>JOIN / GROUP BY / MERGE など、<strong>Shuffle を伴う処理</strong>を確認する</td></tr>
+              <tr><td class="num">6 – 7</td><td><strong>代表サンプル 50〜100GB 程度で実測する。</strong>DBU・実行時間・Shuffle 量を取得する</td></tr>
+              <tr><td class="num">8 – 9</td><td>DBU/GB または DBU/TB を計算する。本番データ量へ外挿する</td></tr>
+              <tr><td class="num">10</td><td><strong>安全係数を加えて予算化する</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-budget" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>予算取りの桁感<span class="tag">10TB 前後の Bronze → Silver</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>処理内容</th><th class="num">最初に置いておく桁感</th></tr></thead>
+            <tbody>
+              <tr><td>軽い ETL</td><td class="num">数万円程度</td></tr>
+              <tr><td>中程度の JOIN・集計</td><td class="num">5〜10万円前後</td></tr>
+              <tr><td>かなり重い処理</td><td class="num">10万円台以上</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p>ただしこれは処理内容と DBU 単価に強く依存します。
+            <strong>最も精度の高い方法は、代表的な 100GB 程度のデータを実際に Databricks で処理し、消費 DBU を測定して本番規模へ外挿することです。</strong></p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-memo" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>最後に一言で整理<span class="tag">覚え方</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 52" role="img" aria-label="Databricks の大規模データ処理コストを決める6つの要素を横に並べた図。データ量、処理内容、Shuffle、Compute構成、実行時間、DBU単価。">
+              <rect x="4" y="4" width="114" height="44" rx="3" class="d-box"/>
+              <text x="61" y="31" text-anchor="middle" class="d-t">データ量</text>
+              <rect x="122" y="4" width="114" height="44" rx="3" class="d-box-acc"/>
+              <text x="179" y="31" text-anchor="middle" class="d-t">処理内容</text>
+              <rect x="240" y="4" width="114" height="44" rx="3" class="d-box-acc"/>
+              <text x="297" y="31" text-anchor="middle" class="d-t">Shuffle</text>
+              <rect x="358" y="4" width="114" height="44" rx="3" class="d-box-acc"/>
+              <text x="415" y="31" text-anchor="middle" class="d-t">Compute 構成</text>
+              <rect x="476" y="4" width="114" height="44" rx="3" class="d-box-acc"/>
+              <text x="533" y="31" text-anchor="middle" class="d-t">実行時間</text>
+              <rect x="594" y="4" width="122" height="44" rx="3" class="d-box"/>
+              <text x="655" y="31" text-anchor="middle" class="d-t">DBU 単価</text>
+            </svg>
+            <figcaption>Databricks の大規模データ処理コストは、単にデータ量だけでは決まりません。この6つの組み合わせで決まります。</figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p><strong>本番と同じ特徴を持つ小規模サンプルで実測し、DBU 消費を本番データ量へ外挿する。</strong>
+            これがもっとも実務的で再現性のある見積もり方法です。また、Supabase からの初回データ転送費と、日々の増分処理コストは分けて考えることが重要です。</p>
+          </div>
+        </div>
+      </details>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-13</span></span>
+        <span>ソース: osmosis @ <code>main</code> — shows/databricks-shorts/episodes/ep074</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>
