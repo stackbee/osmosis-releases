@@ -382,6 +382,11 @@
           "episode": "ep076",
           "title": "BundleをGitで丸ごと管理する",
           "file": "databricks/databricks-shorts/bundle-git-source-of-truth.html"
+        },
+        {
+          "episode": "ep077",
+          "title": "CDCとFull Loadの使い分け",
+          "file": "databricks/databricks-shorts/cdc-change-data-capture.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
@@ -501,6 +506,11 @@
       "title": "English",
       "lede": "英語まわりの回の資料です。\n",
       "order": 2
+    },
+    "quiz": {
+      "title": "クイズ",
+      "lede": "資料の内容を出題形式にしたものです。回答は端末の中にだけ残ります。\n",
+      "order": 3
     }
   }
 }
