@@ -377,6 +377,11 @@
           "episode": "ep075",
           "title": "DatabricksとBigQueryの違い",
           "file": "databricks/databricks-shorts/databricks-vs-bigquery.html"
+        },
+        {
+          "episode": "ep076",
+          "title": "BundleをGitで丸ごと管理する",
+          "file": "databricks/databricks-shorts/bundle-git-source-of-truth.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
