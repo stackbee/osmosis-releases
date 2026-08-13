@@ -1,0 +1,1234 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DatabricksとBigQueryの違い — DatabricksShorts</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksShorts · ep075</div>
+    <p class="rail-title">DatabricksとBigQueryの違い</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-frame"><span class="dot" data-status="idle"></span><span>設計思想と課金モデル</span></a></li>
+        <li><a href="#sec-bq-scan"><span class="dot" data-status="new"></span><span>何バイト読んだかで課金</span></a></li>
+        <li><a href="#sec-dbx-compute"><span class="dot" data-status="new"></span><span>どれだけ Compute を働かせたか</span></a></li>
+        <li><a href="#sec-billing"><span class="dot" data-status="crit"></span><span>課金イメージを並べて比べる</span></a></li>
+        <li><a href="#sec-10tb-bq"><span class="dot" data-status="block"></span><span>10TB を何度も分析する</span></a></li>
+        <li><a href="#sec-dbx-layout"><span class="dot" data-status="ship"></span><span>レイアウト改善で読む量を減らす</span></a></li>
+        <li><a href="#sec-perf"><span class="dot" data-status="crit"></span><span>どちらが速いかはケース依存</span></a></li>
+        <li><a href="#sec-dbx-strength"><span class="dot" data-status="ship"></span><span>前後まで含めた一体化</span></a></li>
+        <li><a href="#sec-arch"><span class="dot" data-status="active"></span><span>DWH 中心と Lakehouse 中心</span></a></li>
+        <li><a href="#sec-freq-low"><span class="dot" data-status="new"></span><span>月に数回しか Query しない</span></a></li>
+        <li><a href="#sec-freq-high"><span class="dot" data-status="block"></span><span>一日中大量の SQL を実行する</span></a></li>
+        <li><a href="#sec-etl"><span class="dot" data-status="active"></span><span>取り込みから分析まで一つの基盤で</span></a></li>
+        <li><a href="#sec-fit"><span class="dot" data-status="crit"></span><span>どちらが向いているか</span></a></li>
+        <li><a href="#sec-common"><span class="dot" data-status="ship"></span><span>両者に共通する重要なところ</span></a></li>
+        <li><a href="#sec-summary"><span class="dot" data-status="active"></span><span>最後に一言で整理</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/blF3kmN1aLM" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/blF3kmN1aLM" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksShorts</span>
+          <span>ep075</span>
+          <span class="num">2026-08-12</span>
+        </div>
+        <h1>DatabricksとBigQueryの違い</h1>
+        <p class="lede">
+          どちらも大規模データ分析に使えますが、設計思想と課金モデルがかなり違います。
+          <strong>BigQuery は「何バイト読んだか」、Databricks は「どれだけ Compute を働かせたか」が課金の軸です。</strong>
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-frame" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>設計思想と課金モデル<span class="tag">今回の軸</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <dl class="facts">
+            <div class="fact">
+              <dt>BigQuery</dt>
+              <dd><strong>Serverless DWH</strong> として SQL 分析をシンプルに回すことに強い</dd>
+            </div>
+            <div class="fact">
+              <dt>Databricks</dt>
+              <dd>データ取り込み・加工・Streaming・SQL・ML / AI まで一体化する <strong>Lakehouse</strong> に強い</dd>
+            </div>
+            <div class="fact">
+              <dt>前提</dt>
+              <dd>実際のコストや速度は、データ量・クエリ内容・利用頻度・クラウド・リージョン・契約条件などによって変わる</dd>
+            </div>
+          </dl>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-bq-scan" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>何バイト読んだかで課金<span class="tag">BigQuery On-demand</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>BigQuery の代表的な課金方法は、<strong>クエリが読み取ったデータ量</strong>を基準とする On-demand pricing です。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 62" role="img" aria-label="SQL を実行すると、何TB読んだかが測られ、そのスキャン量で課金される、という3段の流れ図。">
+              <defs>
+                <marker id="bq-ar" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+              <rect x="4" y="10" width="196" height="40" rx="3" class="d-box"/>
+              <text x="102" y="35" text-anchor="middle" class="d-t">SQLを実行</text>
+              <path d="M206,30 L252,30" class="d-line-acc" marker-end="url(#bq-ar)"/>
+              <rect x="260" y="10" width="196" height="40" rx="3" class="d-box-acc"/>
+              <text x="358" y="35" text-anchor="middle" class="d-t">何TB / TiB 読んだ？</text>
+              <path d="M462,30 L508,30" class="d-line-acc" marker-end="url(#bq-ar)"/>
+              <rect x="516" y="10" width="200" height="40" rx="3" class="d-box-crit"/>
+              <text x="616" y="35" text-anchor="middle" class="d-t">そのスキャン量で課金</text>
+            </svg>
+            <figcaption><strong>10 TB のテーブルにほぼ全表スキャンを行えば、10 TB 近いスキャン量が料金に効きます。</strong>
+            逆に Partition や Clustering を使って 100 GB だけ読めるようにできれば、コストも大きく下げられます。
+            なお BigQuery には Slot ベースの <strong>Capacity pricing</strong> もあり、利用量が大きく予測可能な環境ではこちらも使えます。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-dbx-compute" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>どれだけ Compute を働かせたか<span class="tag">Databricks SQL</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Databricks は基本的に、<strong>Compute をどれくらい使ったか</strong>が中心になります。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 62" role="img" aria-label="SQL を実行すると SQL Warehouse や Compute が動き、使った時間と能力に応じて DBU とクラウド Compute コストがかかる、という4段の流れ図。">
+              <defs>
+                <marker id="db-ar" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+              <rect x="4" y="10" width="128" height="40" rx="3" class="d-box"/>
+              <text x="68" y="35" text-anchor="middle" class="d-t">SQLを実行</text>
+              <path d="M138,30 L172,30" class="d-line-acc" marker-end="url(#db-ar)"/>
+              <rect x="180" y="10" width="192" height="40" rx="3" class="d-box-acc"/>
+              <text x="276" y="35" text-anchor="middle" class="d-t">SQL Warehouse / Compute</text>
+              <path d="M378,30 L412,30" class="d-line-acc" marker-end="url(#db-ar)"/>
+              <rect x="420" y="10" width="140" height="40" rx="3" class="d-box-acc"/>
+              <text x="490" y="35" text-anchor="middle" class="d-t">時間・能力は？</text>
+              <path d="M566,30 L600,30" class="d-line-acc" marker-end="url(#db-ar)"/>
+              <rect x="608" y="10" width="108" height="40" rx="3" class="d-box-crit"/>
+              <text x="662" y="27" text-anchor="middle" class="d-t">DBU</text>
+              <text x="662" y="43" text-anchor="middle" class="d-t-sm">+ Compute コスト</text>
+            </svg>
+            <figcaption>同じ 10 TB のデータを読む場合でも、<strong>Photon や Data Skipping、Liquid Clustering などによって処理時間を短縮できれば、Compute 消費量を減らしやすくなります。</strong></figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-billing" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>課金イメージを並べて比べる<span class="tag">6つの観点</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>観点</th><th>BigQuery On-demand</th><th>Databricks SQL</th></tr></thead>
+            <tbody>
+              <tr><td>主な課金軸</td><td><strong>読み取ったデータ量</strong></td><td><strong>Compute 利用量</strong></td></tr>
+              <tr><td>代表単位</td><td>TB / TiB scanned</td><td>DBU + Compute時間</td></tr>
+              <tr><td>Queryしない時間</td><td>基本的に分析Compute課金なし</td><td>Serverlessなら需要に応じて縮退</td></tr>
+              <tr><td>全表スキャン / 同じデータを何度も読む</td><td>高コストになりやすい / 毎回スキャン量に効く</td><td>処理時間が増えてコスト増 / 毎回Compute時間に効く</td></tr>
+              <tr><td>コスト最適化</td><td>読むbytesを減らす</td><td>I/Oと実行時間を減らす</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p><strong>BigQuery：何バイト読んだ？　Databricks：どれだけ Compute を働かせた？</strong>
+            この違いで覚えると分かりやすくなります。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-10tb-bq" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>10TB を何度も分析する<span class="tag">BigQuery 側</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p><code>sales</code> テーブルが 10 TB あり、次のクエリを繰り返し実行するとします。</p>
+
+          <div class="scroll-x"><pre><code>SELECT * FROM sales
+WHERE sale_date &gt;= '2026-08-01';</code></pre></div>
+
+          <p>Partition Pruning が効かず 10 TB 読めば、<strong>その 10 TB がスキャン課金の基礎</strong>になります。
+          同じクエリを繰り返せば、そのたびにスキャン量がコストへ影響します。そのため、次の対策が重要になります。</p>
+
+          <div class="pills">
+            <span class="pill" data-status="active">Partitioning</span>
+            <span class="pill" data-status="active">Clustering</span>
+            <span class="pill" data-status="active">必要な列だけSELECT</span>
+            <span class="pill" data-status="active">Filterを早く掛ける</span>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-dbx-layout" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>レイアウト改善で読む量を減らす<span class="tag">Databricks 側</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Databricks では、10 TB の全データを読むと Compute が長時間働くためコストが増えます。しかし、
+          <strong>Liquid Clustering・Data Skipping・Partition Pruning・Photon</strong> などによって、実際の読み取り量と実行時間を減らせます。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 60" role="img" aria-label="10TB を全部読んでいた状態が、レイアウト改善で 500GB だけ読む状態になり、クエリが早く終わって Compute 使用時間も短縮される、という5段の流れ図。">
+              <defs>
+                <marker id="ly-ar" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+              <rect x="4" y="8" width="120" height="40" rx="3" class="d-box-crit"/>
+              <text x="64" y="33" text-anchor="middle" class="d-t">10TB全部読む</text>
+              <path d="M128,28 L154,28" class="d-line-acc" marker-end="url(#ly-ar)"/>
+              <rect x="162" y="8" width="122" height="40" rx="3" class="d-box-acc"/>
+              <text x="223" y="33" text-anchor="middle" class="d-t">Layout改善</text>
+              <path d="M288,28 L314,28" class="d-line-acc" marker-end="url(#ly-ar)"/>
+              <rect x="322" y="8" width="122" height="40" rx="3" class="d-box-ship"/>
+              <text x="383" y="33" text-anchor="middle" class="d-t">500GBだけ読む</text>
+              <path d="M448,28 L474,28" class="d-line-acc" marker-end="url(#ly-ar)"/>
+              <rect x="482" y="8" width="112" height="40" rx="3" class="d-box-ship"/>
+              <text x="538" y="33" text-anchor="middle" class="d-t">Queryが早い</text>
+              <path d="M598,28 L624,28" class="d-line-acc" marker-end="url(#ly-ar)"/>
+              <rect x="632" y="8" width="84" height="40" rx="3" class="d-box-ship"/>
+              <text x="674" y="26" text-anchor="middle" class="d-t">Compute</text>
+              <text x="674" y="42" text-anchor="middle" class="d-t-sm">時間も短縮</text>
+            </svg>
+            <figcaption><strong>データレイアウトの改善は、性能とコストの両方に効きます。</strong>これは BigQuery 側でスキャン量を減らす話と同じ方向です。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-perf" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>どちらが速いかはケース依存<span class="tag">BigQuery が得意な世界</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="callout" data-kind="wait">
+            <p><strong>単純に「Databricksの方が速い」「BigQueryの方が速い」とは言えません。</strong>これはケース依存です。</p>
+          </div>
+
+          <figure>
+            <svg viewBox="0 0 720 60" role="img" aria-label="巨大テーブルに SQL を投げると、BigQuery が内部で Slot を割り当てて大規模並列実行する、という4段の流れ図。">
+              <defs>
+                <marker id="pf-ar" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+              <rect x="4" y="8" width="126" height="40" rx="3" class="d-box"/>
+              <text x="67" y="33" text-anchor="middle" class="d-t">巨大テーブル</text>
+              <path d="M134,28 L164,28" class="d-line-acc" marker-end="url(#pf-ar)"/>
+              <rect x="172" y="8" width="80" height="40" rx="3" class="d-box"/>
+              <text x="212" y="33" text-anchor="middle" class="d-t">SQL</text>
+              <path d="M256,28 L286,28" class="d-line-acc" marker-end="url(#pf-ar)"/>
+              <rect x="294" y="8" width="240" height="40" rx="3" class="d-box-acc"/>
+              <text x="414" y="33" text-anchor="middle" class="d-t">BigQuery が内部で Slot を割り当て</text>
+              <path d="M538,28 L568,28" class="d-line-acc" marker-end="url(#pf-ar)"/>
+              <rect x="576" y="8" width="140" height="40" rx="3" class="d-box-ship"/>
+              <text x="646" y="33" text-anchor="middle" class="d-t">大規模並列実行</text>
+            </svg>
+            <figcaption>BigQuery は Serverless DWH なので、<strong>ユーザー側でクラスタを意識せず SQL を投げられます。</strong>
+            とくに BI分析・アドホックSQL・集計クエリ・GCP中心のDWH では非常に扱いやすいところです。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-dbx-strength" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>前後まで含めた一体化<span class="tag">Databricks が得意な世界</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Databricks SQL Serverless も大規模SQL分析に対応しますが、強みは <strong>SQL の前後まで含めた一体化</strong>にあります。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 112" role="img" aria-label="オブジェクトストレージから Auto Loader や Lakeflow Connect で取り込み、Delta Lake に置き、PySpark や SQL や Streaming で加工し、Photon や SQL Warehouse を通して BI へ、さらに ML や AI へつながる流れ図。">
+              <defs>
+                <marker id="st-ar" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+              <rect x="4" y="4" width="126" height="36" rx="3" class="d-box"/>
+              <text x="67" y="27" text-anchor="middle" class="d-t">S3 / ADLS / GCS</text>
+              <path d="M134,22 L152,22" class="d-line-acc" marker-end="url(#st-ar)"/>
+              <rect x="160" y="4" width="176" height="36" rx="3" class="d-box-acc"/>
+              <text x="248" y="20" text-anchor="middle" class="d-t">Auto Loader</text>
+              <text x="248" y="34" text-anchor="middle" class="d-t-sm">/ Lakeflow Connect</text>
+              <path d="M340,22 L358,22" class="d-line-acc" marker-end="url(#st-ar)"/>
+              <rect x="366" y="4" width="112" height="36" rx="3" class="d-box-ship"/>
+              <text x="422" y="27" text-anchor="middle" class="d-t">Delta Lake</text>
+              <path d="M482,22 L500,22" class="d-line-acc" marker-end="url(#st-ar)"/>
+              <rect x="508" y="4" width="208" height="36" rx="3" class="d-box-acc"/>
+              <text x="612" y="27" text-anchor="middle" class="d-t">PySpark / SQL / Streaming</text>
+
+              <path d="M700,44 L700,56 L20,56 L20,66" class="d-line-acc" marker-end="url(#st-ar)"/>
+
+              <rect x="4" y="70" width="208" height="36" rx="3" class="d-box-acc"/>
+              <text x="108" y="93" text-anchor="middle" class="d-t">Photon / SQL Warehouse</text>
+              <path d="M216,88 L242,88" class="d-line-acc" marker-end="url(#st-ar)"/>
+              <rect x="250" y="70" width="96" height="36" rx="3" class="d-box-ship"/>
+              <text x="298" y="93" text-anchor="middle" class="d-t">BI</text>
+              <path d="M350,88 L376,88" class="d-line-acc" marker-end="url(#st-ar)"/>
+              <rect x="384" y="70" width="120" height="36" rx="3" class="d-box-ship"/>
+              <text x="444" y="93" text-anchor="middle" class="d-t">ML / AI</text>
+              <text x="520" y="93" class="d-t-sm">「分析だけ」ではなく「データを作るところから分析・AIまで」</text>
+            </svg>
+            <figcaption><strong>データを作るところから分析・AIまでを一つの基盤で扱いたい場合に向いています。</strong></figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-arch" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>DWH 中心と Lakehouse 中心<span class="tag">構造の違い</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 130" role="img" aria-label="左が BigQuery の DWH 中心の構造で、BigQuery Storage の上に BigQuery SQL Engine が乗る2段。右が Databricks の Lakehouse 中心の構造で、S3 や ADLS や GCS の上に Delta Lake や Iceberg があり、その上で Databricks が ETL、Streaming、SQL、ML、AI を扱う3段。">
+              <defs>
+                <marker id="ar-ar" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+              <text x="4" y="12" class="d-t-mono">BigQuery ＝ DWH 中心</text>
+              <rect x="4" y="20" width="328" height="34" rx="3" class="d-box"/>
+              <text x="168" y="42" text-anchor="middle" class="d-t">BigQuery Storage</text>
+              <path d="M168,58 L168,74" class="d-line-acc" marker-end="url(#ar-ar)"/>
+              <rect x="4" y="78" width="328" height="34" rx="3" class="d-box-acc"/>
+              <text x="168" y="100" text-anchor="middle" class="d-t">BigQuery SQL Engine</text>
+              <text x="168" y="126" text-anchor="middle" class="d-t-sm">ユーザーは SQL の実行に集中できる</text>
+
+              <line x1="360" y1="4" x2="360" y2="126" class="d-rule"/>
+
+              <text x="388" y="12" class="d-t-mono">Databricks ＝ Lakehouse 中心</text>
+              <rect x="388" y="20" width="328" height="26" rx="3" class="d-box"/>
+              <text x="552" y="38" text-anchor="middle" class="d-t">S3 / ADLS / GCS</text>
+              <path d="M552,48 L552,58" class="d-line-acc" marker-end="url(#ar-ar)"/>
+              <rect x="388" y="62" width="328" height="26" rx="3" class="d-box-ship"/>
+              <text x="552" y="80" text-anchor="middle" class="d-t">Delta Lake / Iceberg</text>
+              <path d="M552,90 L552,100" class="d-line-acc" marker-end="url(#ar-ar)"/>
+              <rect x="388" y="104" width="328" height="26" rx="3" class="d-box-acc"/>
+              <text x="552" y="122" text-anchor="middle" class="d-t">Databricks — ETL / Streaming / SQL / ML / AI</text>
+            </svg>
+            <figcaption>BigQuery は <strong>DWH 中心</strong>の世界で、ユーザーは SQL を実行することに集中できます。
+            Databricks は<strong>クラウドオブジェクトストレージ上のデータを中心</strong>にするため、データエンジニアリングから分析まで一体化しやすくなります。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-freq-low" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>月に数回しか Query しない<span class="tag">利用頻度で性格が変わる ①</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>利用の形</th><th>1回あたり</th><th>向いている課金</th></tr></thead>
+            <tbody>
+              <tr><td class="num">月10回</td><td class="num">各Query 100GB程度</td><td><strong>BigQuery On-demand</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p><strong>「使ったときだけ、スキャンした分だけ」</strong>という形なので、この規模なら BigQuery の On-demand は非常に分かりやすいモデルです。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-freq-high" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>一日中大量の SQL を実行する<span class="tag">利用頻度で性格が変わる ②</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>利用の形</th><th>BigQuery</th><th>Databricks</th></tr></thead>
+            <tbody>
+              <tr><td>100人のAnalyst / Dashboard多数 / 1日中Query</td><td><strong>Capacity pricing</strong> を検討</td><td><strong>Serverless SQL Warehouse</strong> などを検討</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="wait">
+            <p>この規模になると、単純な「1Queryあたり料金」より、
+            <strong>継続的な Compute 容量・Autoscaling・同時実行性能</strong>の方が重要になります。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-etl" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>取り込みから分析まで一つの基盤で<span class="tag">ETL・Streaming を含めると</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 112" role="img" aria-label="JSON や CSV が継続到着し、Auto Loader で Bronze に入り、PySpark のクレンジングで Silver になり、MERGE や JOIN で Gold になり、SQL Warehouse を通して Power BI に届く流れ図。">
+              <defs>
+                <marker id="et-ar" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+              <rect x="4" y="4" width="140" height="36" rx="3" class="d-box"/>
+              <text x="74" y="27" text-anchor="middle" class="d-t">JSON / CSV が継続到着</text>
+              <path d="M148,22 L166,22" class="d-line-acc" marker-end="url(#et-ar)"/>
+              <rect x="174" y="4" width="118" height="36" rx="3" class="d-box-acc"/>
+              <text x="233" y="27" text-anchor="middle" class="d-t">Auto Loader</text>
+              <path d="M296,22 L314,22" class="d-line-acc" marker-end="url(#et-ar)"/>
+              <rect x="322" y="4" width="94" height="36" rx="3" class="d-box-ship"/>
+              <text x="369" y="27" text-anchor="middle" class="d-t">Bronze</text>
+              <path d="M420,22 L438,22" class="d-line-acc" marker-end="url(#et-ar)"/>
+              <rect x="446" y="4" width="176" height="36" rx="3" class="d-box-acc"/>
+              <text x="534" y="27" text-anchor="middle" class="d-t">PySparkでクレンジング</text>
+              <path d="M626,22 L644,22" class="d-line-acc" marker-end="url(#et-ar)"/>
+              <rect x="652" y="4" width="64" height="36" rx="3" class="d-box-ship"/>
+              <text x="684" y="27" text-anchor="middle" class="d-t">Silver</text>
+
+              <path d="M700,44 L700,56 L20,56 L20,66" class="d-line-acc" marker-end="url(#et-ar)"/>
+
+              <rect x="4" y="70" width="140" height="36" rx="3" class="d-box-acc"/>
+              <text x="74" y="93" text-anchor="middle" class="d-t">MERGE / JOIN</text>
+              <path d="M148,88 L166,88" class="d-line-acc" marker-end="url(#et-ar)"/>
+              <rect x="174" y="70" width="94" height="36" rx="3" class="d-box-ship"/>
+              <text x="221" y="93" text-anchor="middle" class="d-t">Gold</text>
+              <path d="M272,88 L290,88" class="d-line-acc" marker-end="url(#et-ar)"/>
+              <rect x="298" y="70" width="170" height="36" rx="3" class="d-box-acc"/>
+              <text x="383" y="93" text-anchor="middle" class="d-t">SQL Warehouse</text>
+              <path d="M472,88 L490,88" class="d-line-acc" marker-end="url(#et-ar)"/>
+              <rect x="498" y="70" width="118" height="36" rx="3" class="d-box-ship"/>
+              <text x="557" y="93" text-anchor="middle" class="d-t">Power BI</text>
+            </svg>
+            <figcaption>Databricks では Auto Loader・Delta Lake・Jobs・Streaming・PySpark・SQL Warehouse まで一つのプラットフォームで構成できます。
+            <strong>BigQuery でも同様のシステムは構成可能ですが、GCP の他サービスと組み合わせるケースが増えます。</strong>
+            そのため Databricks の価値は、単純な SQL ベンチマークだけでは判断しにくいところがあります。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-fit" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>どちらが向いているか<span class="tag">シナリオ別</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>シナリオ</th><th>向いている傾向</th></tr></thead>
+            <tbody>
+              <tr><td>SQLだけで手軽に分析 / たまにアドホック分析</td><td><strong>BigQuery</strong>（後者は On-demand）</td></tr>
+              <tr><td>Compute管理を極力したくない / GCP中心のDWH</td><td><strong>BigQuery</strong></td></tr>
+              <tr><td>PySpark / Sparkを使う</td><td><strong>Databricks</strong></td></tr>
+              <tr><td>ETL + Streaming + SQL / Bronze / Silver / Gold</td><td><strong>Databricks</strong></td></tr>
+              <tr><td>ML / AIまで同じ基盤で扱う</td><td><strong>Databricks</strong></td></tr>
+              <tr><td>S3 / ADLS / GCS上のオープンデータ中心</td><td><strong>Databricks</strong></td></tr>
+              <tr><td>大量SQLを常時実行</td><td><strong>両方候補</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-common" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>両者に共通する重要なところ<span class="tag">根本は同じ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 54" role="img" aria-label="無駄に大量データを読むと遅くなり、遅いと高くなる、という3段の流れ図。">
+              <defs>
+                <marker id="cm-ar" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-crit"/>
+                </marker>
+              </defs>
+              <rect x="4" y="6" width="280" height="38" rx="3" class="d-box-crit"/>
+              <text x="144" y="30" text-anchor="middle" class="d-t">無駄に大量データを読む</text>
+              <path d="M290,25 L340,25" class="d-line-crit" marker-end="url(#cm-ar)"/>
+              <rect x="348" y="6" width="150" height="38" rx="3" class="d-box-crit"/>
+              <text x="423" y="30" text-anchor="middle" class="d-t">遅い</text>
+              <path d="M504,25 L554,25" class="d-line-crit" marker-end="url(#cm-ar)"/>
+              <rect x="562" y="6" width="154" height="38" rx="3" class="d-box-crit"/>
+              <text x="639" y="30" text-anchor="middle" class="d-t">高い</text>
+            </svg>
+            <figcaption>課金方法は違っても、根本はどちらも同じ形です。<strong>どちらの製品でも、適切なデータレイアウトを作ることが、性能改善とコスト削減の両方につながります。</strong></figcaption>
+          </figure>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>製品</th><th>減らす手立て</th><th>何が減るか</th></tr></thead>
+            <tbody>
+              <tr><td><strong>BigQuery</strong></td><td>Partitioning / Clustering / Column pruning / Filter</td><td>スキャン量</td></tr>
+              <tr><td><strong>Databricks</strong></td><td>Partitioning / Liquid Clustering / Data Skipping / Photon</td><td>I/O と Compute 時間</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-summary" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>最後に一言で整理<span class="tag">まとめ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th></th><th>位置づけ</th><th>守備範囲</th><th>課金</th></tr></thead>
+            <tbody>
+              <tr><td><strong>BigQuery</strong></td><td>Serverless DWH</td><td>SQL分析中心</td><td>On-demandならスキャン量課金</td></tr>
+              <tr><td><strong>Databricks</strong></td><td>Lakehouse</td><td>ETL / Streaming / SQL / ML / AI</td><td>Compute利用量中心</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p>単発・断続的な SQL 分析では BigQuery の On-demand モデルは非常にシンプル。
+          一方で、データ取り込みから変換、Streaming、Delta Lake、SQL、ML / AI までを一つのデータ基盤で運用したい場合は Databricks の強みが出やすくなります。</p>
+
+          <div class="callout" data-kind="win">
+            <p><strong>「どんなデータを / どの頻度で / どれだけ読み / どの程度リアルタイムに / どこまで加工し / 何人が分析するか」</strong>
+            によって、最適な選択とコストは変わります。</p>
+          </div>
+        </div>
+      </details>
+
+      <footer>
+        <span>生成: Claude Code / <span class="num">2026-08-12</span></span>
+        <span>ソース: osmosis @ <code>main</code> — shows/databricks-shorts/episodes/ep075</span>
+      </footer>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>

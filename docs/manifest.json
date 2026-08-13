@@ -372,6 +372,11 @@
           "episode": "ep074",
           "title": "数TB級データのコスト見積もり",
           "file": "databricks/databricks-shorts/bigdata-cost-estimation.html"
+        },
+        {
+          "episode": "ep075",
+          "title": "DatabricksとBigQueryの違い",
+          "file": "databricks/databricks-shorts/databricks-vs-bigquery.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
