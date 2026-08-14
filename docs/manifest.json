@@ -402,6 +402,11 @@
           "episode": "ep080",
           "title": "チェックポイントと先行書き込みログ",
           "file": "databricks/databricks-shorts/streaming-checkpoint-wal.html"
+        },
+        {
+          "episode": "ep081",
+          "title": "STREAMING LIVE TABLEを使うとき",
+          "file": "databricks/databricks-shorts/dlt-streaming-live-table.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
