@@ -397,6 +397,11 @@
           "episode": "ep079",
           "title": "streaming hopとSilverからGold",
           "file": "databricks/databricks-shorts/streaming-hop-silver-to-gold.html"
+        },
+        {
+          "episode": "ep080",
+          "title": "チェックポイントと先行書き込みログ",
+          "file": "databricks/databricks-shorts/streaming-checkpoint-wal.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
