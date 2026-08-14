@@ -392,6 +392,11 @@
           "episode": "ep078",
           "title": "DLTとLakeflow Declarative Pipelines",
           "file": "databricks/databricks-shorts/dlt-declarative-pipelines.html"
+        },
+        {
+          "episode": "ep079",
+          "title": "streaming hopとSilverからGold",
+          "file": "databricks/databricks-shorts/streaming-hop-silver-to-gold.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
@@ -500,7 +505,7 @@
       "page": "databricks"
     }
   },
-  "updated_at": "2026-08-13",
+  "updated_at": "2026-08-14",
   "pages": {
     "databricks": {
       "title": "Databricks",
