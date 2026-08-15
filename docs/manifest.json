@@ -417,6 +417,11 @@
           "episode": "ep083",
           "title": "Liquid Clusteringの複数キー",
           "file": "databricks/databricks-shorts/liquid-clustering-multiple-keys.html"
+        },
+        {
+          "episode": "ep084",
+          "title": "Job ClusterとServerlessの使い分け",
+          "file": "databricks/databricks-shorts/job-cluster-vs-serverless.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
