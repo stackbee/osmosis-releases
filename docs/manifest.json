@@ -407,6 +407,11 @@
           "episode": "ep081",
           "title": "STREAMING LIVE TABLEを使うとき",
           "file": "databricks/databricks-shorts/dlt-streaming-live-table.html"
+        },
+        {
+          "episode": "ep082",
+          "title": "STREAMは読む側の指定",
+          "file": "databricks/databricks-shorts/dlt-stream-function.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
@@ -515,7 +520,7 @@
       "page": "databricks"
     }
   },
-  "updated_at": "2026-08-14",
+  "updated_at": "2026-08-15",
   "pages": {
     "databricks": {
       "title": "Databricks",
