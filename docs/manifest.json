@@ -461,11 +461,6 @@
       "title": "DatabricksReview",
       "docs": [
         {
-          "episode": "ep003",
-          "title": "プラットフォーム基盤",
-          "file": "databricks/databricks-review/01-platform.html"
-        },
-        {
           "episode": "ep004",
           "title": "データの取り込み",
           "file": "databricks/databricks-review/02-ingestion.html"
@@ -554,6 +549,11 @@
           "episode": "ep002",
           "title": "2026年5月改訂で何が入れ替わったか",
           "file": "databricks/databricks-review/00-exam-changes.html"
+        },
+        {
+          "episode": "ep003",
+          "title": "プラットフォーム基盤",
+          "file": "databricks/databricks-review/01-platform.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
