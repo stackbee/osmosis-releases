@@ -461,11 +461,6 @@
       "title": "DatabricksReview",
       "docs": [
         {
-          "episode": "ep004",
-          "title": "データの取り込み",
-          "file": "databricks/databricks-review/02-ingestion.html"
-        },
-        {
           "episode": "ep005",
           "title": "変換とモデリング",
           "file": "databricks/databricks-review/03-transformation.html"
@@ -554,6 +549,11 @@
           "episode": "ep003",
           "title": "プラットフォーム基盤",
           "file": "databricks/databricks-review/01-platform.html"
+        },
+        {
+          "episode": "ep004",
+          "title": "データの取り込み",
+          "file": "databricks/databricks-review/02-ingestion.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
