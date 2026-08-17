@@ -432,6 +432,11 @@
           "episode": "ep086",
           "title": "Z-ORDERとLiquid Clusteringの違い",
           "file": "databricks/databricks-shorts/zorder-vs-liquid-clustering.html"
+        },
+        {
+          "episode": "ep087",
+          "title": "import dltは古いのか",
+          "file": "databricks/databricks-shorts/dlt-import-to-pyspark-pipelines.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
