@@ -447,6 +447,11 @@
           "episode": "ep089",
           "title": "Indexは第3の選択肢ではない",
           "file": "databricks/databricks-shorts/search-optimization-not-index.html"
+        },
+        {
+          "episode": "ep090",
+          "title": "アカウント管理者とメタストア管理者は別物",
+          "file": "databricks/databricks-shorts/uc-admin-roles.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
