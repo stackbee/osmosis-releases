@@ -442,6 +442,11 @@
           "episode": "ep088",
           "title": "Liquid Clusteringの内部イメージ",
           "file": "databricks/databricks-shorts/liquid-clustering-internals.html"
+        },
+        {
+          "episode": "ep089",
+          "title": "Indexは第3の選択肢ではない",
+          "file": "databricks/databricks-shorts/search-optimization-not-index.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
