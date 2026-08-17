@@ -437,6 +437,11 @@
           "episode": "ep087",
           "title": "import dltは古いのか",
           "file": "databricks/databricks-shorts/dlt-import-to-pyspark-pipelines.html"
+        },
+        {
+          "episode": "ep088",
+          "title": "Liquid Clusteringの内部イメージ",
+          "file": "databricks/databricks-shorts/liquid-clustering-internals.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",

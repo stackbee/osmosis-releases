@@ -1,0 +1,1037 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Liquid Clusteringの内部イメージ — DatabricksShorts</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksShorts · ep088</div>
+    <p class="rail-title">Liquid Clusteringの内部イメージ</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-conc"><span class="dot" data-status="idle"></span><span>一言でいうと</span></a></li>
+        <li><a href="#sec-goal"><span class="dot" data-status="new"></span><span>何を最適化しているのか</span></a></li>
+        <li><a href="#sec-curve"><span class="dot" data-status="ship"></span><span>近い順にどう並べるのか</span></a></li>
+        <li><a href="#sec-vs-z"><span class="dot" data-status="crit"></span><span>Z-ORDERとの違い</span></a></li>
+        <li><a href="#sec-liquid"><span class="dot" data-status="new"></span><span>なぜLiquidなのか</span></a></li>
+        <li><a href="#sec-incr"><span class="dot" data-status="ship"></span><span>増分最適化の動き</span></a></li>
+        <li><a href="#sec-zcube"><span class="dot" data-status="block"></span><span>ZCubeという考え方</span></a></li>
+        <li><a href="#sec-skip"><span class="dot" data-status="crit"></span><span>Data Skippingとセットで</span></a></li>
+        <li><a href="#sec-key"><span class="dot" data-status="new"></span><span>キーを変更できる理由</span></a></li>
+        <li><a href="#sec-auto"><span class="dot" data-status="ship"></span><span>Automatic Liquid Clustering</span></a></li>
+        <li><a href="#sec-memo"><span class="dot" data-status="active"></span><span>一言で覚える</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/-z7mV5az74s" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/-z7mV5az74s" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksShorts</span>
+          <span>ep088</span>
+          <span class="num">2026-08-17</span>
+        </div>
+        <h1>Liquid Clusteringの内部イメージ</h1>
+        <p class="lede">
+          <strong>クラスタリングキーの多次元的な「近さ」を保ちながらデータをファイルへ寄せ、
+          しかも必要な部分だけを増分的に再配置する仕組み。</strong>
+          固定ディレクトリを切る Partitioning とも、都度大きく並べ直す Z-ORDER とも違います。
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-conc" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>一言でいうと<span class="tag">2つの性質</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <dl class="facts">
+            <div class="fact">
+              <dt>近さを保つ</dt>
+              <dd>クラスタリングキーの<strong>多次元的な近さ</strong>を保ちながら、データをファイルへ寄せる</dd>
+            </div>
+            <div class="fact">
+              <dt>増分で直す</dt>
+              <dd><strong>必要な部分だけ</strong>を増分的に再配置する</dd>
+            </div>
+          </dl>
+
+          <div class="callout" data-kind="win">
+            <p>この2つを合わせたところが特徴です。<strong>固定ディレクトリを切る Partitioning でもなく、都度大きく並べ直す Z-ORDER でもない。</strong>その中間にあると考えてください。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-goal" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>何を最適化しているのか<span class="tag">min/maxを狭くする</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p><code>WHERE purchase_date BETWEEN '2026-08-01' AND '2026-08-07' AND customer_id = 12345</code> のような検索が多いとき、<code>CLUSTER BY (purchase_date, customer_id)</code> の狙いは<strong>両方のキーが近いレコードを同じファイル群へ寄せること</strong>です。ファイル単位の min/max が狭くなり、Data Skipping で不要ファイルを落としやすくなります。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>ファイル</th><th>purchase_date</th><th>customer_id</th><th>上のクエリで</th></tr></thead>
+            <tbody>
+              <tr><td><strong>File A</strong></td><td>8/1〜8/2</td><td class="num">10000〜15000</td><td><strong>読む</strong></td></tr>
+              <tr><td>File B</td><td>8/1〜8/2</td><td class="num">50000〜55000</td><td>飛ばせる</td></tr>
+              <tr><td>File C</td><td>8/10〜8/12</td><td class="num">10000〜15000</td><td>飛ばせる</td></tr>
+            </tbody>
+          </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-curve" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>近い順にどう並べるのか<span class="tag">空間充填曲線</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>2列をそのままソートすると <code>purchase_date → customer_id</code> の<strong>辞書順</strong>になり、片方の局所性は強くても、もう片方が崩れやすくなります。そこで<strong>多次元空間を1本の順序へ写像する Space-Filling Curve（空間充填曲線）</strong>を使います。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 132" role="img" aria-label="purchase_date と customer_id の2次元の点群を Hilbert Curve で1次元のクラスタリング順序へ変換し、近い行を同じファイル群へ配置する流れの図">
+              <defs>
+                <marker id="h1-ar" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path class="d-head-acc" d="M0,0 L8,4 L0,8 z"/>
+                </marker>
+              </defs>
+              <rect class="d-box" x="4" y="30" width="180" height="44" rx="3"/>
+              <text class="d-t" x="94" y="50" text-anchor="middle">2次元</text>
+              <text class="d-t-sm" x="94" y="66" text-anchor="middle">purchase_date × customer_id</text>
+
+              <path class="d-line-acc" d="M186,52 L228,52" marker-end="url(#h1-ar)"/>
+
+              <rect class="d-box-acc" x="232" y="30" width="164" height="44" rx="3"/>
+              <text class="d-t" x="314" y="50" text-anchor="middle">Hilbert Curve</text>
+              <text class="d-t-sm" x="314" y="66" text-anchor="middle">近い場所を近い順番へ</text>
+
+              <path class="d-line-acc" d="M398,52 L440,52" marker-end="url(#h1-ar)"/>
+
+              <rect class="d-box-acc" x="444" y="30" width="126" height="44" rx="3"/>
+              <text class="d-t" x="507" y="50" text-anchor="middle">1次元の</text>
+              <text class="d-t" x="507" y="66" text-anchor="middle">順序</text>
+
+              <path class="d-line-acc" d="M572,52 L614,52" marker-end="url(#h1-ar)"/>
+
+              <rect class="d-box-ship" x="618" y="30" width="98" height="44" rx="3"/>
+              <text class="d-t-sm" x="667" y="50" text-anchor="middle">近い行を</text>
+              <text class="d-t-sm" x="667" y="66" text-anchor="middle">同じファイルへ</text>
+
+              <text class="d-t-sm" x="360" y="112" text-anchor="middle">複数キーの WHERE でもファイルごとの値域が狭くなり、Data Skipping が効きやすくなる</text>
+            </svg>
+            <figcaption><strong>OSS Delta Lake の公開実装・設計では、デフォルト技法として Hilbert Curve が使われます。</strong>空間を細かくたどりながら、近い場所をなるべく近い順番へ変換する曲線です。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-vs-z" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Z-ORDERとの違い<span class="tag">曲線ではなく状態</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Z-ORDER も「多次元の値を1次元へ変換して近い値を寄せる」という発想は同じです。<strong>本質の差は、別の曲線を使うことではありません。</strong></p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th></th><th>新しいデータが増えたとき</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Z-ORDER</strong></td><td>その時点の対象データを大きく再配置 → また <code>OPTIMIZE ZORDER</code></td></tr>
+              <tr><td><strong>Liquid Clustering</strong></td><td>クラスタリング<strong>状態を管理</strong> → <strong>必要な部分だけ</strong>増分的に再クラスタリング</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p><strong>Liquid Clustering は「状態を持った増分クラスタリング」である。</strong>ここが大きな差です。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-liquid" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>なぜLiquidなのか<span class="tag">境界が固定されない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 128" role="img" aria-label="Partitioning は日付ごとの固定された箱に分かれるが、Liquid Clustering はデータ分布に合わせて境界が変わることを対比した図">
+              <text class="d-t-mono" x="4" y="14">Partitioning ＝ 固定された箱</text>
+              <rect class="d-box" x="4" y="22" width="110" height="36" rx="2"/>
+              <text class="d-t" x="59" y="45" text-anchor="middle">8/1</text>
+              <rect class="d-box" x="118" y="22" width="110" height="36" rx="2"/>
+              <text class="d-t" x="173" y="45" text-anchor="middle">8/2</text>
+              <rect class="d-box" x="232" y="22" width="110" height="36" rx="2"/>
+              <text class="d-t" x="287" y="45" text-anchor="middle">8/3</text>
+              <text class="d-t-sm" x="173" y="76" text-anchor="middle">境界が動かない</text>
+
+              <text class="d-t-mono" x="380" y="14">Liquid Clustering ＝ 柔軟に再配置</text>
+              <rect class="d-box-acc" x="380" y="22" width="146" height="36" rx="2"/>
+              <text class="d-t-sm" x="453" y="45" text-anchor="middle">分布に合わせて</text>
+              <rect class="d-box-acc" x="530" y="22" width="90" height="36" rx="2"/>
+              <text class="d-t-sm" x="575" y="45" text-anchor="middle">境界が</text>
+              <rect class="d-box-acc" x="624" y="22" width="92" height="36" rx="2"/>
+              <text class="d-t-sm" x="670" y="45" text-anchor="middle">変わる</text>
+              <text class="d-t-sm" x="548" y="76" text-anchor="middle">固定ディレクトリ境界を作らない</text>
+
+              <line class="d-rule" x1="4" y1="94" x2="716" y2="94"/>
+              <text class="d-t-key" x="360" y="116" text-anchor="middle">液体のように境界が固定されず、レイアウトが変化できる</text>
+            </svg>
+            <figcaption><strong>これが「Liquid = 液体」の由来です。</strong>キーの分布や新しいデータに応じて、配置を徐々に変えていけます。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-incr" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>増分最適化の動き<span class="tag">既存に触らない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>現在の Databricks 公式ドキュメントでも、Liquid Clustering の <code>OPTIMIZE</code> は<strong>必要なデータだけを書き換える増分処理</strong>と説明されています。<code>既存 10 TB + 新着 100 GB</code> のケースで比べます。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th></th><th>10 TB の既存データ</th><th>100 GB の新着</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Z-ORDER 的な発想</strong></td><td>大きな範囲を再度並べ直す必要が出やすい</td><td>まとめて処理</td></tr>
+              <tr><td><strong>Liquid Clustering</strong></td><td><strong>良好なレイアウトはなるべく触らない</strong></td><td>未整理・影響部分を中心に再クラスタリング</td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <p class="note">これが <strong>write amplification（書き込み増幅）を抑える大きな理由</strong>です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-zcube" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>ZCubeという考え方<span class="tag">OSS Delta の設計</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>OSS Delta Lake 3.x の公開設計では、増分クラスタリングを実現するために <strong>ZCube</strong> という単位が使われます。ざっくり言えば「<strong>同じ <code>OPTIMIZE</code> で一緒にクラスタリングされたファイル群</strong>」という管理単位です。Delta Log のメタデータで「このファイル群はすでにクラスタリング済み」という状態を追跡するため、毎回すべてを並べ直す必要がありません。</p>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">断定しないこと</p>
+            <p>これは <strong>OSS Delta Lake の公開実装・設計の説明</strong>です。Databricks Runtime の Liquid Clustering は OSS Delta と<strong>完全に同一実装ではない</strong>と Databricks 社員からも説明されているため、「Databricks の Liquid Clustering ＝ 必ず内部で OSS と同じ ZCube 実装」とは断定しないほうが安全です。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-skip" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Data Skippingとセットで<span class="tag">索引ではない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p><strong>Liquid Clustering 自体がインデックス検索をするわけではありません。</strong>本当の読み取り高速化は、Delta が持つ<strong>ファイル単位統計</strong>（<code>min/max</code>）と組み合わさって起きます。</p>
+
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th></th><th>File A</th><th>File B</th><th>File C</th><th><code>customer_id = 15000</code> なら</th></tr></thead>
+            <tbody>
+              <tr><td>クラスタリング前</td><td class="num">1〜999999</td><td class="num">2〜999998</td><td class="num">3〜999997</td><td>どのファイルも候補になる</td></tr>
+              <tr><td><strong>クラスタリング後</strong></td><td class="num">1〜10000</td><td class="num">10001〜20000</td><td class="num">20001〜30000</td><td><strong>File B を中心に読む</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p><strong>Liquid Clustering は、Data Skipping が効きやすいファイル配置を作る技術。</strong></p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-key" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>キーを変更できる理由<span class="tag">段階的に移行</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="codeblock">
+            <p class="code-file"><span>クラスタリングキーの変更</span><span class="ln">抜粋</span></p>
+            <div class="scroll-x">
+<pre><code data-lang="sql">ALTER TABLE sales
+<b>CLUSTER BY (purchase_date, customer_id);</b></code></pre>
+            </div>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p><strong>キーを変えた瞬間に過去データ全部を書き直す必要はありません。</strong>以後の書き込みや <code>OPTIMIZE</code> により、新しいレイアウトへ段階的に移行できます。必要なら <code>OPTIMIZE FULL</code> で全体を再クラスタリングする選択肢もあります。</p>
+          </div>
+
+          <p class="note">段階的に移れるか、作り直しになるか。<strong>ここが Partitioning と大きく違うところ</strong>です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-auto" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Automatic Liquid Clustering<span class="tag">キー選択も任せる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 128" role="img" aria-label="人間が Partition と ZORDER を設計する段階から、Liquid Clustering でレイアウト管理を任せる段階、Automatic Liquid Clustering でキー選択まで任せる段階へと進む流れの図">
+              <defs>
+                <marker id="a1-ar" viewBox="0 0 8 8" refX="7.5" refY="4" markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path class="d-head-acc" d="M0,0 L8,4 L0,8 z"/>
+                </marker>
+              </defs>
+              <rect class="d-box" x="4" y="24" width="220" height="46" rx="3"/>
+              <text class="d-t" x="114" y="44" text-anchor="middle">昔</text>
+              <text class="d-t-sm" x="114" y="60" text-anchor="middle">人間が Partition / ZORDER を設計</text>
+
+              <path class="d-line-acc" d="M228,47 L256,47" marker-end="url(#a1-ar)"/>
+
+              <rect class="d-box-acc" x="260" y="24" width="200" height="46" rx="3"/>
+              <text class="d-t" x="360" y="44" text-anchor="middle">Liquid Clustering</text>
+              <text class="d-t-sm" x="360" y="60" text-anchor="middle">人間はキー指定、管理は Databricks</text>
+
+              <path class="d-line-acc" d="M464,47 L492,47" marker-end="url(#a1-ar)"/>
+
+              <rect class="d-box-ship" x="496" y="24" width="220" height="46" rx="3"/>
+              <text class="d-t" x="606" y="44" text-anchor="middle">Automatic Liquid Clustering</text>
+              <text class="d-t-sm" x="606" y="60" text-anchor="middle">キー選択そのものも Databricks</text>
+
+              <text class="d-t-sm" x="360" y="100" text-anchor="middle">過去のクエリワークロードを分析 → キー選択 → 必要ならキー変更 → Predictive Optimization で OPTIMIZE</text>
+              <text class="d-t-key" x="360" y="120" text-anchor="middle">Data Skipping のコスト削減がクラスタリングコストを上回るかも考慮される</text>
+            </svg>
+            <figcaption><strong>任せる範囲が一段ずつ広がってきた流れです。</strong>キーを人が決めるか、Databricks が決めるかが最後の一段になります。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-memo" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>一言で覚える<span class="tag">DEA向け</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+          <table>
+            <thead><tr><th>仕組み</th><th>一言で</th></tr></thead>
+            <tbody>
+              <tr><td><strong>Partitioning</strong></td><td>固定された箱に分ける</td></tr>
+              <tr><td><strong>Z-ORDER</strong></td><td>データを多次元的に近い順へ並べ直す</td></tr>
+              <tr><td><strong>Liquid Clustering</strong></td><td>近い値をファイルへ寄せる<strong>状態管理型・増分クラスタリング</strong></td></tr>
+            </tbody>
+          </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p><strong>複数キー → 多次元空間 → 近さを保つ順序へ変換 → 似たデータを近いファイルへ → ファイル統計の min/max が狭くなる → Data Skipping が効く → <code>OPTIMIZE</code> は必要部分だけ増分的に再配置。</strong></p>
+          </div>
+
+          <p class="note">Databricks の公開ドキュメントで確実に言えるのは、<strong>キーに基づきレイアウトを整理する / Partitioning と ZORDER を置き換える / <code>OPTIMIZE</code> は増分的 / キーを後から変更できる / Automatic ではキーを自動選択できる</strong> の5点です。</p>
+        </div>
+      </details>
+
+    </div>
+  </main>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+</body>
+</html>
