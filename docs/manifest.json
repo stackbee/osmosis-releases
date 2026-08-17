@@ -422,6 +422,11 @@
           "episode": "ep084",
           "title": "Job ClusterとServerlessの使い分け",
           "file": "databricks/databricks-shorts/job-cluster-vs-serverless.html"
+        },
+        {
+          "episode": "ep085",
+          "title": "LIVE TABLEの意味と名前の変遷",
+          "file": "databricks/databricks-shorts/dlt-live-table-naming.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
@@ -530,7 +535,7 @@
       "page": "databricks"
     }
   },
-  "updated_at": "2026-08-15",
+  "updated_at": "2026-08-17",
   "pages": {
     "databricks": {
       "title": "Databricks",
