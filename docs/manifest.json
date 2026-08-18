@@ -457,6 +457,11 @@
           "episode": "ep091",
           "title": "一度も注文していない顧客は LEFT ANTI JOIN",
           "file": "databricks/databricks-shorts/left-anti-join.html"
+        },
+        {
+          "episode": "ep092",
+          "title": "Control Plane と Compute Plane、Driver と Worker",
+          "file": "databricks/databricks-shorts/control-compute-planes.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
