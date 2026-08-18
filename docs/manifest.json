@@ -466,11 +466,6 @@
       "title": "DatabricksReview",
       "docs": [
         {
-          "episode": "ep009",
-          "title": "試験の解き方",
-          "file": "databricks/databricks-review/07-exam-tactics.html"
-        },
-        {
           "episode": "ep011",
           "title": "Managed Table / External Table / Volume",
           "file": "databricks/databricks-review/managed-vs-external-assets.html"
@@ -559,6 +554,11 @@
           "episode": "ep008",
           "title": "ガバナンスとセキュリティ",
           "file": "databricks/databricks-review/06-governance.html"
+        },
+        {
+          "episode": "ep009",
+          "title": "試験の解き方",
+          "file": "databricks/databricks-review/07-exam-tactics.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
