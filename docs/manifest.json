@@ -516,11 +516,6 @@
           "file": "databricks/databricks-review/uc-hierarchy.html"
         },
         {
-          "episode": "ep001",
-          "title": "試験の全体像と学習設計",
-          "file": "databricks/databricks-review/index.html"
-        },
-        {
           "episode": "ep002",
           "title": "2026年5月改訂で何が入れ替わったか",
           "file": "databricks/databricks-review/00-exam-changes.html"
@@ -559,6 +554,11 @@
           "episode": "ep009",
           "title": "試験の解き方",
           "file": "databricks/databricks-review/07-exam-tactics.html"
+        },
+        {
+          "episode": "ep001",
+          "title": "試験の全体像と学習設計",
+          "file": "databricks/databricks-review/index.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
