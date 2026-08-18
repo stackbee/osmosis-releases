@@ -462,6 +462,11 @@
           "episode": "ep092",
           "title": "Control Plane と Compute Plane、Driver と Worker",
           "file": "databricks/databricks-shorts/control-compute-planes.html"
+        },
+        {
+          "episode": "ep093",
+          "title": "Delta Lake の同時更新と楽観的並行制御",
+          "file": "databricks/databricks-shorts/optimistic-concurrency.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
