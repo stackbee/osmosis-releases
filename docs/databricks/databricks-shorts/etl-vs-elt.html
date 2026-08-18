@@ -1,0 +1,1152 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ETL と ELT を具体的に理解する — DatabricksShorts</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 画像（渡された1枚図）。ダークテーマで白地が浮くので枠を付ける --- */
+figure img.sheet{
+  display: block;
+  width: 100%; height: auto;
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+/* スライド撮影時だけの調整。`.slide` は buildSlideHtml が包むラッパーなので、
+   資料をブラウザで読むときには効かない。節が全幅になって縦 1080px を
+   超えるのを防ぎ、説明はナレーションが持つので figcaption も落とす。 */
+.slide figure img.sheet{ max-width: 25rem; margin: 0 auto; }
+/* 1枚図の節は、枠を全幅にせず画像に寄せる（25rem + 左右 padding 1rem ずつ）。
+   横に空いた白帯が消えるだけで、節の高さは変わらない。 */
+.slide figure:has(a.zoom){ max-width: 27rem; margin-left: auto; margin-right: auto; }
+.slide figure:has(a.zoom) figcaption{ display: none; }
+
+/* クリックで拡大。JS が動かない環境では画像単体が開くだけで、壊れはしない */
+figure a.zoom{ display: block; cursor: zoom-in; }
+figure a.zoom:hover img.sheet{ border-color: var(--rule-bold); }
+#lightbox{
+  position: fixed; inset: 0; z-index: 100;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.82); padding: 2vmin; cursor: zoom-out;
+}
+#lightbox[open]{ display: flex; }
+#lightbox img{
+  max-width: 96vw; max-height: 96vh;
+  width: auto; height: auto;
+  background: #fff; border-radius: 2px;
+}
+#lightbox .hint{
+  position: fixed; left: 0; right: 0; bottom: 1rem;
+  text-align: center; color: #fff; opacity: .7; font-size: var(--fs-xs);
+}
+@media print{ figure a.zoom{ cursor: auto } #lightbox{ display: none !important } }
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksShorts · ep095</div>
+    <p class="rail-title">ETL と ELT を具体的に理解する</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-oneline"><span class="dot" data-status="new"></span><span>まず一言で</span></a></li>
+        <li><a href="#sec-case"><span class="dot" data-status="idle"></span><span>具体例：EC の注文データ</span></a></li>
+        <li><a href="#sec-etl"><span class="dot" data-status="block"></span><span>ETL は先に変換する</span></a></li>
+        <li><a href="#sec-etl-tradeoff"><span class="dot" data-status="crit"></span><span>ETL の利点と弱点</span></a></li>
+        <li><a href="#sec-elt"><span class="dot" data-status="ship"></span><span>ELT はまず保存する</span></a></li>
+        <li><a href="#sec-medallion"><span class="dot" data-status="active"></span><span>Databricks とメダリオン</span></a></li>
+        <li><a href="#sec-extract-load"><span class="dot" data-status="new"></span><span>Extract して Bronze へ</span></a></li>
+        <li><a href="#sec-silver-gold"><span class="dot" data-status="ship"></span><span>Silver と Gold を作る</span></a></li>
+        <li><a href="#sec-etl-too"><span class="dot" data-status="block"></span><span>呼び名としての ETL</span></a></li>
+        <li><a href="#sec-compare"><span class="dot" data-status="idle"></span><span>二つを並べて比べる</span></a></li>
+        <li><a href="#sec-transform"><span class="dot" data-status="active"></span><span>Transform の範囲は広い</span></a></li>
+        <li><a href="#sec-memo"><span class="dot" data-status="ship"></span><span>覚え方とまとめ</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/UC4OR4xgMG8" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/UC4OR4xgMG8" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksShorts</span>
+          <span>ep095</span>
+          <span class="num">2026-08-18</span>
+        </div>
+        <h1>ETL と ELT を具体的に理解する</h1>
+        <p class="lede">
+          <strong>違いは一点だけ。Transform を Load の前にやるか、後にやるか。</strong>
+          Databricks ではどう実現するのか、Bronze / Silver / Gold まで具体的に追いかけます。
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-oneline" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>まず一言で<span class="tag">違いは一点</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 112" role="img" aria-label="ETL は Extract → Transform → Load、ELT は Extract → Load → Transform の順で、Transform の位置だけが入れ替わっている">
+              <text x="20" y="34" class="d-t-code">ETL</text>
+              <rect x="90" y="14" width="115" height="30" rx="3" class="d-box"/>
+              <text x="147" y="34" class="d-t" text-anchor="middle">Extract</text>
+              <line x1="205" y1="29" x2="222" y2="29" class="d-line"/><polygon points="232,29 222,25 222,33" class="d-head"/>
+              <rect x="234" y="14" width="115" height="30" rx="3" class="d-box-acc"/>
+              <text x="291" y="34" class="d-t" text-anchor="middle">Transform</text>
+              <line x1="349" y1="29" x2="366" y2="29" class="d-line"/><polygon points="376,29 366,25 366,33" class="d-head"/>
+              <rect x="378" y="14" width="115" height="30" rx="3" class="d-box"/>
+              <text x="435" y="34" class="d-t" text-anchor="middle">Load</text>
+              <text x="510" y="33" class="d-t-sm">先に変換 → 変換済みだけ保存</text>
+
+              <text x="20" y="90" class="d-t-code">ELT</text>
+              <rect x="90" y="70" width="115" height="30" rx="3" class="d-box"/>
+              <text x="147" y="90" class="d-t" text-anchor="middle">Extract</text>
+              <line x1="205" y1="85" x2="222" y2="85" class="d-line"/><polygon points="232,85 222,81 222,89" class="d-head"/>
+              <rect x="234" y="70" width="115" height="30" rx="3" class="d-box"/>
+              <text x="291" y="90" class="d-t" text-anchor="middle">Load</text>
+              <line x1="349" y1="85" x2="366" y2="85" class="d-line"/><polygon points="376,85 366,81 366,89" class="d-head"/>
+              <rect x="378" y="70" width="115" height="30" rx="3" class="d-box-acc"/>
+              <text x="435" y="90" class="d-t" text-anchor="middle">Transform</text>
+              <text x="510" y="89" class="d-t-sm">まず保存 → 保存先の計算力で変換</text>
+            </svg>
+            <figcaption>塗ってあるのが Transform。<strong>一番大きな違いは、Transform を Load の前にやるか、後にやるか。</strong>並びが入れ替わっているだけです。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-case" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>具体例：EC の注文データ<span class="tag">題材</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="codeblock">
+            <p class="code-file"><span>元データ（CSV）</span><span class="ln">5行</span></p>
+            <div class="scroll-x">
+<pre><code data-lang="text">order_id, customer_id, amount, order_date, status
+1001, C001, "1,200", 2026/08/18, completed
+1002, C002, "900",   2026/08/18, completed
+1002, C002, "900",   2026/08/18, completed   ← 重複
+1003, C003, NULL,    2026/08/18, cancelled</code></pre>
+            </div>
+          </div>
+
+          <dl class="facts">
+            <div class="fact">
+              <dt>整える</dt>
+              <dd>amount を文字列 → 数値／日付を標準フォーマットへ／重複行を除去／NULL の扱いを決める／cancelled を除外</dd>
+            </div>
+            <div class="fact">
+              <dt>足す</dt>
+              <dd>customer master と JOIN／店舗別・日別に集計／売上、平均単価、顧客ランクなどの派生列を作る</dd>
+            </div>
+          </dl>
+
+          <p class="note">これらがまとめて <strong>Transform</strong>。ETL と ELT は、この作業を<strong>どこで、いつやるか</strong>だけが違います。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-etl" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>ETL は先に変換する<span class="tag">タイミング</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p><strong>変換してから保存先へ入れる。</strong>元DBから注文データを取り出したあと、ETLサーバーやETLツール上で整形・結合・集計し、<strong>完成したデータだけをDWHへ入れる</strong>。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 100" role="img" aria-label="PostgreSQL から Extract、ETL Server で Transform、clean_orders を Load して Data Warehouse へ入れる流れ">
+              <text x="177" y="18" class="d-t-mono" text-anchor="middle">Extract</text>
+              <text x="362" y="18" class="d-t-mono" text-anchor="middle">Transform</text>
+              <text x="547" y="18" class="d-t-mono" text-anchor="middle">Load</text>
+              <rect x="10" y="28" width="145" height="38" rx="3" class="d-box"/>
+              <text x="82" y="52" class="d-t" text-anchor="middle">PostgreSQL</text>
+              <line x1="158" y1="47" x2="186" y2="47" class="d-line"/><polygon points="196,47 186,43 186,51" class="d-head"/>
+              <rect x="197" y="28" width="145" height="38" rx="3" class="d-box-acc"/>
+              <text x="269" y="52" class="d-t" text-anchor="middle">ETL Server</text>
+              <line x1="345" y1="47" x2="373" y2="47" class="d-line"/><polygon points="383,47 373,43 373,51" class="d-head"/>
+              <rect x="384" y="28" width="145" height="38" rx="3" class="d-box"/>
+              <text x="456" y="52" class="d-t" text-anchor="middle">clean_orders</text>
+              <line x1="532" y1="47" x2="560" y2="47" class="d-line"/><polygon points="570,47 560,43 560,51" class="d-head"/>
+              <rect x="571" y="28" width="145" height="38" rx="3" class="d-box"/>
+              <text x="643" y="52" class="d-t" text-anchor="middle">Data Warehouse</text>
+              <text x="269" y="86" class="d-t-key" text-anchor="middle">型変換・NULL処理・重複除去・JOIN・集計はここで終わる</text>
+            </svg>
+            <figcaption>Source から取り出したデータは <strong>ETL Engine</strong> を通り、変換が済んでから Data Warehouse へ。保存先に着いた時点で、もう完成品です。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-etl-tradeoff" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>ETL の利点と弱点<span class="tag">両面</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="callout" data-kind="win">
+            <p class="callout-title">メリット</p>
+            <p>保存先には<strong>最初から整ったデータだけ</strong>入る。不要データを持ち込まずに済む。昔のDWHではよく使われた形です。</p>
+          </div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">デメリット</p>
+            <p>Transform用の<strong>別コンピュート</strong>が必要。元データを削りすぎると後から再利用しにくい。<strong>変換ロジック変更時に、元データから取り直しが必要になることがある</strong>。</p>
+          </div>
+
+          <p class="note">手元に残っているのが変換後のデータだけだと、<strong>やり直しの起点が自分の外にしかない</strong>、ということになります。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-elt" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>ELT はまず保存する<span class="tag">タイミング</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p><strong>まず生データを保存して、その後で変換する。</strong>PostgreSQL から取ったデータをまず Bronze に入れ、その後 Databricks 上で Silver / Gold を作ります。</p>
+
+          <figure>
+            <svg viewBox="0 0 720 106" role="img" aria-label="PostgreSQL から Bronze へ Load が完了したあと、Transform で Silver、さらに Transform で Gold を作る流れ">
+              <text x="177" y="18" class="d-t-mono" text-anchor="middle">Extract → Load</text>
+              <text x="362" y="18" class="d-t-mono" text-anchor="middle">Transform</text>
+              <text x="547" y="18" class="d-t-mono" text-anchor="middle">Transform</text>
+              <rect x="10" y="28" width="145" height="38" rx="3" class="d-box"/>
+              <text x="82" y="52" class="d-t" text-anchor="middle">PostgreSQL</text>
+              <line x1="158" y1="47" x2="186" y2="47" class="d-line"/><polygon points="196,47 186,43 186,51" class="d-head"/>
+              <rect x="197" y="28" width="145" height="38" rx="3" class="d-box-acc"/>
+              <text x="269" y="52" class="d-t" text-anchor="middle">Bronze</text>
+              <line x1="345" y1="47" x2="373" y2="47" class="d-line-acc"/><polygon points="383,47 373,43 373,51" class="d-head-acc"/>
+              <rect x="384" y="28" width="145" height="38" rx="3" class="d-box-ship"/>
+              <text x="456" y="52" class="d-t" text-anchor="middle">Silver</text>
+              <line x1="532" y1="47" x2="560" y2="47" class="d-line-acc"/><polygon points="570,47 560,43 560,51" class="d-head-acc"/>
+              <rect x="571" y="28" width="145" height="38" rx="3" class="d-box-ship"/>
+              <text x="643" y="52" class="d-t" text-anchor="middle">Gold</text>
+              <path d="M10,78 L10,86 L342,86 L342,78" class="d-line"/>
+              <text x="176" y="100" class="d-t-key" text-anchor="middle">ここまでが EL（Load 完了）</text>
+              <path d="M384,78 L384,86 L716,86 L716,78" class="d-line-acc"/>
+              <text x="550" y="100" class="d-t-key" text-anchor="middle">ここから先が T（保存先で変換）</text>
+            </svg>
+            <figcaption>取り込みが終わった時点で、<strong>まだ何も変換していない生データが手元にある</strong>。ここが ELT の典型です。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-medallion" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Databricks とメダリオン<span class="tag">なぜ自然か</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Databricks では、<strong>ELT 的な設計がかなり自然</strong>。理由は、Lakehouse 自体が大量データの保存場所でもあり、<strong>Spark / Photon で変換処理もできる</strong>から。置く場所と計算する場所が同じところにあります。</p>
+
+          <dl class="facts">
+            <div class="fact">
+              <dt>Bronze</dt>
+              <dd>生データに近い状態</dd>
+            </div>
+            <div class="fact">
+              <dt>Silver</dt>
+              <dd>検証・整形・重複除去・JOIN</dd>
+            </div>
+            <div class="fact">
+              <dt>Gold</dt>
+              <dd>集計・BI向け・業務指標</dd>
+            </div>
+          </dl>
+
+          <p class="note">まず Bronze へ <strong>Load</strong> し、その後 Databricks 上で <strong>Transform</strong> する。<strong>この流れは ELT 的。</strong></p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-extract-load" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Extract して Bronze へ<span class="tag">具体例 1・2</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <dl class="facts">
+            <div class="fact">
+              <dt>1. Extract</dt>
+              <dd>PostgreSQL / MySQL、SaaS、REST API、S3 / ADLS / GCS、Kafka / Event Hubs から取得。道具は <strong>Lakeflow Connect、JDBC、Auto Loader</strong> など</dd>
+            </div>
+            <div class="fact">
+              <dt>2. Load</dt>
+              <dd>まず Raw に近い状態で Delta に保存。<strong>source orders → Bronze.orders_raw</strong>。ここでは変換は最小限</dd>
+            </div>
+          </dl>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">Bronze でやってよいこと</p>
+            <p>列名を最低限整える／ingestion timestamp を付ける／source file 名を記録する／JSON をそのまま <strong>VARIANT</strong> で保持する。<strong>データの中身は削らない。</strong></p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-silver-gold" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Silver と Gold を作る<span class="tag">具体例 3・4</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <dl class="facts">
+            <div class="fact">
+              <dt>3. → Silver</dt>
+              <dd><strong>Bronze.orders_raw → Silver.orders_clean</strong>。型変換／NULL処理／重複除去／異常値除去／CDC反映／customer masterとのJOIN／schema整形</dd>
+            </div>
+            <div class="fact">
+              <dt>4. → Gold</dt>
+              <dd><strong>Silver.orders_clean → Gold.daily_sales</strong>。日次売上／顧客LTV／商品カテゴリ別売上／KPI／BI向けマート</dd>
+            </div>
+          </dl>
+
+          <div class="codeblock">
+            <p class="code-file"><span>Silver（PySpark）→ Gold（SQL）</span><span class="ln">5行</span></p>
+            <div class="scroll-x">
+<pre><code data-lang="text">silver = (bronze.dropDuplicates(["order_id"]).filter("status = 'completed'")
+    .withColumn("amount", col("amount").cast("decimal(10,2)")))
+SELECT order_date, store_id, SUM(amount) AS total_sales,
+       COUNT(*) AS order_count, AVG(amount) AS avg_order_value
+FROM silver.orders_clean GROUP BY order_date, store_id;</code></pre>
+            </div>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-etl-too" data-status="block" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>呼び名としての ETL<span class="tag">言葉の罠</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Databricks で ETL もできるのか。<strong>できる。</strong>公式ドキュメントでも、Lakeflow pipelines や Auto Loader を使った処理を <strong>ETL pipeline</strong> と呼んでいます。</p>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">言葉と物理的な順序はずれる</p>
+            <p><strong>言葉として ETL と呼んでいても、物理的な処理順序は ELT 的になっているケースが多い。</strong>Source → Bronze へ Load → Silver へ Transform → Gold へ Transform、は概念的には ELT です。</p>
+          </div>
+
+          <p class="note">試験やドキュメントでは、<strong>ETL＝データパイプライン全般を指す広い言葉</strong>として使われることもあります。名前で判断せず、<strong>Load と Transform のどちらが先か</strong>を見ます。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-compare" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>二つを並べて比べる<span class="tag">比較</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>観点</th><th>ETL</th><th>ELT</th></tr></thead>
+              <tbody>
+                <tr><td>処理順序 / Transform場所</td><td>Extract → Transform → Load ／ 外部ETL基盤</td><td>Extract → Load → Transform ／ 保存先 / DWH / Lakehouse</td></tr>
+                <tr><td>Rawデータ保持 / 再処理</td><td>しないことも多い / 元システムから再取得が必要なことも</td><td>保持しやすい / Bronzeから再構築しやすい</td></tr>
+                <tr><td>大規模データ / 相性</td><td>昔は苦手 / 可能</td><td>得意 / <strong>非常に良い</strong></td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <figure>
+            <svg viewBox="0 0 720 44" role="img" aria-label="PostgreSQL や API やファイルから Bronze Delta へ Load し、Silver Delta、Gold Delta へ Transform する典型構成">
+              <rect x="10" y="4" width="150" height="36" rx="3" class="d-box"/>
+              <text x="85" y="20" class="d-t" text-anchor="middle">PostgreSQL / API</text>
+              <text x="85" y="34" class="d-t-sm" text-anchor="middle">Files</text>
+              <line x1="163" y1="22" x2="188" y2="22" class="d-line"/><polygon points="198,22 188,18 188,26" class="d-head"/>
+              <rect x="199" y="4" width="150" height="36" rx="3" class="d-box-acc"/>
+              <text x="274" y="20" class="d-t" text-anchor="middle">Bronze Delta</text>
+              <text x="274" y="34" class="d-t-sm" text-anchor="middle">Raw / CDC</text>
+              <line x1="352" y1="22" x2="377" y2="22" class="d-line-acc"/><polygon points="387,22 377,18 377,26" class="d-head-acc"/>
+              <rect x="388" y="4" width="150" height="36" rx="3" class="d-box-ship"/>
+              <text x="463" y="20" class="d-t" text-anchor="middle">Silver Delta</text>
+              <text x="463" y="34" class="d-t-sm" text-anchor="middle">Clean / Dedupe / Join</text>
+              <line x1="541" y1="22" x2="566" y2="22" class="d-line-acc"/><polygon points="576,22 566,18 566,26" class="d-head-acc"/>
+              <rect x="577" y="4" width="143" height="36" rx="3" class="d-box-ship"/>
+              <text x="648" y="20" class="d-t" text-anchor="middle">Gold Delta</text>
+              <text x="648" y="34" class="d-t-sm" text-anchor="middle">Aggregate / KPI / BI</text>
+            </svg>
+            <figcaption>Databricks での典型イメージ。<strong>最初の Load までが EL、Bronze → Silver → Gold が T</strong>。実線が Extract → Load、太線が Transform です。</figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-transform" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Transform の範囲は広い<span class="tag">中身</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>Transform は単なる「加工」ではなく、<strong>かなり広い</strong>。</p>
+
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>分類</th><th>中身</th></tr></thead>
+              <tbody>
+                <tr><td>データ品質</td><td>NULL除去 / 不正値除去 / 重複除去 / schema validation / expectation</td></tr>
+                <tr><td>型・形式</td><td>string → date / string → decimal / timestampのtimezone統一 / JSON展開</td></tr>
+                <tr><td>構造変更</td><td>列追加 / 列削除 / rename / explode / pivot / unpivot</td></tr>
+                <tr><td>データ統合 / 集計</td><td>JOIN / UNION / MERGE / CDC ／ GROUP BY / SUM / AVG / COUNT / Window Functions</td></tr>
+                <tr><td>業務ロジック</td><td>顧客ランク / 解約判定 / 売上区分 / KPI計算 / LTV</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="note">Lakeflow pipelines なら <strong>Source → Streaming Table（Bronze）→ Materialized View（Silver / Gold）</strong>と、SQL / Python で依存関係を宣言してパイプライン化できます。ingestion・変換・JOIN・集計・データ品質チェック・CDC をまとめてオーケストレーションできます。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-memo" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>覚え方とまとめ<span class="tag">DEA向け</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="codeblock">
+            <p class="code-file"><span>一番短く覚えるなら</span><span class="ln">3行</span></p>
+            <div class="scroll-x">
+<pre><code data-lang="text">ETL … T が先 → 変換してから保存
+ELT … L が先 → まず保存してから変換
+Databricks: Source → Bronze → Silver → Gold</code></pre>
+            </div>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">本質的な違いは Transform のタイミング</p>
+            <p>ETL は先に変換してからターゲットへ Load。ELT はまず Raw を Load して、その後ターゲット側で Transform。<strong>Bronze に Raw を保持するため、再処理・再利用しやすい。</strong></p>
+          </div>
+
+          <p class="note">Databricks では <strong>ELT 的な設計が自然</strong>。ただし公式ドキュメントでは、広い意味で「ETL pipeline」と呼ばれることもある——<strong>この2つを一組で覚えておく</strong>のが実務でも試験でも効きます。</p>
+        </div>
+      </details>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+<div id="lightbox" aria-hidden="true"><img alt=""><p class="hint">クリック / Esc で閉じる</p></div>
+<script>
+(function () {
+  "use strict";
+  // 図版の拡大。<a class="zoom"> を押したら、遷移せずに全画面で見せる。
+  // JS が無ければ普通のリンクとして画像が開くだけなので、壊れない。
+  var box = document.getElementById("lightbox");
+  if (!box) return;
+  var img = box.querySelector("img");
+
+  function open(src, alt) {
+    img.src = src; img.alt = alt || "";
+    box.setAttribute("open", ""); box.setAttribute("aria-hidden", "false");
+  }
+  function close() {
+    box.removeAttribute("open"); box.setAttribute("aria-hidden", "true");
+    img.removeAttribute("src");           // 閉じたら保持しない
+  }
+
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("figure a.zoom");
+    if (a) { e.preventDefault(); open(a.getAttribute("href"), a.querySelector("img") && a.querySelector("img").alt); return; }
+    if (box.hasAttribute("open")) close();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && box.hasAttribute("open")) close();
+  });
+})();
+</script>
+</body>
+</html>

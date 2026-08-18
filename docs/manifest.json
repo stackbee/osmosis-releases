@@ -472,6 +472,11 @@
           "episode": "ep094",
           "title": "Unity Catalog の ABAC はタグにルールを付ける",
           "file": "databricks/databricks-shorts/unity-catalog-abac.html"
+        },
+        {
+          "episode": "ep095",
+          "title": "ETL と ELT の違いを Databricks で具体化する",
+          "file": "databricks/databricks-shorts/etl-vs-elt.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
