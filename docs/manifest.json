@@ -467,6 +467,11 @@
           "episode": "ep093",
           "title": "Delta Lake の同時更新と楽観的並行制御",
           "file": "databricks/databricks-shorts/optimistic-concurrency.html"
+        },
+        {
+          "episode": "ep094",
+          "title": "Unity Catalog の ABAC はタグにルールを付ける",
+          "file": "databricks/databricks-shorts/unity-catalog-abac.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
