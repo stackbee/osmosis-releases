@@ -487,6 +487,11 @@
           "episode": "ep096",
           "title": "DEA キーワード集 1/4 基礎・Delta・性能・SQL",
           "file": "databricks/databricks-shorts/dea-keywords-01.html"
+        },
+        {
+          "episode": "ep097",
+          "title": "DEA キーワード集 2/4 ストリーミングと Lakeflow",
+          "file": "databricks/databricks-shorts/dea-keywords-02.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
