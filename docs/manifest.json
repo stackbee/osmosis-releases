@@ -482,6 +482,11 @@
           "episode": "ep099",
           "title": "DEA キーワード集 4/4 ガバナンスと DevOps",
           "file": "databricks/databricks-shorts/dea-keywords-04.html"
+        },
+        {
+          "episode": "ep096",
+          "title": "DEA キーワード集 1/4 基礎・Delta・性能・SQL",
+          "file": "databricks/databricks-shorts/dea-keywords-01.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",

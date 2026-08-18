@@ -1,0 +1,1299 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>DEA 重要キーワード集 1/4 — DatabricksShorts</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 画像（渡された1枚図）。ダークテーマで白地が浮くので枠を付ける --- */
+figure img.sheet{
+  display: block;
+  width: 100%; height: auto;
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+/* スライド撮影時だけの調整。`.slide` は buildSlideHtml が包むラッパーなので、
+   資料をブラウザで読むときには効かない。節が全幅になって縦 1080px を
+   超えるのを防ぎ、説明はナレーションが持つので figcaption も落とす。 */
+.slide figure img.sheet{ max-width: 25rem; margin: 0 auto; }
+/* 1枚図の節は、枠を全幅にせず画像に寄せる（25rem + 左右 padding 1rem ずつ）。
+   横に空いた白帯が消えるだけで、節の高さは変わらない。 */
+.slide figure:has(a.zoom){ max-width: 27rem; margin-left: auto; margin-right: auto; }
+.slide figure:has(a.zoom) figcaption{ display: none; }
+
+/* クリックで拡大。JS が動かない環境では画像単体が開くだけで、壊れはしない */
+figure a.zoom{ display: block; cursor: zoom-in; }
+figure a.zoom:hover img.sheet{ border-color: var(--rule-bold); }
+#lightbox{
+  position: fixed; inset: 0; z-index: 100;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.82); padding: 2vmin; cursor: zoom-out;
+}
+#lightbox[open]{ display: flex; }
+#lightbox img{
+  max-width: 96vw; max-height: 96vh;
+  width: auto; height: auto;
+  background: #fff; border-radius: 2px;
+}
+#lightbox .hint{
+  position: fixed; left: 0; right: 0; bottom: 1rem;
+  text-align: center; color: #fff; opacity: .7; font-size: var(--fs-xs);
+}
+@media print{ figure a.zoom{ cursor: auto } #lightbox{ display: none !important } }
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+</style>
+</head>
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DatabricksShorts · ep096</div>
+    <p class="rail-title">DEA 重要キーワード集 1/4 — 基礎・Delta・レイアウト・PySpark・SQL</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-map"><span class="dot" data-status="new"></span><span>5つのカテゴリと流れ</span></a></li>
+        <li><a href="#sec-lakehouse"><span class="dot" data-status="active"></span><span>器と道具の名前</span></a></li>
+        <li><a href="#sec-lazy"><span class="dot" data-status="crit"></span><span>いつ動くか</span></a></li>
+        <li><a href="#sec-plane"><span class="dot" data-status="crit"></span><span>どこで動くか</span></a></li>
+        <li><a href="#sec-compute"><span class="dot" data-status="idle"></span><span>Compute の選び分け</span></a></li>
+        <li><a href="#sec-delta-core"><span class="dot" data-status="active"></span><span>Delta Table の実体</span></a></li>
+        <li><a href="#sec-acid"><span class="dot" data-status="ship"></span><span>ACID とスキーマ</span></a></li>
+        <li><a href="#sec-history"><span class="dot" data-status="crit"></span><span>書き換え・履歴・掃除</span></a></li>
+        <li><a href="#sec-optimize"><span class="dot" data-status="idle"></span><span>小ファイルと読み飛ばし</span></a></li>
+        <li><a href="#sec-clustering"><span class="dot" data-status="ship"></span><span>配置最適化の世代</span></a></li>
+        <li><a href="#sec-plan"><span class="dot" data-status="idle"></span><span>実行計画と自動最適化</span></a></li>
+        <li><a href="#sec-shuffle"><span class="dot" data-status="crit"></span><span>Shuffle と偏り</span></a></li>
+        <li><a href="#sec-df-io"><span class="dot" data-status="active"></span><span>入口と出口</span></a></li>
+        <li><a href="#sec-df-col"><span class="dot" data-status="idle"></span><span>列・行の操作</span></a></li>
+        <li><a href="#sec-join"><span class="dot" data-status="ship"></span><span>結合の選び分け</span></a></li>
+        <li><a href="#sec-window"><span class="dot" data-status="ship"></span><span>Window Function</span></a></li>
+        <li><a href="#sec-sql"><span class="dot" data-status="active"></span><span>SQL の骨格</span></a></li>
+        <li><a href="#sec-view"><span class="dot" data-status="new"></span><span>テーブルとビュー</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/antVDxefHkQ" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/antVDxefHkQ" rel="noopener">▶ 動画で見る</a></span>
+          <span>DatabricksShorts</span>
+          <span>ep096</span>
+          <span class="num">2026-08-18</span>
+        </div>
+        <h1>DEA 重要キーワード集 1/4 — 基礎・Delta・レイアウト・PySpark・SQL</h1>
+        <p class="lede">
+          <strong>用語を見た瞬間に「何のためのものか」を短く説明できるようにする。</strong>
+          一覧は各節の表に全部置いてあります。音声では「どれとどれが紛らわしいか」と「要件からどう引くか」だけを話します。
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <details class="sec" id="sec-map" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>5つのカテゴリと、全体の流れ<span class="tag">この Part の地図</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <figure>
+            <svg viewBox="0 0 720 104" role="img" aria-label="Databricks 全体、Spark で処理、Delta Lake へ保存、レイアウト最適化、SQL/PySpark で分析という5段の流れと、各段で押さえる判断">
+              <text x="4" y="11" class="d-t-mono">このPartの要点 — 5段がそのまま5カテゴリ</text>
+              <rect x="4" y="20" width="132" height="42" rx="3" class="d-box"/>
+              <text x="70" y="37" class="d-t" text-anchor="middle">1. Databricks 全体</text>
+              <text x="70" y="53" class="d-t-sm" text-anchor="middle">Lakehouse 基礎</text>
+              <text x="70" y="82" class="d-t-key" text-anchor="middle">器の名前の差</text>
+              <text x="70" y="97" class="d-t-sm" text-anchor="middle">いつ / どこで動くか</text>
+              <path d="M140,41 H160" class="d-line"/><path d="M166,41 l-8,-4 v8 z" class="d-head"/>
+              <rect x="170" y="20" width="118" height="42" rx="3" class="d-box"/>
+              <text x="229" y="37" class="d-t" text-anchor="middle">2. Spark で処理</text>
+              <text x="229" y="53" class="d-t-sm" text-anchor="middle">PySpark / DataFrame</text>
+              <text x="229" y="82" class="d-t-key" text-anchor="middle">入口と出口</text>
+              <text x="229" y="97" class="d-t-sm" text-anchor="middle">列か行か / 結合</text>
+              <path d="M292,41 H312" class="d-line"/><path d="M318,41 l-8,-4 v8 z" class="d-head"/>
+              <rect x="322" y="20" width="126" height="42" rx="3" class="d-box-acc"/>
+              <text x="385" y="37" class="d-t" text-anchor="middle">3. Delta Lake へ保存</text>
+              <text x="385" y="53" class="d-t-sm" text-anchor="middle">Parquet + ログ</text>
+              <text x="385" y="82" class="d-t-key" text-anchor="middle">ACID とスキーマ</text>
+              <text x="385" y="97" class="d-t-sm" text-anchor="middle">消しても消えない</text>
+              <path d="M452,41 H472" class="d-line"/><path d="M478,41 l-8,-4 v8 z" class="d-head"/>
+              <rect x="482" y="20" width="118" height="42" rx="3" class="d-box-ship"/>
+              <text x="541" y="37" class="d-t" text-anchor="middle">4. レイアウト最適化</text>
+              <text x="541" y="53" class="d-t-sm" text-anchor="middle">Data Skipping</text>
+              <text x="541" y="82" class="d-t-key" text-anchor="middle">配置最適化の世代</text>
+              <text x="541" y="97" class="d-t-sm" text-anchor="middle">Shuffle を減らせるか</text>
+              <path d="M604,41 H624" class="d-line"/><path d="M630,41 l-8,-4 v8 z" class="d-head"/>
+              <rect x="634" y="20" width="82" height="42" rx="3" class="d-box"/>
+              <text x="675" y="37" class="d-t" text-anchor="middle">5. SQL</text>
+              <text x="675" y="53" class="d-t-sm" text-anchor="middle">分析・変換</text>
+              <text x="675" y="82" class="d-t-key" text-anchor="middle">どの順で効くか</text>
+              <text x="675" y="97" class="d-t-sm" text-anchor="middle">集計の前か後か</text>
+            </svg>
+            <figcaption>上段が流れ、下段がこの回で押さえる判断です。<strong>用語がどの段の話かが分かれば、意味は半分思い出せます。</strong></figcaption>
+          </figure>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">用語の一覧は、この先の各節の表に全部あります</p>
+            <p>音声で読み上げても残らないので、<strong>音声では「どれとどれが紛らわしいか」と「要件からどう引くか」だけ</strong>を話します。表と突き合わせながら聞いてください。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-lakehouse" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>器と道具の名前<span class="tag">1. 基礎 — 紛らわしいのは名前が並ぶところ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td>Databricks Data Intelligence Platform</td><td>データエンジニアリング、分析、AI/ML、ガバナンスを統合するプラットフォーム</td></tr>
+                <tr><td><strong>Lakehouse</strong></td><td>Data Lake の柔軟性と Data Warehouse の管理性・SQL 性能を組み合わせる<strong>アーキテクチャ</strong></td></tr>
+                <tr><td>Data Lake / Data Warehouse</td><td>大量の構造化・半構造化・非構造化データを保持する基盤／分析向けに整備された構造化データを SQL で高速に扱う基盤</td></tr>
+                <tr><td><strong>Delta Lake</strong></td><td>Parquet に Transaction Log を組み合わせ、ACID や MERGE、Time Travel などを実現する<strong>テーブル形式</strong></td></tr>
+                <tr><td>Apache Spark / Spark SQL</td><td>分散データ処理エンジン／Spark 上で SQL を実行する仕組み。DataFrame API と同じ実行エンジンにつながる</td></tr>
+                <tr><td>PySpark / DataFrame</td><td>Python から Spark を操作する API／行列形式の分散データ構造。Spark では遅延評価される</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="note">引き方 — <strong>アーキテクチャなら Lakehouse、テーブル形式なら Delta Lake。</strong></p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-lazy" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>いつ動くか — 遅延評価<span class="tag">1. 基礎 — 返るものが分かれ目</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td>Lazy Evaluation</td><td>Transformation をすぐ実行せず、Action が来た時にまとめて実行計画を作る仕組み</td></tr>
+                <tr><td><strong>Transformation</strong></td><td>DataFrame を別の DataFrame へ変換する処理。例: <code>select</code>, <code>filter</code>, <code>join</code></td></tr>
+                <tr><td><strong>Action</strong></td><td>実際の計算を開始させる操作。例: <code>count</code>, <code>collect</code>, <code>show</code>, 書き込み</td></tr>
+                <tr><td>DataFrame</td><td>行列形式の分散データ構造。Spark では遅延評価される</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">返ってくるもので引く</p>
+            <p><strong>DataFrame が返るなら Transformation。値やファイルが返るなら Action。</strong>「フィルタを書いたのに何も起きない」も「表示しただけなのに時間がかかる」も、どちらも正常です。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-plane" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>どこで動くか — 二重に紛らわしい2組<span class="tag">1. 基礎 — 実データがどちらにあるか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td>Driver / Worker</td><td>Spark ジョブ全体を計画し、Stage/Task へ分解して Worker へ仕事を割り振る司令塔／Driver から割り当てられた Task を実行する計算ノード</td></tr>
+                <tr><td>Cluster / Compute</td><td>Spark や SQL などの処理を実行する計算リソース</td></tr>
+                <tr><td><strong>Control Plane</strong></td><td>Databricks の管理・制御側。Workspace、Job、Compute 制御、認証などを担当</td></tr>
+                <tr><td><strong>Compute Plane</strong></td><td>実データを使った処理を実行する側。Driver/Worker などの Compute が存在する</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">2組は別のレイヤーの話</p>
+            <p><strong>Driver と Worker は、ひとつの計算リソースの中の役割分担。Control Plane と Compute Plane は、管理する側とデータを触る側の境目。</strong>判断の軸は<strong>実データがどちらにあるか</strong>です。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-compute" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Compute の選び分けと課金<span class="tag">1. 基礎 — 構成の細かさ × 用途</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td>Serverless Compute</td><td>インスタンス選択やスケーリングを Databricks 側に任せる Compute 方式</td></tr>
+                <tr><td>Classic Compute</td><td>VM サイズや Worker 数などをユーザー側でより細かく構成する Compute 方式</td></tr>
+                <tr><td><strong>Job Compute</strong></td><td>Job 実行用の Compute。処理開始時に起動し、終了時に停止する構成が基本</td></tr>
+                <tr><td><strong>All-Purpose Compute</strong></td><td>Notebook など対話的な分析・開発で使う Compute</td></tr>
+                <tr><td>Photon</td><td>Databricks の高性能なベクトル化実行エンジン。SQL や DataFrame 処理を高速化する</td></tr>
+                <tr><td>DBU</td><td>Databricks Unit。Databricks 利用量・課金を表す単位の一つ</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="note">引き方 — <strong>決まった時刻に走るバッチなら Job Compute。人が触りながら試すなら All-Purpose Compute。</strong>「起動しっぱなしのコストを避けたい」という文脈が出てきたら Job Compute を疑う。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-delta-core" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Delta Table の実体<span class="tag">2. Delta Lake — Parquet + トランザクションログ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td>Delta Table</td><td>Delta Lake 形式で管理されるテーブル。Parquet ファイル + <code>_delta_log</code> で構成される</td></tr>
+                <tr><td>Parquet</td><td>列指向のファイル形式。分析系クエリで必要列だけ読みやすい</td></tr>
+                <tr><td><code>_delta_log</code></td><td>Delta Table の Transaction Log を保存するディレクトリ</td></tr>
+                <tr><td><strong>Transaction Log</strong></td><td>どのファイルが有効か、どんな変更が行われたかを記録するログ</td></tr>
+                <tr><td>Snapshot / Transaction</td><td>ある時点で有効な Delta ファイル集合（クエリはスナップショットを読む）／複数の変更を一つの整合した単位として扱う処理</td></tr>
+                <tr><td>Optimistic Concurrency Control</td><td>まず処理し、コミット時に競合を検出する方式</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="note">先にロックを取るのではなく、<strong>後から気づいて弾く</strong>。これが「楽観的」と呼ばれる理由です。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-acid" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>ACID とスキーマの守り<span class="tag">2. Delta Lake — 名前が近く、向きが逆</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td>ACID</td><td>トランザクションの信頼性を表す4特性。Atomicity, Consistency, Isolation, Durability</td></tr>
+                <tr><td>Atomicity</td><td>処理が全部成功するか、全部なかったことになるか</td></tr>
+                <tr><td>Consistency</td><td>トランザクション前後でデータ整合性を保つ</td></tr>
+                <tr><td>Isolation</td><td>同時実行トランザクション同士が不正に干渉しない</td></tr>
+                <tr><td>Durability</td><td>コミット済みの変更が失われない</td></tr>
+                <tr><td><strong>Schema Enforcement / Schema Evolution</strong></td><td>既存テーブルと不整合なスキーマの書き込みを<strong>防ぐ</strong>／新しい列などのスキーマ変更を<strong>許容</strong>してテーブルを進化させる</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="note">引き方 — <strong>「弾いてほしい」なら Enforcement。「増えた列も受け入れたい」なら Evolution。</strong></p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-history" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>消しても消えない、そして消える<span class="tag">2. Delta Lake — 書き換え・履歴・掃除</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td><code>INSERT</code> / <code>UPDATE</code> / <code>DELETE</code></td><td>新しい行を追加／既存行を更新／条件に合う行を<strong>論理的に</strong>削除する（古いファイルはすぐには物理削除されない）</td></tr>
+                <tr><td><code>MERGE</code> / Upsert</td><td>条件に応じて INSERT/UPDATE/DELETE をまとめて行う（Upsert や CDC で重要）／既存なら UPDATE、なければ INSERT</td></tr>
+                <tr><td><strong>Time Travel</strong> / <code>VERSION AS OF</code> / <code>TIMESTAMP AS OF</code></td><td>過去バージョン・時刻の Delta Table を参照する機能／特定バージョンを読む／特定時刻時点を読む</td></tr>
+                <tr><td><code>DESCRIBE HISTORY</code> / Table History</td><td>更新履歴を確認する SQL／テーブルに対して行われた更新履歴</td></tr>
+                <tr><td><strong><code>VACUUM</code></strong> / Retention Period</td><td>参照されなくなった古いデータファイルを保持期間後に削除する／その保持期間</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">VACUUM を実行すると、それより前へは戻れない</p>
+            <p><strong>消えないのは掃除するまで。掃除したら戻れない。</strong>DELETE が論理削除だから Time Travel が成立し、VACUUM が走ると成立しなくなる — この順で覚えます。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-optimize" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>小ファイルと読み飛ばし<span class="tag">3. レイアウト — 整理と Data Skipping は地続き</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td>Small File Problem / Small Files</td><td>小ファイルが増えすぎてメタデータ処理や I/O 効率が悪化する問題</td></tr>
+                <tr><td>Compaction / File Compaction</td><td>多数の小ファイルを少数の大きめファイルへまとめること</td></tr>
+                <tr><td><strong><code>OPTIMIZE</code></strong></td><td>小さいファイルの統合や、Liquid Clustering されたテーブルの再編成などを行う</td></tr>
+                <tr><td><strong>Data Skipping</strong></td><td>ファイル統計を使い、条件に絶対合わないファイルを読まない最適化</td></tr>
+                <tr><td>File Statistics</td><td>ファイル単位の min/max/null 数など。Data Skipping の判断材料</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="note">整理と読み飛ばしは別々の話ではありません。<strong>ファイルが細かく散らばっているほど、統計も効きにくくなります。</strong></p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-clustering" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>配置最適化には世代がある<span class="tag">3. レイアウト — 併用ではなく世代違い</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="codeblock">
+            <p class="code-file"><span>世代の並び</span><span class="ln">併用ではなく世代違い</span></p>
+            <div class="scroll-x">
+<pre><code data-lang="text">Partitioning → Z-ORDER（旧来） → Liquid Clustering（現在の推奨）</code></pre>
+            </div>
+          </div>
+
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td>Partitioning / Partition Pruning</td><td>列値ごとに物理ディレクトリを分ける従来型の配置／不要なパーティションディレクトリを読まない最適化</td></tr>
+                <tr><td>Z-ORDER / Bloom Filter Index</td><td>複数列の値が近いデータを近いファイルへ寄せる旧来のレイアウト最適化／以前の検索補助インデックス。どちらも現在は主力ではない</td></tr>
+                <tr><td><strong>Liquid Clustering</strong> / <code>CLUSTER BY</code> / Automatic Liquid Clustering</td><td>クラスタリングキーを指定してデータ配置を最適化する現在の推奨方式／キーを指定する構文／キー選択を自動化する方向の機能</td></tr>
+                <tr><td>Clustering Key / Cardinality</td><td>配置最適化の軸に使う列／列に含まれる値の種類数（高カーディナリティ列は候補になりやすい）</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-plan" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>実行計画と、自動で効いているもの<span class="tag">3. パフォーマンス — 計画を直す / 読む量を減らす / 運用を消す</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>系統</th><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td rowspan="3"><strong>計画を直す</strong></td><td>Query Optimization</td><td>SQL/DataFrame の実行計画をより効率的な形へ変換する仕組み全般</td></tr>
+                <tr><td>Catalyst Optimizer</td><td>Spark SQL の論理/物理実行計画を最適化するオプティマイザ</td></tr>
+                <tr><td>Adaptive Query Execution / AQE</td><td>実行時統計を使い、Join 戦略や Shuffle Partition 数などを途中で調整する</td></tr>
+                <tr><td rowspan="3"><strong>読む量を減らす</strong></td><td>Predicate Pushdown</td><td>WHERE 条件を可能な限りデータ読み取り側へ押し込み、不要データを早期除外する</td></tr>
+                <tr><td>Column Pruning</td><td>必要な列だけ読む最適化。Parquet の列指向と相性が良い</td></tr>
+                <tr><td>Cache</td><td>再利用されるデータをメモリ等に保持し、再読み込みを減らす</td></tr>
+                <tr><td><strong>運用を消す</strong></td><td>Predictive Optimization / Predictive I/O</td><td>Unity Catalog managed table の保守操作を Databricks 側で自動化する仕組み／Photon と連携して I/O を効率化し、不要データの読み取りを減らす最適化</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-shuffle" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Shuffle が重い理由と、その周り<span class="tag">3. パフォーマンス — 性能の問題は Shuffle に帰着する</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Shuffle</strong></td><td>GroupBy や Join などでデータを Worker 間移動・再配置する処理</td></tr>
+                <tr><td>Data Skew</td><td>一部キーにデータが集中し、特定 Task だけ重くなる偏り</td></tr>
+                <tr><td><strong>Broadcast Join</strong></td><td>小さいテーブルを各 Worker へ配り、大きいテーブル側の Shuffle を減らす Join</td></tr>
+                <tr><td><strong>Sort Merge Join</strong></td><td>両側をキーで Shuffle/Sort して結合する大規模 Join の代表方式</td></tr>
+                <tr><td>Repartition / Coalesce</td><td>データを Shuffle してパーティション数や分布を作り直す／主に Shuffle を抑えてパーティション数を減らす用途</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">要件から引く</p>
+            <p><strong>片側が十分に小さいなら Broadcast Join、どちらも大きいなら Sort Merge Join。</strong>パーティション数は<strong>増やすなら Repartition、減らすだけなら Coalesce</strong>。</p>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-df-io" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>PySpark の入口と出口<span class="tag">4. PySpark — ストリームかバッチかで対になる</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td><code>spark.read</code> / <code>spark.readStream</code> / <code>spark.table</code></td><td>バッチデータを読み込む入口／Structured Streaming のストリームソースを読み込む入口／カタログ上のテーブルを DataFrame として読む</td></tr>
+                <tr><td><code>df.write</code> / <code>df.writeStream</code></td><td>バッチ DataFrame を書き込む／Streaming DataFrame を書き込む</td></tr>
+                <tr><td><code>save</code> / <code>saveAsTable</code> / <code>table</code></td><td>パス等へ書き込む／カタログ上のテーブルとして保存する／<code>writeStream.table(...)</code> などでテーブルへ出力する</td></tr>
+                <tr><td><code>append</code> / <code>overwrite</code> / <code>ignore</code> / <code>errorIfExists</code></td><td>新規行を追加／既存データを置き換え／既存なら書き込みを無視／既存ならエラー</td></tr>
+                <tr><td><code>partitionBy</code></td><td>書き込み時に物理 Partitioning 列を指定する</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="note"><strong>ストリームかバッチかで read / readStream、write / writeStream が入れ替わります。</strong>片方だけ間違えている選択肢がよく出ます。</p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-df-col" data-status="idle" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>列を触るのか、行をまとめるのか<span class="tag">4. PySpark — 何を変える操作かで分ける</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td><code>select</code> / <code>selectExpr</code> / <code>withColumn</code> / <code>drop</code></td><td>必要列を選択・式で変換／SQL 式を文字列で書いて select／列を追加または既存列を置換／不要列を削除</td></tr>
+                <tr><td><code>col</code> / <code>lit</code> / <code>cast</code> / <code>alias</code></td><td>列を Column オブジェクトとして参照／固定値を Column として扱う／データ型を変換／別名を付ける（Join 時に便利）</td></tr>
+                <tr><td><code>when</code> / <code>otherwise</code></td><td>条件分岐で値を作る（SQL の CASE WHEN 相当）／一致しなかった場合の値を指定する</td></tr>
+                <tr><td><code>filter</code> / <code>where</code></td><td>条件に合う行だけ残す／ほぼ同義。SQL に近い表現</td></tr>
+                <tr><td><code>split</code> / <code>explode</code></td><td>文字列を区切り文字で配列へ分割する／配列や Map を複数行へ展開する</td></tr>
+                <tr><td><code>groupBy</code> / <code>agg</code> / <code>sum</code> / <code>avg</code> / <code>count</code></td><td>キーごとに行をまとめて集計／複数の集計式を指定／合計・平均・件数</td></tr>
+                <tr><td><strong><code>distinct</code> / <code>dropDuplicates</code></strong> / <code>orderBy</code> / <code>sort</code></td><td>完全重複行を除去／<strong>指定列を基準に</strong>重複行を除去／全体を指定列で並べ替える（Shuffle が発生しやすい）</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-join" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>結合はどれを選ぶか<span class="tag">4. PySpark — 見分け方は「返る列」</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>返る行</th><th>返る列</th></tr></thead>
+              <tbody>
+                <tr><td><code>join</code> / Inner Join</td><td>2つの DataFrame をキーや条件で結合／両側にマッチする行だけ</td><td>両側</td></tr>
+                <tr><td>Left Join / Right Join</td><td>左側の全行 + 右側のマッチ行／右側の全行 + 左側のマッチ行</td><td>両側</td></tr>
+                <tr><td>Full Outer Join</td><td>両側の全行（マッチしない側は NULL）</td><td>両側</td></tr>
+                <tr><td><strong>Left Semi Join</strong></td><td>右側にマッチが<strong>存在する</strong>左側行</td><td><strong>左側だけ</strong></td></tr>
+                <tr><td><strong>Left Anti Join</strong></td><td>右側にマッチが<strong>存在しない</strong>左側行</td><td><strong>左側だけ</strong></td></tr>
+                <tr><td>Cross Join</td><td>左×右の全組み合わせ（行数が爆発しやすい）</td><td>両側</td></tr>
+                <tr><td><code>union</code> / <code>unionByName</code></td><td colspan="2">行方向に結合（基本的に<strong>列位置</strong>ベース）／<strong>列名</strong>を基準に行方向結合</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-window" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>Window Function は行を潰さない<span class="tag">4/5 共通 — groupBy との違い</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td><strong>Window Function</strong></td><td>行を潰さず、グループ内順位や移動計算を行う。元の行を残したまま集計・順位・前後行参照</td></tr>
+                <tr><td><code>OVER</code></td><td>Window Function の対象範囲を定義する</td></tr>
+                <tr><td><strong><code>PARTITION BY</code></strong></td><td>Window 内でグループを区切る。<strong>テーブルの物理 Partitioning とは別概念</strong></td></tr>
+                <tr><td><code>ROW_NUMBER</code></td><td>Window 内で 1,2,3… と一意な連番を付ける</td></tr>
+                <tr><td><code>RANK</code></td><td>同順位を許し、次順位を飛ばすランキング</td></tr>
+                <tr><td><code>LAG</code> / <code>LEAD</code></td><td>同じ Window 内の前の行の値を参照／次の行の値を参照</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="note">引き方 — <strong>「順位を付けたいが明細も残したい」なら Window Function。重複を許さないなら ROW_NUMBER、同点を同じ順位にしたいなら RANK。過去を見るのが LAG、先を見るのが LEAD。</strong></p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-sql" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>SQL の骨格<span class="tag">5. SQL — 単語より「どの順で効くか」</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th></tr></thead>
+              <tbody>
+                <tr><td><code>SELECT</code> / <code>FROM</code></td><td>取得する列・式を指定する／読み取り元を指定する</td></tr>
+                <tr><td><strong><code>WHERE</code> / <code>HAVING</code></strong></td><td><strong>集計前</strong>の行を条件で絞る／<strong>GROUP BY 後</strong>の集計結果を条件で絞る</td></tr>
+                <tr><td><code>GROUP BY</code> / <code>ORDER BY</code> / <code>JOIN</code></td><td>キー単位で行をまとめ集計する／結果を指定列で並べ替える／複数テーブルをキー・条件で結合する</td></tr>
+                <tr><td>CTE / <code>WITH</code> / Subquery</td><td>1つの SQL 文内で一時的な名前付き中間結果を定義する／SQL 文の中に埋め込む別の SELECT</td></tr>
+                <tr><td><strong>Aggregate Function / Window Function</strong></td><td>SUM/AVG/COUNT など複数行を1値へ集約（<strong>行が減る</strong>）／元の行を残して集計・順位・前後行参照（<strong>行は減らない</strong>）</td></tr>
+                <tr><td><code>CASE WHEN</code> / <code>CAST</code> / <code>COALESCE</code> / <code>MERGE INTO</code></td><td>条件分岐で値を生成／データ型を変換／最初の非 NULL 値を返す（NULL 補完）／条件一致・不一致ごとに UPDATE/INSERT/DELETE を行う</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p class="note">集計結果に条件を付けたいのに <code>WHERE</code> を使っている選択肢は、そこで落とせます。<strong>違いは「集計の前か後か」だけ。</strong></p>
+        </div>
+      </details>
+
+      <details class="sec" id="sec-view" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>テーブルとビュー、そして次の一歩<span class="tag">5. SQL — 実体を持つか持たないか</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>キーワード</th><th>意味・用途</th><th>実体</th></tr></thead>
+              <tbody>
+                <tr><td><code>CREATE TABLE</code> / <code>CREATE OR REPLACE TABLE</code></td><td>新しいテーブルを作成する／既存テーブルを置換して作り直す</td><td>あり</td></tr>
+                <tr><td><code>CREATE VIEW</code> / Temporary View</td><td>SQL 定義を保存した論理ビューを作る／セッション等に限定して使う一時ビュー</td><td><strong>なし</strong></td></tr>
+                <tr><td><strong>Materialized View</strong></td><td>クエリ結果を保持し、パイプラインで更新される実体化ビュー</td><td>あり</td></tr>
+                <tr><td>Streaming Table</td><td>ストリーミング入力を増分処理して維持するテーブル</td><td>あり</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout" data-kind="win">
+            <p class="callout-title">この後の使い方</p>
+            <p>引き方は<strong>「定義だけ残したいなら VIEW、結果を保持して速く返したいなら Materialized View、増分で入り続けるなら Streaming Table」</strong>。まずは各用語を<strong>「説明できる / 名前だけ知っている / 未理解」の3段階</strong>でチェックすると、弱点が見つけやすくなります。</p>
+          </div>
+        </div>
+      </details>
+
+    </div>
+  </main>
+</div>
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+<div id="lightbox" aria-hidden="true"><img alt=""><p class="hint">クリック / Esc で閉じる</p></div>
+<script>
+(function () {
+  "use strict";
+  // 図版の拡大。<a class="zoom"> を押したら、遷移せずに全画面で見せる。
+  // JS が無ければ普通のリンクとして画像が開くだけなので、壊れない。
+  var box = document.getElementById("lightbox");
+  if (!box) return;
+  var img = box.querySelector("img");
+
+  function open(src, alt) {
+    img.src = src; img.alt = alt || "";
+    box.setAttribute("open", ""); box.setAttribute("aria-hidden", "false");
+  }
+  function close() {
+    box.removeAttribute("open"); box.setAttribute("aria-hidden", "true");
+    img.removeAttribute("src");           // 閉じたら保持しない
+  }
+
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("figure a.zoom");
+    if (a) { e.preventDefault(); open(a.getAttribute("href"), a.querySelector("img") && a.querySelector("img").alt); return; }
+    if (box.hasAttribute("open")) close();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && box.hasAttribute("open")) close();
+  });
+})();
+</script>
+</body>
+</html>
