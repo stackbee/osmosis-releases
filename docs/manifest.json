@@ -492,6 +492,11 @@
           "episode": "ep097",
           "title": "DEA キーワード集 2/4 ストリーミングと Lakeflow",
           "file": "databricks/databricks-shorts/dea-keywords-02.html"
+        },
+        {
+          "episode": "ep098",
+          "title": "DEA キーワード集 3/4 メダリオンと Unity Catalog",
+          "file": "databricks/databricks-shorts/dea-keywords-03.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
