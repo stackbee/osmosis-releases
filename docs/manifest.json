@@ -477,6 +477,11 @@
           "episode": "ep095",
           "title": "ETL と ELT の違いを Databricks で具体化する",
           "file": "databricks/databricks-shorts/etl-vs-elt.html"
+        },
+        {
+          "episode": "ep099",
+          "title": "DEA キーワード集 4/4 ガバナンスと DevOps",
+          "file": "databricks/databricks-shorts/dea-keywords-04.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
