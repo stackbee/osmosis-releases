@@ -556,11 +556,6 @@
           "file": "databricks/databricks-review/uc-hierarchy.html"
         },
         {
-          "episode": "ep008",
-          "title": "ガバナンスとセキュリティ",
-          "file": "databricks/databricks-review/06-governance.html"
-        },
-        {
           "episode": "ep009",
           "title": "試験の解き方",
           "file": "databricks/databricks-review/07-exam-tactics.html"
@@ -599,6 +594,11 @@
           "episode": "ep007",
           "title": "監視と最適化",
           "file": "databricks/databricks-review/05-optimization.html"
+        },
+        {
+          "episode": "ep008",
+          "title": "ガバナンスとセキュリティ",
+          "file": "databricks/databricks-review/06-governance.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
