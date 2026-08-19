@@ -556,11 +556,6 @@
           "file": "databricks/databricks-review/uc-hierarchy.html"
         },
         {
-          "episode": "ep006",
-          "title": "Jobs と CI/CD",
-          "file": "databricks/databricks-review/04-jobs-cicd.html"
-        },
-        {
           "episode": "ep007",
           "title": "監視と最適化",
           "file": "databricks/databricks-review/05-optimization.html"
@@ -599,6 +594,11 @@
           "episode": "ep005",
           "title": "変換とモデリング",
           "file": "databricks/databricks-review/03-transformation.html"
+        },
+        {
+          "episode": "ep006",
+          "title": "Jobs と CI/CD",
+          "file": "databricks/databricks-review/04-jobs-cicd.html"
         }
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
