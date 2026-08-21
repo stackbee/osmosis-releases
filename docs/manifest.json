@@ -725,6 +725,11 @@
           "episode": "ep004",
           "title": "Expectations でデータ品質を守る — WARN・DROP・FAIL",
           "file": "dea/dea-3-pipelines/expectations.html"
+        },
+        {
+          "episode": "ep005",
+          "title": "ストリーミングの結合と本番投入",
+          "file": "dea/dea-3-pipelines/streaming-joins-and-production.html"
         }
       ],
       "page": "dea",
