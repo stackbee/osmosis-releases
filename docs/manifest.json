@@ -683,6 +683,11 @@
           "episode": "ep004",
           "title": "スケジュールとトリガー — 5種類の起動条件",
           "file": "dea/dea-2-jobs/schedules-and-triggers.html"
+        },
+        {
+          "episode": "ep005",
+          "title": "条件分岐と繰り返し — Run-if・If/Else・For Each",
+          "file": "dea/dea-2-jobs/conditional-and-iterative.html"
         }
       ],
       "page": "dea",
