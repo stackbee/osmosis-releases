@@ -688,6 +688,11 @@
           "episode": "ep005",
           "title": "条件分岐と繰り返し — Run-if・If/Else・For Each",
           "file": "dea/dea-2-jobs/conditional-and-iterative.html"
+        },
+        {
+          "episode": "ep006",
+          "title": "失敗からの復旧と性能の監視 — Repair run と system.lakeflow",
+          "file": "dea/dea-2-jobs/repair-and-monitoring.html"
         }
       ],
       "page": "dea",
