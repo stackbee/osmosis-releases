@@ -720,6 +720,11 @@
           "episode": "ep003",
           "title": "マルチファイルエディタとパイプラインの設定",
           "file": "dea/dea-3-pipelines/editor-and-settings.html"
+        },
+        {
+          "episode": "ep004",
+          "title": "Expectations でデータ品質を守る — WARN・DROP・FAIL",
+          "file": "dea/dea-3-pipelines/expectations.html"
         }
       ],
       "page": "dea",
