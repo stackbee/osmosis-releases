@@ -730,6 +730,11 @@
           "episode": "ep005",
           "title": "ストリーミングの結合と本番投入",
           "file": "dea/dea-3-pipelines/streaming-joins-and-production.html"
+        },
+        {
+          "episode": "ep006",
+          "title": "変更データキャプチャ — SCD Type 1 / Type 2 と AUTO CDC INTO",
+          "file": "dea/dea-3-pipelines/cdc.html"
         }
       ],
       "page": "dea",
