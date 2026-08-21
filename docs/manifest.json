@@ -651,6 +651,11 @@
           "episode": "ep006",
           "title": "エンタープライズデータの取り込み — マネージドコネクタの2つの形",
           "file": "dea/dea-1-ingestion/enterprise-ingestion.html"
+        },
+        {
+          "episode": "ep007",
+          "title": "既存 Delta テーブルへの取り込み — MERGE INTO と周辺機能",
+          "file": "dea/dea-1-ingestion/merge-into-and-beyond.html"
         }
       ],
       "page": "dea",
