@@ -702,6 +702,18 @@
       ],
       "page": "dea",
       "subtitle": "Lakeflow Jobs によるワークロードの実行と運用"
+    },
+    "dea-3-pipelines": {
+      "title": "DEA Pipelines",
+      "docs": [
+        {
+          "episode": "ep001",
+          "title": "宣言的パイプラインとは何を引き受けるものか",
+          "file": "dea/dea-3-pipelines/what-sdp-takes-over.html"
+        }
+      ],
+      "page": "dea",
+      "subtitle": "宣言的パイプラインの構築と品質管理"
     }
   },
   "updated_at": "2026-08-21",
