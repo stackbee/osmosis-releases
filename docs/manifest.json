@@ -673,6 +673,11 @@
           "episode": "ep002",
           "title": "Lakeflow Jobs の構成要素 — ジョブ・タスク・DAG・コンピュート",
           "file": "dea/dea-2-jobs/jobs-core-components.html"
+        },
+        {
+          "episode": "ep003",
+          "title": "コースプロジェクトとタスクの設定 — パラメータ・通知・再試行",
+          "file": "dea/dea-2-jobs/task-configuration.html"
         }
       ],
       "page": "dea",
