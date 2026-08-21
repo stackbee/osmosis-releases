@@ -747,6 +747,11 @@
           "episode": "ep001",
           "title": "ソフトウェアエンジニアリングの作法をデータパイプラインへ",
           "file": "dea/dea-4-devops/swe-best-practices.html"
+        },
+        {
+          "episode": "ep002",
+          "title": "PySpark コードのモジュール化 — 関数に切り出す理由",
+          "file": "dea/dea-4-devops/modularizing-pyspark.html"
         }
       ],
       "page": "dea",
