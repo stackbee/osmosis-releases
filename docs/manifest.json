@@ -752,6 +752,11 @@
           "episode": "ep002",
           "title": "PySpark コードのモジュール化 — 関数に切り出す理由",
           "file": "dea/dea-4-devops/modularizing-pyspark.html"
+        },
+        {
+          "episode": "ep003",
+          "title": "DevOps の基礎 — 8段階のライフサイクルと DataOps",
+          "file": "dea/dea-4-devops/devops-fundamentals.html"
         }
       ],
       "page": "dea",
