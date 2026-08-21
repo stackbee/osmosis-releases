@@ -757,6 +757,11 @@
           "episode": "ep003",
           "title": "DevOps の基礎 — 8段階のライフサイクルと DataOps",
           "file": "dea/dea-4-devops/devops-fundamentals.html"
+        },
+        {
+          "episode": "ep004",
+          "title": "CI と CD の役割 — テストピラミッドと2つの CD",
+          "file": "dea/dea-4-devops/ci-cd-role.html"
         }
       ],
       "page": "dea",
