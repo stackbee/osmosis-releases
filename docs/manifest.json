@@ -646,6 +646,11 @@
           "episode": "ep005",
           "title": "半構造化データ JSON — STRING・STRUCT・VARIANT",
           "file": "dea/dea-1-ingestion/semi-structured-json.html"
+        },
+        {
+          "episode": "ep006",
+          "title": "エンタープライズデータの取り込み — マネージドコネクタの2つの形",
+          "file": "dea/dea-1-ingestion/enterprise-ingestion.html"
         }
       ],
       "page": "dea",
