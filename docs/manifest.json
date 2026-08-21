@@ -497,6 +497,11 @@
           "episode": "ep098",
           "title": "DEA キーワード集 3/4 メダリオンと Unity Catalog",
           "file": "databricks/databricks-shorts/dea-keywords-03.html"
+        },
+        {
+          "episode": "ep100",
+          "title": "OpenAI を支える Databricks データ基盤",
+          "file": "databricks/databricks-shorts/openai-data-platform.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
@@ -605,7 +610,7 @@
       "page": "databricks"
     }
   },
-  "updated_at": "2026-08-19",
+  "updated_at": "2026-08-21",
   "pages": {
     "databricks": {
       "title": "Databricks",
