@@ -641,6 +641,11 @@
           "episode": "ep004",
           "title": "Rescued Data 列 — 壊れた値を捨てずに退避させる",
           "file": "dea/dea-1-ingestion/rescued-data-column.html"
+        },
+        {
+          "episode": "ep005",
+          "title": "半構造化データ JSON — STRING・STRUCT・VARIANT",
+          "file": "dea/dea-1-ingestion/semi-structured-json.html"
         }
       ],
       "page": "dea",
