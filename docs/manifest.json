@@ -678,6 +678,11 @@
           "episode": "ep003",
           "title": "コースプロジェクトとタスクの設定 — パラメータ・通知・再試行",
           "file": "dea/dea-2-jobs/task-configuration.html"
+        },
+        {
+          "episode": "ep004",
+          "title": "スケジュールとトリガー — 5種類の起動条件",
+          "file": "dea/dea-2-jobs/schedules-and-triggers.html"
         }
       ],
       "page": "dea",
