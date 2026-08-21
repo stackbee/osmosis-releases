@@ -693,6 +693,11 @@
           "episode": "ep006",
           "title": "失敗からの復旧と性能の監視 — Repair run と system.lakeflow",
           "file": "dea/dea-2-jobs/repair-and-monitoring.html"
+        },
+        {
+          "episode": "ep007",
+          "title": "本番運用のベストプラクティス — コンピュート・料金・モジュール設計",
+          "file": "dea/dea-2-jobs/production-best-practices.html"
         }
       ],
       "page": "dea",
