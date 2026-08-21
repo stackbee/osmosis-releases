@@ -762,6 +762,11 @@
           "episode": "ep004",
           "title": "CI と CD の役割 — テストピラミッドと2つの CD",
           "file": "dea/dea-4-devops/ci-cd-role.html"
+        },
+        {
+          "episode": "ep005",
+          "title": "プロジェクトの計画 — 環境をどう分けるか",
+          "file": "dea/dea-4-devops/planning-the-project.html"
         }
       ],
       "page": "dea",
