@@ -715,6 +715,11 @@
           "episode": "ep002",
           "title": "データセットの3種類 — ストリーミングテーブル・マテリアライズドビュー・ビュー",
           "file": "dea/dea-3-pipelines/dataset-types.html"
+        },
+        {
+          "episode": "ep003",
+          "title": "マルチファイルエディタとパイプラインの設定",
+          "file": "dea/dea-3-pipelines/editor-and-settings.html"
         }
       ],
       "page": "dea",
