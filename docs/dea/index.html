@@ -5,7 +5,7 @@
 <meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>クイズ — osmosis 資料</title>
+<title>Data Engineer Associate — osmosis 資料</title>
 <style>
 :root{
   color-scheme: light dark;
@@ -92,21 +92,36 @@ a.page-card:hover .page-name{ color:var(--accent); text-decoration:underline;
     <header>
       <div class="crumb"><a href="../">← 資料</a></div>
       <div class="eyebrow"><span>osmosis</span></div>
-      <h1>クイズ</h1>
-      <p class="lede">資料の内容を出題形式にしたものです。回答は端末の中にだけ残ります。</p>
+      <h1>Data Engineer Associate</h1>
+      <p class="lede">Databricks Certified Data Engineer Associate の出題範囲を、
+コースの順に整理した資料です。各回の台本の元になっています。</p>
       <div class="rule"></div>
     </header>
 
-    <p class="empty-note">このページの資料はまだありません。</p>
-
-    <div class="siblings">
-        <a href="../dea/">Data Engineer Associate</a>
-        <a href="../databricks/">Databricks</a>
-        <a href="../english/">English</a>
-        <a href="./" aria-current="page">クイズ</a>
+    <div class="tools">
+      <button class="btn" type="button" id="toggle-all">全部たたむ</button>
     </div>
 
-    <footer>0 件 / 更新 2026-08-21</footer>
+      <details class="show" data-show="dea-1-ingestion" open>
+        <summary>
+          <span class="show-name">DEA Ingestion</span>
+          <span class="show-sub">クラウドストレージと外部システムからの取り込み</span>
+          <span class="show-count num">1 件</span>
+          <span class="show-mark" aria-hidden="true"></span>
+        </summary>
+        <ul>
+        <li><a href="dea-1-ingestion/data-engineering-overview.html"><span class="ep">ep001</span><span class="t">データエンジニアリングの全体像とレイクフローコネクト</span></a></li>
+        </ul>
+      </details>
+
+    <div class="siblings">
+        <a href="./" aria-current="page">Data Engineer Associate</a>
+        <a href="../databricks/">Databricks</a>
+        <a href="../english/">English</a>
+        <a href="../quiz/">クイズ</a>
+    </div>
+
+    <footer>1 件 / 更新 2026-08-21</footer>
   </div>
 <script>
 (function () {

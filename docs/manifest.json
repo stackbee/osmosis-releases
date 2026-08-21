@@ -618,24 +618,41 @@
       ],
       "subtitle": "要件から機能を引く、Databricks DE Associate の総復習",
       "page": "databricks"
+    },
+    "dea-1-ingestion": {
+      "title": "DEA Ingestion",
+      "docs": [
+        {
+          "episode": "ep001",
+          "title": "データエンジニアリングの全体像とレイクフローコネクト",
+          "file": "dea/dea-1-ingestion/data-engineering-overview.html"
+        }
+      ],
+      "page": "dea",
+      "subtitle": "クラウドストレージと外部システムからの取り込み"
     }
   },
   "updated_at": "2026-08-21",
   "pages": {
+    "dea": {
+      "title": "Data Engineer Associate",
+      "lede": "Databricks Certified Data Engineer Associate の出題範囲を、\nコースの順に整理した資料です。各回の台本の元になっています。\n",
+      "order": 1
+    },
     "databricks": {
       "title": "Databricks",
       "lede": "Databricks を扱ううえで押さえておきたい仕組みを整理した資料です。\n各回の台本の元になっています。\n",
-      "order": 1
+      "order": 2
     },
     "english": {
       "title": "English",
       "lede": "英語まわりの回の資料です。\n",
-      "order": 2
+      "order": 3
     },
     "quiz": {
       "title": "クイズ",
       "lede": "資料の内容を出題形式にしたものです。回答は端末の中にだけ残ります。\n",
-      "order": 3
+      "order": 4
     }
   }
 }
