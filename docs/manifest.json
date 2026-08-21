@@ -767,6 +767,11 @@
           "episode": "ep005",
           "title": "プロジェクトの計画 — 環境をどう分けるか",
           "file": "dea/dea-4-devops/planning-the-project.html"
+        },
+        {
+          "episode": "ep006",
+          "title": "PySpark のユニットテスト — pyspark.testing.utils と pytest",
+          "file": "dea/dea-4-devops/unit-tests-pyspark.html"
         }
       ],
       "page": "dea",
