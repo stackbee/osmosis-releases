@@ -660,6 +660,18 @@
       ],
       "page": "dea",
       "subtitle": "クラウドストレージと外部システムからの取り込み"
+    },
+    "dea-2-jobs": {
+      "title": "DEA Jobs",
+      "docs": [
+        {
+          "episode": "ep001",
+          "title": "オーケストレーションはなぜ内側にあるべきか",
+          "file": "dea/dea-2-jobs/why-native-orchestration.html"
+        }
+      ],
+      "page": "dea",
+      "subtitle": "Lakeflow Jobs によるワークロードの実行と運用"
     }
   },
   "updated_at": "2026-08-21",
