@@ -668,6 +668,11 @@
           "episode": "ep001",
           "title": "オーケストレーションはなぜ内側にあるべきか",
           "file": "dea/dea-2-jobs/why-native-orchestration.html"
+        },
+        {
+          "episode": "ep002",
+          "title": "Lakeflow Jobs の構成要素 — ジョブ・タスク・DAG・コンピュート",
+          "file": "dea/dea-2-jobs/jobs-core-components.html"
         }
       ],
       "page": "dea",
