@@ -502,6 +502,11 @@
           "episode": "ep100",
           "title": "OpenAI を支える Databricks データ基盤",
           "file": "databricks/databricks-shorts/openai-data-platform.html"
+        },
+        {
+          "episode": "ep101",
+          "title": "OpenAI に学ぶ Unity Catalog とメダリオン",
+          "file": "databricks/databricks-shorts/openai-unity-catalog-medallion.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
