@@ -772,6 +772,11 @@
           "episode": "ep006",
           "title": "PySpark のユニットテスト — pyspark.testing.utils と pytest",
           "file": "dea/dea-4-devops/unit-tests-pyspark.html"
+        },
+        {
+          "episode": "ep007",
+          "title": "統合テストの実行 — Expectations で書くか、Jobs のタスクで書くか",
+          "file": "dea/dea-4-devops/integration-tests.html"
         }
       ],
       "page": "dea",
