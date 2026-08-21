@@ -631,6 +631,11 @@
           "episode": "ep002",
           "title": "クラウドストレージからの取り込み — CTAS・COPY INTO・Auto Loader",
           "file": "dea/dea-1-ingestion/cloud-storage-ingestion.html"
+        },
+        {
+          "episode": "ep003",
+          "title": "メタデータ列の付与 — _metadata でファイルの出所を残す",
+          "file": "dea/dea-1-ingestion/metadata-columns.html"
         }
       ],
       "page": "dea",

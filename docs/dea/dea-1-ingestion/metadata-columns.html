@@ -1,0 +1,1223 @@
+<!doctype html>
+<html lang="ja">
+<head>
+<meta charset="utf-8">
+<meta name="robots" content="noindex, nofollow">
+<link rel="icon" href="data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCAzMiAzMiI+PHJlY3Qgd2lkdGg9IjMyIiBoZWlnaHQ9IjMyIiByeD0iNyIgZmlsbD0iIzI2NDE4RiIvPjxyZWN0IHg9IjgiIHk9IjguNSIgd2lkdGg9IjE2IiBoZWlnaHQ9IjMuNSIgcng9IjEuNzUiIGZpbGw9IiNmZmYiIG9wYWNpdHk9Ii40NSIvPjxyZWN0IHg9IjgiIHk9IjE0LjI1IiB3aWR0aD0iMTYiIGhlaWdodD0iMy41IiByeD0iMS43NSIgZmlsbD0iI2ZmZiIgb3BhY2l0eT0iLjcyIi8+PHJlY3QgeD0iOCIgeT0iMjAiIHdpZHRoPSIxNiIgaGVpZ2h0PSIzLjUiIHJ4PSIxLjc1IiBmaWxsPSIjZmZmIi8+PC9zdmc+">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>メタデータ列の付与 — _metadata でファイルの出所を残す</title>
+<style>
+/* ============================================================
+   Replus Doc Style — 単一ファイル自己完結レポート
+   ライト/ダーク両対応・印刷対応・外部リソース参照なし
+   ------------------------------------------------------------
+   トークン → コンポーネント の順。色はすべて var() 経由で参照し、
+   メディアクエリの中でコンポーネントを直接スタイルしない。
+   ============================================================ */
+
+/* --- 1. トークン ------------------------------------------ */
+:root{
+  color-scheme: light dark;
+
+  /* 面と文字（青みに寄せたニュートラル。純グレーは使わない） */
+  --paper:      #F6F7F9;
+  --surface:    #FFFFFF;
+  --surface-2:  #F0F2F5;
+  --ink:        #15181E;
+  --muted:      #5C6470;
+  --faint:      #8A929E;
+  --rule:       #E2E5EA;
+  --rule-bold:  #C6CCD6;
+
+  /* アクセント＝群青（インク）。強調はここ1色に集約する */
+  --accent:     #26418F;
+  --accent-ink: #26418F;
+  --accent-bg:  rgba(38,65,143,.08);
+
+  /* 意味を持つ色。アクセントとは別系統（状態表現専用） */
+  --st-ship:    #146B53;  /* 🚀 リリース・出荷 */
+  --st-active:  #26418F;  /* 🔄 進行中 */
+  --st-block:   #96650A;  /* ⏸️ ブロック・待ち */
+  --st-new:     #6B3FA0;  /* 🆕 新規 */
+  --st-idle:    #7A828E;  /* ➖ 動きなし */
+  --st-crit:    #A5322B;  /* リスク・障害 */
+
+  --st-ship-bg:   rgba(20,107,83,.10);
+  --st-active-bg: rgba(38,65,143,.10);
+  --st-block-bg:  rgba(150,101,10,.12);
+  --st-new-bg:    rgba(107,63,160,.10);
+  --st-idle-bg:   rgba(122,130,142,.12);
+  --st-crit-bg:   rgba(165,50,43,.09);
+
+  /* 書体：明朝の題字＋ゴシック本文＋等幅データ。Web フォントは読み込まない */
+  --f-display: "Hiragino Mincho ProN", "ヒラギノ明朝 ProN", "Yu Mincho", "游明朝",
+               "Noto Serif JP", Georgia, serif;
+  --f-body:    -apple-system, BlinkMacSystemFont, "Hiragino Sans", "ヒラギノ角ゴシック",
+               "Yu Gothic", "Noto Sans JP", "Segoe UI", sans-serif;
+  --f-mono:    ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas,
+               "Noto Sans Mono", monospace;
+
+  /* タイプスケール */
+  --fs-2xs: .6875rem;
+  --fs-xs:  .75rem;
+  --fs-sm:  .8125rem;
+  --fs-md:  .9375rem;
+  --fs-lg:  1.0625rem;
+  --fs-h3:  1.125rem;
+  --fs-h2:  1.375rem;
+  --fs-h1:  1.75rem;
+  --fs-dsp: 2.375rem;
+
+  /* 間隔・寸法 */
+  --sp-1: .25rem; --sp-2: .5rem;  --sp-3: .75rem; --sp-4: 1rem;
+  --sp-5: 1.5rem; --sp-6: 2rem;   --sp-7: 3rem;   --sp-8: 4.5rem;
+  --rail: 15rem;
+  --measure: 72ch;
+  --gutter: 1.75rem;   /* 見出し左の状態マーカー用の余白 */
+}
+
+@media (prefers-color-scheme: dark){
+  :root{
+    --paper:     #12141A;
+    --surface:   #181B22;
+    --surface-2: #1F232B;
+    --ink:       #E6E8EC;
+    --muted:     #9AA2AF;
+    --faint:     #6C7481;
+    --rule:      #262A33;
+    --rule-bold: #39404C;
+
+    --accent:     #94A9F0;
+    --accent-ink: #A8B9F5;
+    --accent-bg:  rgba(148,169,240,.13);
+
+    --st-ship:   #5FC7A0;
+    --st-active: #94A9F0;
+    --st-block:  #E0AC4A;
+    --st-new:    #C0A5F2;
+    --st-idle:   #838B98;
+    --st-crit:   #F08279;
+
+    --st-ship-bg:   rgba(95,199,160,.14);
+    --st-active-bg: rgba(148,169,240,.14);
+    --st-block-bg:  rgba(224,172,74,.14);
+    --st-new-bg:    rgba(192,165,242,.14);
+    --st-idle-bg:   rgba(131,139,152,.16);
+    --st-crit-bg:   rgba(240,130,121,.13);
+  }
+}
+
+/* 手動トグルはメディアクエリより後に置き、両方向で必ず勝たせる */
+:root[data-theme="dark"]{
+  --paper:#12141A; --surface:#181B22; --surface-2:#1F232B;
+  --ink:#E6E8EC; --muted:#9AA2AF; --faint:#6C7481;
+  --rule:#262A33; --rule-bold:#39404C;
+  --accent:#94A9F0; --accent-ink:#A8B9F5; --accent-bg:rgba(148,169,240,.13);
+  --st-ship:#5FC7A0; --st-active:#94A9F0; --st-block:#E0AC4A;
+  --st-new:#C0A5F2; --st-idle:#838B98; --st-crit:#F08279;
+  --st-ship-bg:rgba(95,199,160,.14); --st-active-bg:rgba(148,169,240,.14);
+  --st-block-bg:rgba(224,172,74,.14); --st-new-bg:rgba(192,165,242,.14);
+  --st-idle-bg:rgba(131,139,152,.16); --st-crit-bg:rgba(240,130,121,.13);
+  color-scheme: dark;
+}
+:root[data-theme="light"]{
+  --paper:#F6F7F9; --surface:#FFFFFF; --surface-2:#F0F2F5;
+  --ink:#15181E; --muted:#5C6470; --faint:#8A929E;
+  --rule:#E2E5EA; --rule-bold:#C6CCD6;
+  --accent:#26418F; --accent-ink:#26418F; --accent-bg:rgba(38,65,143,.08);
+  --st-ship:#146B53; --st-active:#26418F; --st-block:#96650A;
+  --st-new:#6B3FA0; --st-idle:#7A828E; --st-crit:#A5322B;
+  --st-ship-bg:rgba(20,107,83,.10); --st-active-bg:rgba(38,65,143,.10);
+  --st-block-bg:rgba(150,101,10,.12); --st-new-bg:rgba(107,63,160,.10);
+  --st-idle-bg:rgba(122,130,142,.12); --st-crit-bg:rgba(165,50,43,.09);
+  color-scheme: light;
+}
+
+/* --- 2. ベース -------------------------------------------- */
+*, *::before, *::after{ box-sizing: border-box; }
+html{ -webkit-text-size-adjust: 100%; }
+body{
+  margin: 0;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--f-body);
+  font-size: var(--fs-md);
+  line-height: 1.9;
+  font-feature-settings: "palt" 1;
+  letter-spacing: .01em;
+}
+a{ color: var(--accent-ink); text-underline-offset: .2em; text-decoration-thickness: 1px; }
+a:hover{ text-decoration-thickness: 2px; }
+:focus-visible{ outline: 2px solid var(--accent); outline-offset: 2px; border-radius: 2px; }
+code, kbd, samp{ font-family: var(--f-mono); font-size: .9em; }
+.num{ font-variant-numeric: tabular-nums; font-feature-settings: "tnum" 1; }
+
+.skip{
+  position: absolute; left: -9999px; top: 0; z-index: 50;
+  background: var(--surface); color: var(--ink);
+  padding: var(--sp-2) var(--sp-4); border: 1px solid var(--rule-bold);
+}
+.skip:focus{ left: var(--sp-4); top: var(--sp-4); }
+
+/* --- 3. シェル（左レール＋本文） -------------------------- */
+.shell{
+  display: grid;
+  grid-template-columns: 1fr;
+  max-width: calc(var(--rail) + var(--measure) + 12rem);
+  margin: 0 auto;
+  padding: 0 var(--sp-5);
+}
+@media (min-width: 62rem){
+  .shell{
+    grid-template-columns: var(--rail) minmax(0, 1fr);
+    gap: var(--sp-7);
+    padding: 0 var(--sp-6);
+  }
+}
+
+/* 左レール：目次と状態の一覧。狭い画面では本文の前に畳んで置く */
+.rail{
+  font-size: var(--fs-sm);
+  padding: var(--sp-5) 0 var(--sp-6);
+}
+@media (min-width: 62rem){
+  .rail{
+    position: sticky; top: 0; align-self: start;
+    max-height: 100vh; overflow-y: auto;
+    padding: var(--sp-7) 0 var(--sp-6);
+    border-right: 1px solid var(--rule);
+    padding-right: var(--sp-5);
+  }
+}
+.rail-brand{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .14em;
+  text-transform: uppercase;
+  color: var(--faint);
+  margin-bottom: var(--sp-3);
+}
+.rail-title{
+  font-family: var(--f-display);
+  font-size: var(--fs-lg);
+  line-height: 1.5;
+  margin: 0 0 var(--sp-5);
+  text-wrap: balance;
+}
+.toc{ list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 1px; }
+.toc a{
+  display: grid;
+  grid-template-columns: .6rem 1fr;
+  align-items: baseline;
+  gap: var(--sp-2);
+  padding: var(--sp-2) var(--sp-2) var(--sp-2) var(--sp-1);
+  color: var(--muted);
+  text-decoration: none;
+  line-height: 1.5;
+  border-radius: 3px;
+}
+.toc a:hover{ background: var(--surface-2); color: var(--ink); }
+.toc a[aria-current="true"]{ color: var(--ink); font-weight: 600; background: var(--accent-bg); }
+.toc .dot{
+  width: .5rem; height: .5rem; border-radius: 50%;
+  background: var(--st-idle); align-self: center;
+}
+.rail-tools{
+  display: flex; flex-wrap: wrap; gap: var(--sp-2);
+  margin-top: var(--sp-5); padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+}
+.btn{
+  font: inherit; font-size: var(--fs-xs);
+  background: transparent; color: var(--muted);
+  border: 1px solid var(--rule-bold); border-radius: 3px;
+  padding: .3rem .6rem; cursor: pointer;
+}
+.btn:hover{ color: var(--ink); border-color: var(--faint); }
+
+/* --- 4. 本文 ---------------------------------------------- */
+main{ padding: var(--sp-6) 0 var(--sp-8); min-width: 0; }
+.wrap{ max-width: var(--measure); }
+
+.masthead{ margin-bottom: var(--sp-6); }
+.eyebrow{
+  font-family: var(--f-mono);
+  font-size: var(--fs-2xs);
+  letter-spacing: .16em;
+  text-transform: uppercase;
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-3);
+  margin-bottom: var(--sp-3);
+}
+h1{
+  font-family: var(--f-display);
+  font-size: var(--fs-dsp);
+  font-weight: 600;
+  line-height: 1.35;
+  letter-spacing: -.01em;
+  margin: 0 0 var(--sp-3);
+  text-wrap: balance;
+}
+.lede{
+  font-size: var(--fs-lg);
+  line-height: 1.95;
+  color: var(--muted);
+  margin: 0;
+  max-width: 60ch;
+}
+.masthead-rule{
+  height: 2px; background: var(--ink);
+  margin: var(--sp-5) 0 0; width: 3.5rem;
+}
+
+/* KPI 行：箱で囲まずヘアラインで区切る */
+.kpis{
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 1px;
+  background: var(--rule);
+  border: 1px solid var(--rule);
+  margin: var(--sp-6) 0;
+}
+.kpi{ background: var(--surface); padding: var(--sp-4) var(--sp-4) var(--sp-3); }
+.kpi dt{
+  font-size: var(--fs-2xs);
+  letter-spacing: .1em;
+  text-transform: uppercase;
+  font-family: var(--f-mono);
+  color: var(--faint);
+  margin-bottom: var(--sp-2);
+}
+.kpi dd{
+  margin: 0;
+  font-size: 1.5rem;
+  font-weight: 650;
+  line-height: 1.2;
+  font-variant-numeric: tabular-nums;
+}
+.kpi dd small{ font-size: var(--fs-sm); font-weight: 500; color: var(--muted); margin-left: .2em; }
+.kpi .kpi-sub{ font-size: var(--fs-xs); color: var(--muted); line-height: 1.6; margin-top: var(--sp-1); }
+
+/* セクション：カードにせず、左の余白に状態マーカーを吊るす */
+.sec{
+  border-top: 1px solid var(--rule);
+  padding-top: var(--sp-5);
+  margin-top: var(--sp-6);
+}
+.sec > summary{ list-style: none; cursor: pointer; }
+.sec > summary::-webkit-details-marker{ display: none; }
+.sec-head{
+  display: grid;
+  grid-template-columns: var(--gutter) minmax(0, 1fr) auto;
+  align-items: start;
+  gap: var(--sp-2);
+}
+.sec-mark{
+  margin-top: .55rem;
+  width: .625rem; height: .625rem;
+  border-radius: 2px;
+  background: var(--st-idle);
+  box-shadow: 0 0 0 3px var(--st-idle-bg);
+}
+.sec h2{
+  font-size: var(--fs-h2);
+  font-weight: 650;
+  line-height: 1.5;
+  margin: 0;
+  text-wrap: balance;
+}
+.sec h2 .tag{
+  display: block;
+  font-family: var(--f-body);
+  font-size: var(--fs-sm);
+  font-weight: 400;
+  color: var(--muted);
+  margin-top: var(--sp-1);
+}
+.sec-toggle{
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  color: var(--faint); letter-spacing: .1em; padding-top: .5rem;
+  white-space: nowrap;
+}
+.sec[open] .sec-toggle::after{ content: "閉じる −"; }
+.sec:not([open]) .sec-toggle::after{ content: "開く ＋"; }
+.sec-body{ padding: var(--sp-4) 0 var(--sp-4) calc(var(--gutter) + var(--sp-2)); }
+@media (max-width: 40rem){
+  .sec-body{ padding-left: 0; }
+}
+
+/* 状態別の色付け（マーカーと目次ドットを同じ語彙で揃える） */
+[data-status="ship"]   .sec-mark, .dot[data-status="ship"]  { background: var(--st-ship);   box-shadow: 0 0 0 3px var(--st-ship-bg); }
+[data-status="active"] .sec-mark, .dot[data-status="active"]{ background: var(--st-active); box-shadow: 0 0 0 3px var(--st-active-bg); }
+[data-status="block"]  .sec-mark, .dot[data-status="block"] { background: var(--st-block);  box-shadow: 0 0 0 3px var(--st-block-bg); }
+[data-status="new"]    .sec-mark, .dot[data-status="new"]   { background: var(--st-new);    box-shadow: 0 0 0 3px var(--st-new-bg); }
+[data-status="idle"]   .sec-mark, .dot[data-status="idle"]  { background: var(--st-idle);   box-shadow: 0 0 0 3px var(--st-idle-bg); }
+[data-status="crit"]   .sec-mark, .dot[data-status="crit"]  { background: var(--st-crit);   box-shadow: 0 0 0 3px var(--st-crit-bg); }
+
+/* 状態ピル */
+.pill{
+  display: inline-flex; align-items: center; gap: .35em;
+  font-size: var(--fs-2xs); font-weight: 600;
+  letter-spacing: .04em;
+  padding: .15em .55em; border-radius: 2px;
+  background: var(--st-idle-bg); color: var(--st-idle);
+  white-space: nowrap;
+}
+.pill[data-status="ship"]  { background: var(--st-ship-bg);   color: var(--st-ship); }
+.pill[data-status="active"]{ background: var(--st-active-bg); color: var(--st-active); }
+.pill[data-status="block"] { background: var(--st-block-bg);  color: var(--st-block); }
+.pill[data-status="new"]   { background: var(--st-new-bg);    color: var(--st-new); }
+.pill[data-status="crit"]  { background: var(--st-crit-bg);   color: var(--st-crit); }
+.pills{ display: flex; flex-wrap: wrap; gap: var(--sp-2); margin: var(--sp-3) 0 0; }
+
+/* 見出し・本文要素 */
+h3{
+  font-size: var(--fs-h3); font-weight: 650; line-height: 1.6;
+  margin: var(--sp-5) 0 var(--sp-2);
+}
+h4{
+  font-size: var(--fs-md); font-weight: 650;
+  margin: var(--sp-4) 0 var(--sp-2);
+  color: var(--muted);
+}
+p{ margin: 0 0 var(--sp-3); }
+ul, ol{ margin: 0 0 var(--sp-3); padding-left: 1.3em; }
+li{ margin-bottom: var(--sp-2); }
+li::marker{ color: var(--faint); }
+strong{ font-weight: 650; }
+hr{ border: 0; border-top: 1px solid var(--rule); margin: var(--sp-6) 0; }
+
+/* 引用・注記・リスク */
+.note{
+  border-left: 2px solid var(--rule-bold);
+  padding: var(--sp-1) 0 var(--sp-1) var(--sp-4);
+  margin: var(--sp-4) 0;
+  color: var(--muted);
+  font-size: var(--fs-sm);
+}
+.callout{
+  background: var(--surface);
+  border: 1px solid var(--rule);
+  border-left: 3px solid var(--rule-bold);
+  padding: var(--sp-4);
+  margin: var(--sp-4) 0;
+}
+.callout > :last-child{ margin-bottom: 0; }
+.callout-title{
+  font-size: var(--fs-xs); font-weight: 700;
+  letter-spacing: .06em;
+  margin-bottom: var(--sp-2);
+  display: flex; align-items: center; gap: var(--sp-2);
+}
+.callout[data-kind="risk"]{ border-left-color: var(--st-crit); background: var(--st-crit-bg); }
+.callout[data-kind="risk"]  .callout-title{ color: var(--st-crit); }
+.callout[data-kind="win"]{  border-left-color: var(--st-ship); background: var(--st-ship-bg); }
+.callout[data-kind="win"]   .callout-title{ color: var(--st-ship); }
+.callout[data-kind="wait"]{ border-left-color: var(--st-block); background: var(--st-block-bg); }
+.callout[data-kind="wait"]  .callout-title{ color: var(--st-block); }
+
+/* 定義リスト（現状 / 次のアクション 等の見出し付き項目） */
+.facts{ display: grid; gap: var(--sp-3); margin: var(--sp-4) 0; }
+.fact{ display: grid; grid-template-columns: 7rem minmax(0,1fr); gap: var(--sp-3); align-items: start; }
+.fact > dt{
+  font-size: var(--fs-xs); color: var(--faint);
+  letter-spacing: .06em; padding-top: .3em;
+  border-top: 1px solid var(--rule);
+}
+.fact > dd{ margin: 0; border-top: 1px solid var(--rule); padding-top: .3em; }
+.fact > dd > :last-child{ margin-bottom: 0; }
+@media (max-width: 40rem){
+  .fact{ grid-template-columns: 1fr; gap: var(--sp-1); }
+  .fact > dd{ border-top: 0; padding-top: 0; }
+}
+
+/* 表：常に横スクロール可能な器に入れる */
+.scroll-x{ overflow-x: auto; margin: var(--sp-4) 0; border: 1px solid var(--rule); }
+table{ border-collapse: collapse; width: 100%; font-size: var(--fs-sm); background: var(--surface); }
+th, td{ text-align: left; padding: var(--sp-2) var(--sp-3); border-bottom: 1px solid var(--rule); vertical-align: top; }
+thead th{
+  font-size: var(--fs-2xs); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--faint); font-weight: 600; background: var(--surface-2);
+  position: sticky; top: 0;
+}
+tbody tr:last-child td{ border-bottom: 0; }
+td.num, th.num{ text-align: right; font-variant-numeric: tabular-nums; }
+
+/* 時系列（順序が意味を持つときだけ使う） */
+.tl{ list-style: none; margin: var(--sp-4) 0; padding: 0; }
+.tl li{
+  display: grid; grid-template-columns: 5.5rem minmax(0,1fr);
+  gap: var(--sp-3); padding-bottom: var(--sp-3);
+  border-left: 1px solid var(--rule); margin-left: .3rem; padding-left: var(--sp-4);
+  position: relative;
+}
+.tl li::before{
+  content: ""; position: absolute; left: -3.5px; top: .7em;
+  width: 6px; height: 6px; border-radius: 50%;
+  background: var(--rule-bold);
+}
+.tl time{ font-family: var(--f-mono); font-size: var(--fs-xs); color: var(--faint); }
+@media (max-width: 40rem){ .tl li{ grid-template-columns: 1fr; gap: var(--sp-1); } }
+
+/* リンク集 */
+.links{ list-style: none; padding: 0; margin: var(--sp-3) 0; font-size: var(--fs-sm); }
+.links li{ margin-bottom: var(--sp-1); }
+.links .star{ color: var(--st-block); }
+
+footer{
+  margin-top: var(--sp-8);
+  padding-top: var(--sp-4);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  color: var(--faint);
+  display: flex; flex-wrap: wrap; gap: var(--sp-4); justify-content: space-between;
+}
+
+/* --- 4.5 図版 --------------------------------------------- */
+/* 図は必ず <figure> + インライン <svg> + <figcaption> の3点セット。
+   色は 1 つ残らずトークン経由で指定する。SVG に生の #hex を書くと
+   ダークテーマで死ぬ（背景だけ反転して線が見えなくなる）。 */
+figure{
+  margin: var(--sp-5) 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  border: 1px solid var(--rule);
+}
+figure svg{
+  display: block;
+  width: 100%; max-width: 100%; height: auto;   /* viewBox で伸縮させる */
+  color: var(--ink);                            /* currentColor の基準 */
+}
+figcaption{
+  margin-top: var(--sp-3);
+  padding-top: var(--sp-3);
+  border-top: 1px solid var(--rule);
+  font-size: var(--fs-xs);
+  line-height: 1.75;
+  color: var(--muted);
+}
+
+/* SVG 内で使う語彙。これ以外の見た目を figure ごとに発明しない */
+.d-box      { fill: var(--surface-2); stroke: var(--rule-bold); stroke-width: 1; }
+.d-box-acc  { fill: var(--accent-bg); stroke: var(--accent); stroke-width: 1.25; }
+.d-box-ship { fill: var(--st-ship-bg); stroke: var(--st-ship); stroke-width: 1; }
+.d-box-block{ fill: var(--st-block-bg); stroke: var(--st-block); stroke-width: 1; }
+.d-box-crit { fill: var(--st-crit-bg); stroke: var(--st-crit); stroke-width: 1.25; }
+.d-box-idle { fill: none; stroke: var(--rule-bold); stroke-width: 1; stroke-dasharray: 4 3; }
+
+.d-t     { font-family: var(--f-body); font-size: 13px; font-weight: 600; fill: var(--ink); }
+.d-t-sm  { font-family: var(--f-body); font-size: 11.5px; fill: var(--muted); }
+.d-t-key { font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--accent); }
+.d-t-crit{ font-family: var(--f-body); font-size: 11.5px; font-weight: 600; fill: var(--st-crit); }
+.d-t-mono{ font-family: var(--f-mono); font-size: 11px; fill: var(--faint); letter-spacing: .04em; }
+.d-t-code{ font-family: var(--f-mono); font-size: 15px; font-weight: 700; fill: var(--accent); letter-spacing: .08em; }
+
+.d-line      { stroke: var(--rule-bold); stroke-width: 1.25; fill: none; }
+.d-line-acc  { stroke: var(--accent); stroke-width: 1.5; fill: none; }
+.d-line-crit { stroke: var(--st-crit); stroke-width: 1.5; fill: none; stroke-dasharray: 5 4; }
+.d-head      { fill: var(--rule-bold); }
+.d-head-acc  { fill: var(--accent); }
+.d-head-crit { fill: var(--st-crit); }
+.d-rule      { stroke: var(--rule); stroke-width: 1; }
+
+/* 貼り込んだ図版（ラスタ）。白地の図をダークテーマの暗い面に置くと浮くので、
+   紙を1枚敷いたように見せる。ここだけは面の色を白で固定する（画像の地と揃える）。 */
+figure img.sheet{
+  display: block;
+  width: 100%; height: auto;
+  background: #fff;
+  border: 1px solid var(--rule);
+  border-radius: 2px;
+}
+
+/* クリックで拡大。JS が動かない環境では画像単体が開くだけで、壊れはしない */
+figure a.zoom{ display: block; cursor: zoom-in; }
+figure a.zoom:hover img.sheet{ border-color: var(--rule-bold); }
+#lightbox{
+  position: fixed; inset: 0; z-index: 100;
+  display: none; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.82); padding: 2vmin; cursor: zoom-out;
+}
+#lightbox[open]{ display: flex; }
+#lightbox img{
+  max-width: 96vw; max-height: 96vh;
+  width: auto; height: auto;
+  background: #fff; border-radius: 2px;
+}
+#lightbox .hint{
+  position: fixed; left: 0; right: 0; bottom: 1rem;
+  text-align: center; color: #fff; opacity: .7;
+  font-family: var(--f-mono); font-size: var(--fs-2xs); letter-spacing: .1em;
+}
+@media print{ figure a.zoom{ cursor: auto } #lightbox{ display: none !important } }
+
+/* --- 5. モーション ---------------------------------------- */
+@media (prefers-reduced-motion: no-preference){
+  .toc a, .btn, .sec-mark{ transition: background-color .15s ease, color .15s ease; }
+}
+
+/* --- 6. 印刷 ---------------------------------------------- */
+@media print{
+  :root{ --paper:#fff; --surface:#fff; --surface-2:#fff; --ink:#000; --muted:#333; --rule:#bbb; }
+  body{ font-size: 10.5pt; line-height: 1.7; }
+  .rail, .rail-tools, .sec-toggle, .skip{ display: none !important; }
+  .shell{ display: block; max-width: none; padding: 0; }
+  .sec{ break-inside: avoid; }
+  a{ color: #000; text-decoration: underline; }
+  .callout, .kpis, .scroll-x, figure{ break-inside: avoid; }
+}
+
+/* --- 開閉の状態を見分けやすくする（2026-08-09） -------------- */
+
+/* 閉じている節は、ごく薄い面に沈める。開いている節との差で
+   どこを畳んだかが分かる。スライドは全節を開いて撮るので影響しない */
+.sec:not([open]){
+  background: rgba(20,26,38,.007);
+  border-top-color: transparent;
+  border-radius: 4px;
+  padding: var(--sp-3) var(--sp-4);
+  margin-top: var(--sp-3);
+}
+.sec:not([open]) h2{ color: var(--muted); }
+.sec:not([open]) .sec-mark{ opacity: .55; }
+.sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+.sec:not([open]):hover h2{ color: var(--ink); }
+
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]) .sec:not([open]){ background: rgba(255,255,255,.012); }
+  :root:not([data-theme="light"]) .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+}
+:root[data-theme="dark"] .sec:not([open]){ background: rgba(255,255,255,.012); }
+:root[data-theme="dark"] .sec:not([open]):hover{ background: rgba(255,255,255,.035); }
+:root[data-theme="light"] .sec:not([open]){ background: rgba(20,26,38,.007); }
+:root[data-theme="light"] .sec:not([open]):hover{ background: rgba(20,26,38,.028); }
+
+/* 見出しとサブタイトルを少し大きく。サブタイトルは控えめすぎたので
+   相対的に上げ幅を大きくする */
+.sec h2{ font-size: 1.625rem; }
+.sec h2 .tag{ font-size: var(--fs-lg); margin-top: var(--sp-2); }
+
+/* 開くときは 0.3 秒でふわっと。高さの補間は対応ブラウザだけ効き、
+   効かない環境でも中身が淡く入る */
+:root{ interpolate-size: allow-keywords; }
+@media (prefers-reduced-motion: no-preference){
+  .sec::details-content{
+    block-size: 0;
+    overflow: clip;
+    transition: block-size .3s ease, content-visibility .3s;
+    transition-behavior: allow-discrete;
+  }
+  .sec[open]::details-content{ block-size: auto; }
+  .sec[open] > .sec-body{ animation: sec-reveal .3s ease both; }
+}
+@keyframes sec-reveal{
+  from{ opacity: 0; transform: translateY(-.25rem); }
+  to  { opacity: 1; transform: none; }
+}
+
+/* スライド撮影中に途中の絵を掴まないよう、動きは止める */
+.slide .sec::details-content{ block-size: auto; overflow: visible; transition: none; }
+.slide .sec[open] > .sec-body{ animation: none; }
+
+/* --- 7. コード引用（2026-08-13） --------------------------- */
+/* 必ず .codeblock で包み、どのファイルの何行目かを .code-file に書く。
+   出典の無いコードは読み手が検証できない */
+pre{
+  margin: 0;
+  padding: var(--sp-4);
+  background: var(--surface);
+  font-family: var(--f-mono);
+  font-size: var(--fs-sm);
+  line-height: 1.75;
+  white-space: pre;
+}
+pre code{ font-size: inherit; }
+.scroll-x > pre{ border: 0; }
+
+.codeblock{ margin: var(--sp-4) 0; }
+.codeblock > .scroll-x{ margin: 0; }
+.code-file{
+  display: flex; flex-wrap: wrap; gap: var(--sp-3); align-items: baseline;
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  letter-spacing: .06em; color: var(--faint);
+  margin: 0 0 var(--sp-1);
+}
+.code-file .ln{ color: var(--accent); font-variant-numeric: tabular-nums; }
+
+/* コード中で目を留めてほしい箇所。指差しなので、色ではなく淡い面で示す。
+   こうしておけば下のシンタックス色を潰さない */
+pre b{ font-weight: 700; background: var(--accent-bg); border-radius: 2px; }
+
+/* シンタックスハイライト。色は既存の状態トークンから借りているので、
+   ライト/ダークの切り替えに自動で追従する。意味が濁らないよう 5 色までに抑える。
+   エディタのようなフルカラーにすると data-status の色の意味体系が濁る */
+.tok-com{ color: var(--faint); }
+.tok-str{ color: var(--st-ship); }
+.tok-kw { color: var(--st-new); }
+.tok-typ, .tok-key{ color: var(--accent); }
+.tok-num{ color: var(--st-block); }
+.tok-del{ color: var(--st-crit); }
+.tok-add{ color: var(--st-ship); }
+
+@media print{
+  /* モノクロ印刷では色差が消えるので、コメント以外は黒に戻す */
+  .tok-str, .tok-kw, .tok-typ, .tok-key, .tok-num, .tok-add, .tok-del{ color: #000; }
+  .tok-com{ color: #555; }
+  pre b{ background: #eee; }
+}
+
+/* --- 4.9 プロジェクトラベル ---------------------------------
+   「どのプロジェクトの話か」を示す帯。色は状態（--st-*）とは別系統で、
+   チップには必ずラベル名を書く（色は再認識の補助であって意味は運ばない）。
+   ラベルの定義は週次レポート側の台帳が正:
+   SysCommon docs/repositories.md「週次レポートのプロジェクトラベル」。
+   プロジェクトが変われば --pj-* のセットごと差し替えてよい。 */
+:root{
+  --pj-adeval:#6B44A8;     --pj-adeval-bg:#F0EAFA;
+  --pj-meta-link:#1F5FA8;  --pj-meta-link-bg:#E8F0FB;
+  --pj-bm:#0E6B70;         --pj-bm-bg:#E2F2F2;
+  --pj-affili-rm:#A6365C;  --pj-affili-rm-bg:#FCE9EF;
+  --pj-spend:#A2570F;      --pj-spend-bg:#FBEDDF;
+  --pj-policy:#5A7018;     --pj-policy-bg:#EFF3DF;
+  --pj-pldb:#4A4BA8;       --pj-pldb-bg:#EBEBFA;
+  --pj-salesbot:#2C6B47;   --pj-salesbot-bg:#E5F2EA;
+  --pj-accounting:#7D3A70; --pj-accounting-bg:#F8E9F5;
+  --pj-org:#4C5666;        --pj-org-bg:#ECEEF2;
+  --pj-blueprint:#6E5A3C;  --pj-blueprint-bg:#F2EEE2;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --pj-adeval:#B79BE8;     --pj-adeval-bg:#2A2340;
+    --pj-meta-link:#8FB6E8;  --pj-meta-link-bg:#1A2740;
+    --pj-bm:#6FC3C6;         --pj-bm-bg:#14302F;
+    --pj-affili-rm:#E894B0;  --pj-affili-rm-bg:#3A1E28;
+    --pj-spend:#E0A868;      --pj-spend-bg:#3A2A16;
+    --pj-policy:#B4CC70;     --pj-policy-bg:#262E14;
+    --pj-pldb:#A0A0E8;       --pj-pldb-bg:#22223F;
+    --pj-salesbot:#7CC298;   --pj-salesbot-bg:#162E20;
+    --pj-accounting:#D69AC8; --pj-accounting-bg:#341F30;
+    --pj-org:#A6B0C0;        --pj-org-bg:#262A32;
+    --pj-blueprint:#C4B48E;  --pj-blueprint-bg:#2E2A1E;
+  }
+}
+:root[data-theme="dark"]{
+  --pj-adeval:#B79BE8;     --pj-adeval-bg:#2A2340;
+  --pj-meta-link:#8FB6E8;  --pj-meta-link-bg:#1A2740;
+  --pj-bm:#6FC3C6;         --pj-bm-bg:#14302F;
+  --pj-affili-rm:#E894B0;  --pj-affili-rm-bg:#3A1E28;
+  --pj-spend:#E0A868;      --pj-spend-bg:#3A2A16;
+  --pj-policy:#B4CC70;     --pj-policy-bg:#262E14;
+  --pj-pldb:#A0A0E8;       --pj-pldb-bg:#22223F;
+  --pj-salesbot:#7CC298;   --pj-salesbot-bg:#162E20;
+  --pj-accounting:#D69AC8; --pj-accounting-bg:#341F30;
+  --pj-org:#A6B0C0;        --pj-org-bg:#262A32;
+  --pj-blueprint:#C4B48E;  --pj-blueprint-bg:#2E2A1E;
+}
+
+.proj{
+  display: inline-flex; align-items: center; gap: .45em;
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  letter-spacing: .06em; line-height: 1;
+  padding: .32em .6em .34em; margin: 0;
+  border: 1px solid currentColor; border-radius: 2px;
+  color: var(--pj-org); background: var(--pj-org-bg);
+  white-space: nowrap;
+}
+.proj::before{
+  content: ""; width: .5em; height: .5em; flex: none;
+  border-radius: 1px; background: currentColor;
+}
+/* .sec-head は [gutter][1fr][auto] の3列グリッド。チップは2列目1行目に置き、
+   見出しを2行目へ落とす。justify-self:start が無いと列いっぱいに伸びる。 */
+.sec-head .proj{ grid-column: 2; grid-row: 1; justify-self: start; margin-bottom: .1rem; }
+.sec-head .proj ~ h2{ grid-column: 2; grid-row: 2; }
+.sec-head .proj ~ .sec-toggle{ grid-column: 3; grid-row: 1; }
+
+.proj[data-project="adeval"]    { color: var(--pj-adeval);     background: var(--pj-adeval-bg); }
+.proj[data-project="meta-link"] { color: var(--pj-meta-link);  background: var(--pj-meta-link-bg); }
+.proj[data-project="bm"]        { color: var(--pj-bm);         background: var(--pj-bm-bg); }
+.proj[data-project="affili-rm"] { color: var(--pj-affili-rm);  background: var(--pj-affili-rm-bg); }
+.proj[data-project="spend"]     { color: var(--pj-spend);      background: var(--pj-spend-bg); }
+.proj[data-project="policy"]    { color: var(--pj-policy);     background: var(--pj-policy-bg); }
+.proj[data-project="pldb"]      { color: var(--pj-pldb);       background: var(--pj-pldb-bg); }
+.proj[data-project="salesbot"]  { color: var(--pj-salesbot);   background: var(--pj-salesbot-bg); }
+.proj[data-project="accounting"]{ color: var(--pj-accounting); background: var(--pj-accounting-bg); }
+.proj[data-project="blueprint"] { color: var(--pj-blueprint);  background: var(--pj-blueprint-bg); }
+
+/* 目次: プロジェクトごとの見出し（<li> として ul の直下に置く） */
+.toc-pj{
+  display: flex; align-items: center; gap: .4em;
+  margin: var(--sp-3) 0 var(--sp-1); padding-left: var(--sp-1);
+  font-family: var(--f-mono); font-size: var(--fs-2xs);
+  letter-spacing: .06em; color: var(--pj-org);
+}
+.toc-pj::before{
+  content: ""; width: .5em; height: .5em; flex: none;
+  border-radius: 1px; background: currentColor;
+}
+.toc-pj:first-child{ margin-top: 0; }
+.toc-pj[data-project="adeval"]    { color: var(--pj-adeval); }
+.toc-pj[data-project="meta-link"] { color: var(--pj-meta-link); }
+.toc-pj[data-project="bm"]        { color: var(--pj-bm); }
+.toc-pj[data-project="affili-rm"] { color: var(--pj-affili-rm); }
+.toc-pj[data-project="spend"]     { color: var(--pj-spend); }
+.toc-pj[data-project="policy"]    { color: var(--pj-policy); }
+.toc-pj[data-project="pldb"]      { color: var(--pj-pldb); }
+.toc-pj[data-project="salesbot"]  { color: var(--pj-salesbot); }
+.toc-pj[data-project="accounting"]{ color: var(--pj-accounting); }
+.toc-pj[data-project="blueprint"] { color: var(--pj-blueprint); }
+@media print{ .proj{ background: none; } }
+
+</style>
+</head>
+</head>
+
+<body>
+<a class="skip" href="#main">本文へスキップ</a>
+
+<div class="shell">
+
+  <aside class="rail">
+    <div class="rail-brand">DEA Ingestion · 03</div>
+    <p class="rail-title">メタデータ列の付与</p>
+
+    <nav aria-label="目次">
+      <ul class="toc" id="toc">
+        <li><a href="#sec-why"><span class="dot" data-status="crit"></span><span>取り込んだ瞬間に出所が消える</span></a></li>
+        <li><a href="#sec-metadata"><span class="dot" data-status="ship"></span><span>_metadata という隠し列</span></a></li>
+        <li><a href="#sec-fields"><span class="dot" data-status="new"></span><span>実は6つある</span></a></li>
+        <li><a href="#sec-recap"><span class="dot" data-status="active"></span><span>まとめ</span></a></li>
+      </ul>
+    </nav>
+
+    <div class="rail-tools">
+      <a class="btn" href="https://youtu.be/NY63vgp-Nr4" rel="noopener" style="text-decoration:none">▶ 動画</a>
+      <button class="btn" type="button" id="expand-all">全部開く</button>
+      <button class="btn" type="button" id="theme-toggle" aria-pressed="false">テーマ切替</button>
+      <button class="btn" type="button" onclick="window.print()">印刷</button>
+    </div>
+  </aside>
+
+  <main id="main">
+    <div class="wrap">
+
+      <header class="masthead">
+        <div class="eyebrow">
+          <span><a href="https://youtu.be/NY63vgp-Nr4" rel="noopener">▶ 動画で見る</a></span>
+          <span>Data Engineer Associate</span>
+          <span class="num">DEA Ingestion 03</span>
+        </div>
+        <h1>メタデータ列の付与 — <code>_metadata</code> でファイルの出所を残す</h1>
+        <p class="lede">
+          取り込みが終わった瞬間に「この行はどのファイルから来たのか」は失われます。
+          それを取り込みと同時に残すのが <code>_metadata</code> という隠し列です。
+          短い機能ですが、監査・リネージ・デバッグの土台になります。
+        </p>
+        <div class="masthead-rule"></div>
+      </header>
+
+      <!-- ============================================================ -->
+      <details class="sec" id="sec-why" data-status="crit" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>取り込んだ瞬間に出所が消える<span class="tag">残すなら取り込みと同時にしかできない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <p>
+            クラウドストレージに生ファイルが並んでいて、中身はユーザー名とタイムスタンプの2列だとします。
+            これをブロンズテーブルに取り込むと、同じ2列を持ったテーブルができる。ここまでは普通です。
+          </p>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">問題は数か月後に起きる</p>
+            <p>
+              ある行の値がおかしいと分かったとき、<strong>どのファイルから入ったのか、いつのファイルなのかが
+              テーブルからは分かりません。</strong>取り込んだ瞬間に落ちているからです。
+              あとから足すこともできません — 元の対応関係がもう残っていない。
+            </p>
+          </div>
+
+          <figure>
+            <svg viewBox="0 0 720 170" role="img"
+                 aria-label="生ファイルを取り込むとき、メタデータ列を足さない場合は出所が失われ、足した場合はファイル名と更新時刻がブロンズテーブルに残ることを対比した図">
+              <defs>
+                <marker id="m1-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="m1-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <rect x="14" y="52" width="140" height="58" rx="2" class="d-box"/>
+              <text x="84" y="76" class="d-t"    text-anchor="middle">生ファイル</text>
+              <text x="84" y="95" class="d-t-sm" text-anchor="middle">CSV / TXT / JSON</text>
+
+              <line x1="160" y1="52" x2="252" y2="34" class="d-line" marker-end="url(#m1-ar)"/>
+              <line x1="160" y1="110" x2="252" y2="128" class="d-line-acc" marker-end="url(#m1-ar-acc)"/>
+
+              <rect x="258" y="12" width="448" height="48" rx="2" class="d-box"/>
+              <text x="272" y="32" class="d-t-sm">そのまま取り込む</text>
+              <text x="272" y="50" class="d-t-sm">users / unix_ts …… 出所は残らない</text>
+
+              <rect x="258" y="106" width="448" height="52" rx="2" class="d-box-acc"/>
+              <text x="272" y="126" class="d-t-sm">_metadata を選んで取り込む</text>
+              <text x="272" y="146" class="d-t-sm">users / unix_ts / last_mod_time / source</text>
+            </svg>
+            <figcaption>
+              <strong>差は取り込みの一手間だけ。</strong>
+              下の経路を選んでおかないと、あとから出所を復元する方法はありません。
+            </figcaption>
+          </figure>
+
+          <p>
+            用途は3つ。<strong>監査</strong>、<strong>リネージ</strong>（データがどこから来たかの追跡）、
+            <strong>デバッグ</strong>です。ブロンズ層に置く意味もここにあります。
+            生に近い層こそ、出所の情報を保つのにふさわしい場所です。
+          </p>
+        </div>
+      </details>
+
+      <!-- ============================================================ -->
+      <details class="sec" id="sec-metadata" data-status="ship" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2><code>_metadata</code> という隠し列<span class="tag">明示的に選ばないと出てこない</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <dl class="facts">
+            <div class="fact"><dt>隠し列</dt><dd>テーブルの定義には現れません。</dd></div>
+            <div class="fact"><dt>全形式で使える</dt><dd>CSV でも JSON でも Parquet でも同じように使えます。</dd></div>
+            <div class="fact"><dt>明示選択が必須</dt><dd><code>SELECT *</code> では含まれません。読み取りのクエリで自分で書く必要があります。</dd></div>
+          </dl>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">いちばん忘れやすいところ</p>
+            <p>
+              <code>_metadata</code> は隠し列なので、<strong>ソースを指定する読み取りの中で明示的に選ばない限り
+              返ってきません。</strong>アスタリスクで全部選んでも含まれない。
+            </p>
+          </div>
+
+          <h3>代表的な2フィールド</h3>
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>フィールド</th><th>型</th><th>返るもの</th></tr></thead>
+              <tbody>
+                <tr><td><code>_metadata.file_modification_time</code></td><td>TIMESTAMP</td><td>入力ファイルの最終更新時刻</td></tr>
+                <tr><td><code>_metadata.file_name</code></td><td>STRING</td><td>その行のソースになったファイル名（拡張子込み）</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <p>試験でも実務でも、まずこの2つを押さえておけば足ります。</p>
+        </div>
+      </details>
+
+      <!-- ============================================================ -->
+      <details class="sec" id="sec-fields" data-status="new" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>実は6つある<span class="tag">公式ドキュメントより。落とし穴も2つ</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <div class="scroll-x">
+            <table>
+              <thead><tr><th>フィールド</th><th>型</th><th>意味</th><th>使うか</th></tr></thead>
+              <tbody>
+                <tr><td><code>file_path</code></td><td>STRING</td><td>入力ファイルのフルパス</td><td>よく使う</td></tr>
+                <tr><td><code>file_name</code></td><td>STRING</td><td>拡張子まで含むファイル名</td><td>よく使う</td></tr>
+                <tr><td><code>file_size</code></td><td>LONG</td><td>ファイル長（バイト）</td><td>ときどき</td></tr>
+                <tr><td><code>file_modification_time</code></td><td>TIMESTAMP</td><td>最終更新時刻</td><td>よく使う</td></tr>
+                <tr><td><code>file_block_start</code></td><td>LONG</td><td>読んでいるブロックの開始位置（バイト）</td><td>普段は使わない</td></tr>
+                <tr><td><code>file_block_length</code></td><td>LONG</td><td>読んでいるブロックの長さ（バイト）</td><td>普段は使わない</td></tr>
+              </tbody>
+            </table>
+          </div>
+
+          <div class="callout" data-kind="risk">
+            <p class="callout-title">落とし穴 1 — 同名の列があると負ける</p>
+            <p>
+              取り込むデータのほうに、たまたま <code>_metadata</code> という名前の列があった場合、
+              クエリが返すのは<strong>ファイルのメタデータではなく元データのその列</strong>です。
+              ファイル情報は取れません。
+            </p>
+          </div>
+
+          <div class="callout" data-kind="wait">
+            <p class="callout-title">落とし穴 2 — まるごと選ぶとスキーマが動く</p>
+            <p>
+              公式は<strong>フィールドを個別に選ぶこと</strong>を勧めています。将来のリリースで
+              新しいフィールドが増える可能性があり、<code>_metadata</code> をまるごと選んでいると
+              増えたときにスキーマが変わってしまうからです。
+              <code>file_name</code> が欲しいなら <code>file_name</code> だけ、と書くほうが安全です。
+            </p>
+          </div>
+
+          <figure>
+            <svg viewBox="0 0 720 165" role="img"
+                 aria-label="SELECT アスタリスクでは _metadata が返らず、明示的に選んだときだけ返ること、および元データに同名列があるとそちらが優先されることを示した図">
+              <defs>
+                <marker id="m2-ar" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head"/>
+                </marker>
+                <marker id="m2-ar-acc" viewBox="0 0 8 8" refX="7.5" refY="4"
+                        markerWidth="7" markerHeight="7" orient="auto-start-reverse">
+                  <path d="M0,0 L8,4 L0,8 z" class="d-head-acc"/>
+                </marker>
+              </defs>
+
+              <rect x="14" y="14" width="230" height="40" rx="2" class="d-box"/>
+              <text x="129" y="39" class="d-t-sm" text-anchor="middle">SELECT *</text>
+              <line x1="250" y1="34" x2="330" y2="34" class="d-line" marker-end="url(#m2-ar)"/>
+              <text x="342" y="38" class="d-t-sm">_metadata は返らない</text>
+
+              <rect x="14" y="66" width="230" height="40" rx="2" class="d-box-acc"/>
+              <text x="129" y="91" class="d-t-sm" text-anchor="middle">SELECT *, _metadata.file_name</text>
+              <line x1="250" y1="86" x2="330" y2="86" class="d-line-acc" marker-end="url(#m2-ar-acc)"/>
+              <text x="342" y="90" class="d-t-sm">明示したフィールドだけ返る</text>
+
+              <line x1="14" y1="120" x2="706" y2="120" class="d-rule"/>
+              <line x1="14" y1="132" x2="244" y2="132" class="d-line-crit"/>
+              <text x="14" y="152" class="d-t-sm">元データに _metadata 列がある場合 → ファイル情報ではなく、そちらの列が返る</text>
+            </svg>
+            <figcaption>
+              <strong>「選ばなければ返らない」と「同名列があると負ける」は別の失敗。</strong>
+              前者は返り値が空、後者は<em>別の値が返る</em>ので、後者のほうが気づきにくい。
+            </figcaption>
+          </figure>
+        </div>
+      </details>
+
+      <!-- ============================================================ -->
+      <details class="sec" id="sec-recap" data-status="active" open>
+        <summary>
+          <div class="sec-head">
+            <span class="sec-mark" aria-hidden="true"></span>
+            <h2>まとめ<span class="tag">3行</span></h2>
+            <span class="sec-toggle" aria-hidden="true"></span>
+          </div>
+        </summary>
+        <div class="sec-body">
+          <ul>
+            <li>メタデータ列は<strong>データの出所という文脈を保存する</strong>ためのもの。監査・リネージ・デバッグで効く。</li>
+            <li><code>_metadata</code> は<strong>隠し列</strong>で全入力形式に使えるが、<strong>読み取りのクエリで明示的に選ばないと出てこない</strong>。</li>
+            <li>よく使うのは <code>file_modification_time</code> と <code>file_name</code>。全6フィールドあり、<strong>必要なものを個別に選ぶ</strong>のが安全。</li>
+          </ul>
+
+          <ul class="links">
+            <li><a href="https://docs.databricks.com/aws/en/ingestion/file-metadata-column">★ File metadata column — 公式ドキュメント（全6フィールドと注意点）</a></li>
+          </ul>
+        </div>
+      </details>
+
+    </div>
+  </main>
+</div>
+</div>
+
+<script>
+(function () {
+  "use strict";
+
+  /* テーマ切替：OS 設定を初期値にし、選択は localStorage に残す */
+  var root = document.documentElement;
+  var KEY = "replus-doc-theme";
+  var saved = null;
+  try { saved = localStorage.getItem(KEY); } catch (e) { /* file:// でも落とさない */ }
+  if (saved === "dark" || saved === "light") root.setAttribute("data-theme", saved);
+
+  var toggle = document.getElementById("theme-toggle");
+  if (toggle) {
+    toggle.addEventListener("click", function () {
+      var isDark = root.getAttribute("data-theme") === "dark" ||
+        (!root.hasAttribute("data-theme") &&
+         window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var next = isDark ? "light" : "dark";
+      root.setAttribute("data-theme", next);
+      toggle.setAttribute("aria-pressed", String(next === "dark"));
+      try { localStorage.setItem(KEY, next); } catch (e) {}
+    });
+  }
+
+  /* 全部開く / 全部閉じる */
+  var secs = Array.prototype.slice.call(document.querySelectorAll("details.sec"));
+  var expand = document.getElementById("expand-all");
+  if (expand) {
+    expand.addEventListener("click", function () {
+      var anyClosed = secs.some(function (d) { return !d.open; });
+      secs.forEach(function (d) { d.open = anyClosed; });
+      expand.textContent = anyClosed ? "全部閉じる" : "全部開く";
+    });
+  }
+
+  /* 目次の現在位置ハイライト */
+  var links = Array.prototype.slice.call(document.querySelectorAll("#toc a"));
+  var byId = {};
+  links.forEach(function (a) { byId[a.getAttribute("href").slice(1)] = a; });
+
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        links.forEach(function (a) { a.removeAttribute("aria-current"); });
+        var a = byId[en.target.id];
+        if (a) a.setAttribute("aria-current", "true");
+      });
+    }, { rootMargin: "-10% 0px -80% 0px" });
+    secs.forEach(function (d) { if (d.id) io.observe(d); });
+  }
+
+  /* 印刷時は畳んだセクションも展開し、印刷後に元へ戻す */
+  var before = [];
+  window.addEventListener("beforeprint", function () {
+    before = secs.map(function (d) { return d.open; });
+    secs.forEach(function (d) { d.open = true; });
+  });
+  window.addEventListener("afterprint", function () {
+    secs.forEach(function (d, i) { if (before.length) d.open = before[i]; });
+  });
+})();
+</script>
+<div id="lightbox" aria-hidden="true"><img alt=""><p class="hint">クリック / Esc で閉じる</p></div>
+<script>
+(function () {
+  "use strict";
+  // 図版の拡大。<a class="zoom"> を押したら、遷移せずに全画面で見せる。
+  // JS が無ければ普通のリンクとして画像が開くだけなので、壊れない。
+  var box = document.getElementById("lightbox");
+  if (!box) return;
+  var img = box.querySelector("img");
+
+  function open(src, alt) {
+    img.src = src; img.alt = alt || "";
+    box.setAttribute("open", ""); box.setAttribute("aria-hidden", "false");
+  }
+  function close() {
+    box.removeAttribute("open"); box.setAttribute("aria-hidden", "true");
+    img.removeAttribute("src");           // 閉じたら保持しない
+  }
+
+  document.addEventListener("click", function (e) {
+    var a = e.target.closest && e.target.closest("figure a.zoom");
+    if (a) { e.preventDefault(); open(a.getAttribute("href"), a.querySelector("img") && a.querySelector("img").alt); return; }
+    if (box.hasAttribute("open")) close();
+  });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && box.hasAttribute("open")) close();
+  });
+})();
+</script>
+<script>
+(function () {
+  "use strict";
+  /* pre code[data-lang] に軽いシンタックスハイライトを当てる。外部ライブラリは使わない。
+     - テキストノードだけを差し替えるので、<b> による指差しや <a> は壊れない
+     - 色は .tok-* クラス（= トークン）経由なので、ダークテーマにも印刷にも追従する
+     - span は textContent で組み立てるため、中身が HTML として解釈されることはない
+     - 正規表現による近似で、完全な文法解析ではない。既知の取りこぼしは 2 つ:
+       (1) テンプレートリテラルが <b> をまたぐと色が付かない
+       (2) `a / b + c / d` のような除算の連続を正規表現リテラルと誤認しうる
+       いずれも「色がおかしい」だけで、文字が消えたり増えたりはしない */
+
+  var STR   = /"(?:[^"\\\n]|\\.)*"|'(?:[^'\\\n]|\\.)*'|`(?:[^`\\]|\\.)*`/;
+  /* 正規表現リテラル。直前の文字で除算と見分ける（完全ではない）。
+     色は文字列と共用にして、配色を 5 色に保つ */
+  var REGEX = /(?<=[(,=:!&|?;{\[\s])\/(?![*\/])(?:\[(?:[^\]\\\n]|\\.)*\]|[^\/\\\n\[]|\\.)+\/[gimsuy]*/;
+  var NUM   = /\b(?:0[xX][0-9a-fA-F]+|\d+(?:\.\d+)?)\b/;
+  var TYPE  = /\b[A-Z][A-Za-z0-9_]*\b/;
+
+  /* 規則は「先に書いたものが勝つ」。各正規表現にキャプチャ括弧を入れてはいけない */
+  function rulesFor(lang) {
+    switch (lang) {
+      case "json": return [
+        ["tok-com", /\/\/[^\n]*/],
+        ["tok-key", /"(?:[^"\\\n]|\\.)*"(?=\s*:)/],
+        ["tok-str", STR],
+        ["tok-kw",  /\b(?:true|false|null)\b/],
+        ["tok-num", NUM]
+      ];
+      case "diff": return [
+        ["tok-del", /^-[^\n]*/],
+        ["tok-add", /^\+[^\n]*/],
+        ["tok-str", STR]
+      ];
+      case "bash": return [
+        ["tok-com", /#[^\n]*/],
+        ["tok-str", STR],
+        ["tok-kw",  /\b(?:cd|do|done|echo|else|export|fi|for|function|if|local|return|source|then)\b/],
+        ["tok-num", NUM]
+      ];
+      case "python": return [
+        ["tok-com", /#[^\n]*/],
+        ["tok-str", STR],
+        ["tok-kw",  /\b(?:and|as|assert|async|await|break|class|continue|def|del|elif|else|except|finally|for|from|global|if|import|in|is|lambda|None|nonlocal|not|or|pass|raise|return|try|while|with|yield|True|False)\b/],
+        ["tok-typ", TYPE],
+        ["tok-num", NUM]
+      ];
+      default: return [   /* ts / tsx / js / jsx */
+        ["tok-com", /\/\/[^\n]*|\/\*[\s\S]*?\*\//],
+        ["tok-str", REGEX],
+        ["tok-str", STR],
+        ["tok-kw",  /\b(?:abstract|as|async|await|break|case|catch|class|const|continue|declare|default|delete|do|else|enum|export|extends|false|finally|for|from|function|if|implements|import|in|instanceof|interface|is|keyof|let|namespace|new|null|of|private|protected|public|readonly|return|satisfies|static|super|switch|this|throw|true|try|type|typeof|undefined|var|void|while|yield)\b/],
+        ["tok-typ", TYPE],
+        ["tok-num", NUM]
+      ];
+    }
+  }
+
+  function paint(code) {
+    var rules = rulesFor(code.getAttribute("data-lang"));
+    var re;
+    try {
+      /* 後読みなど未対応の構文があれば、ハイライトを諦めて素のまま見せる */
+      re = new RegExp(rules.map(function (r) { return "(" + r[1].source + ")"; }).join("|"), "gm");
+    } catch (e) { return; }
+
+    /* 走査中に DOM を書き換えないよう、先にテキストノードを集めきる */
+    var nodes = [];
+    var walk = document.createTreeWalker(code, NodeFilter.SHOW_TEXT, null);
+    while (walk.nextNode()) nodes.push(walk.currentNode);
+
+    nodes.forEach(function (node) {
+      var text = node.nodeValue, frag = null, last = 0, m, i, which, span;
+      re.lastIndex = 0;
+      while ((m = re.exec(text)) !== null) {
+        if (m[0].length === 0) { re.lastIndex++; continue; }   /* 空マッチで無限ループしない */
+        which = 0;
+        for (i = 1; i <= rules.length; i++) {
+          if (m[i] !== undefined) { which = i - 1; break; }
+        }
+        frag = frag || document.createDocumentFragment();
+        if (m.index > last) frag.appendChild(document.createTextNode(text.slice(last, m.index)));
+        span = document.createElement("span");
+        span.className = rules[which][0];
+        span.textContent = m[0];
+        frag.appendChild(span);
+        last = m.index + m[0].length;
+      }
+      if (frag) {
+        if (last < text.length) frag.appendChild(document.createTextNode(text.slice(last)));
+        node.parentNode.replaceChild(frag, node);
+      }
+    });
+  }
+
+  Array.prototype.slice.call(document.querySelectorAll("pre code[data-lang]"))
+    .forEach(function (code) { try { paint(code); } catch (e) { /* 1 か所の失敗で全部止めない */ } });
+})();
+</script>
+</body>
+</html>
