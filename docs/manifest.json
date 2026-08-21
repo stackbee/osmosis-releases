@@ -782,6 +782,11 @@
           "episode": "ep008",
           "title": "Git によるバージョン管理 — Databricks Git フォルダ",
           "file": "dea/dea-4-devops/version-control-git.html"
+        },
+        {
+          "episode": "ep009",
+          "title": "アセットのデプロイ — Declarative Automation Bundles",
+          "file": "dea/dea-4-devops/deploying-assets.html"
         }
       ],
       "page": "dea",
