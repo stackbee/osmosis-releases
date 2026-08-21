@@ -507,6 +507,11 @@
           "episode": "ep101",
           "title": "OpenAI に学ぶ Unity Catalog とメダリオン",
           "file": "databricks/databricks-shorts/openai-unity-catalog-medallion.html"
+        },
+        {
+          "episode": "ep102",
+          "title": "AI エージェントもデータ利用者になる",
+          "file": "databricks/databricks-shorts/openai-ai-agent-governance.html"
         }
       ],
       "subtitle": "Databricks の1トピックを1回で完結させる回",
