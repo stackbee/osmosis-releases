@@ -739,6 +739,18 @@
       ],
       "page": "dea",
       "subtitle": "宣言的パイプラインの構築と品質管理"
+    },
+    "dea-4-devops": {
+      "title": "DEA DevOps",
+      "docs": [
+        {
+          "episode": "ep001",
+          "title": "ソフトウェアエンジニアリングの作法をデータパイプラインへ",
+          "file": "dea/dea-4-devops/swe-best-practices.html"
+        }
+      ],
+      "page": "dea",
+      "subtitle": "テスト・バージョン管理・デプロイの実践"
     }
   },
   "updated_at": "2026-08-21",
