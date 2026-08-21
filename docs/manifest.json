@@ -636,6 +636,11 @@
           "episode": "ep003",
           "title": "メタデータ列の付与 — _metadata でファイルの出所を残す",
           "file": "dea/dea-1-ingestion/metadata-columns.html"
+        },
+        {
+          "episode": "ep004",
+          "title": "Rescued Data 列 — 壊れた値を捨てずに退避させる",
+          "file": "dea/dea-1-ingestion/rescued-data-column.html"
         }
       ],
       "page": "dea",
