@@ -626,6 +626,11 @@
           "episode": "ep001",
           "title": "データエンジニアリングの全体像とレイクフローコネクト",
           "file": "dea/dea-1-ingestion/data-engineering-overview.html"
+        },
+        {
+          "episode": "ep002",
+          "title": "クラウドストレージからの取り込み — CTAS・COPY INTO・Auto Loader",
+          "file": "dea/dea-1-ingestion/cloud-storage-ingestion.html"
         }
       ],
       "page": "dea",
